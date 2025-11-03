@@ -14,21 +14,24 @@ router.get('/hello', (_req: Request, res: Response<ApiResponse<{ greeting: strin
 });
 
 // GET /api/users (example)
-router.get('/users', (_req: Request, res: Response<ApiResponse<{ id: number; name: string }[]>>) => {
-  res.json({
-    success: true,
-    data: [
-      { id: 1, name: 'John Doe' },
-      { id: 2, name: 'Jane Smith' },
-      { id: 3, name: 'Bob Johnson' },
-    ],
-  });
-});
+router.get(
+  '/users',
+  (_req: Request, res: Response<ApiResponse<{ id: number; name: string }[]>>) => {
+    res.json({
+      success: true,
+      data: [
+        { id: 1, name: 'John Doe' },
+        { id: 2, name: 'Jane Smith' },
+        { id: 3, name: 'Bob Johnson' },
+      ],
+    });
+  }
+);
 
 // POST /api/users (example)
 router.post('/users', (req: Request, res: Response<ApiResponse<{ id: number; name: string }>>) => {
   const { name } = req.body;
-  
+
   if (!name) {
     return res.status(400).json({
       success: false,
@@ -46,4 +49,3 @@ router.post('/users', (req: Request, res: Response<ApiResponse<{ id: number; nam
 });
 
 export default router;
-
