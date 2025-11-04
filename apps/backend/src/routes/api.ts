@@ -9,7 +9,8 @@ router.get('/db-test', async (_req: Request, res: Response) => {
   try {
     const result = await pool.query('SELECT NOW()');
     res.json({ success: true, data: result.rows[0] });
-  } catch (error) { // Explicitly type error as Error
+  } catch (error) {
+    // Explicitly type error as Error
     res.status(500).json({ success: false, error: (error as Error).message });
   }
 });
