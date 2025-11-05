@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
@@ -11,7 +13,16 @@ export default function Home() {
             <li>TypeScript for type safety</li>
             <li>Tailwind CSS for styling</li>
             <li>ESLint for code quality</li>
+            <li>OAuth Authentication with NextAuth.js</li>
           </ul>
+        </div>
+        <div className="mt-8 flex justify-center gap-4">
+          <Link
+            href="/manager/login"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-md"
+          >
+            Manager Portal
+          </Link>
         </div>
       </div>
     </main>
