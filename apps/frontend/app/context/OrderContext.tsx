@@ -23,6 +23,7 @@ export interface OrderItem {
   mealType: MealType;
   entrees: MenuItem[];
   sides: MenuItem[];
+  drink?: MenuItem;
 }
 
 interface OrderContextType {

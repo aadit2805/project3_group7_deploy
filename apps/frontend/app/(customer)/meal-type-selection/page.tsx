@@ -39,7 +39,7 @@ const MealTypeSelection = () => {
     <div className="container mx-auto px-4">
       <h1 className="text-4xl font-bold text-center my-8">Select Your Meal Type</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {mealTypes.filter(mt => mt.meal_type_id >= 1 && mt.meal_type_id <= 3).map((mealType) => (
+                {mealTypes.filter(mt => (mt.meal_type_id >= 1 && mt.meal_type_id <= 3) || (mt.meal_type_id >= 10 && mt.meal_type_id <= 12)).map((mealType) => (
           <Link
             key={mealType.meal_type_id}
             href={`/customer-kiosk?mealTypeId=${mealType.meal_type_id}`}

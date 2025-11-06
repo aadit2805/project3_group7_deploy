@@ -39,6 +39,7 @@ const CustomerKiosk = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [selectedEntrees, setSelectedEntrees] = useState<MenuItem[]>([]);
   const [selectedSides, setSelectedSides] = useState<MenuItem[]>([]);
+  const [selectedDrink, setSelectedDrink] = useState<MenuItem | undefined>(undefined);
 
   useEffect(() => {
     if (!mealTypeId) {
@@ -63,6 +64,7 @@ const CustomerKiosk = () => {
             if (order[index] && order[index].mealType.meal_type_id === parseInt(mealTypeId, 10)) {
               setSelectedEntrees(order[index].entrees);
               setSelectedSides(order[index].sides);
+              setSelectedDrink(order[index].drink);
             }
           }
         } catch (error) {
@@ -74,7 +76,7 @@ const CustomerKiosk = () => {
     }
   }, [mealTypeId, editIndex, order]);
 
-  const handleSelectItem = (item: MenuItem, type: 'entree' | 'side') => {
+  const handleSelectItem = (item: MenuItem, type: 'entree' | 'side' | 'drink') => {
     if (type === 'entree') {
       if (selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id)) {
         setSelectedEntrees(selectedEntrees.filter((e) => e.menu_item_id !== item.menu_item_id));
@@ -87,6 +89,8 @@ const CustomerKiosk = () => {
       } else if (selectedMealType && selectedSides.length < selectedMealType.side_count) {
         setSelectedSides([...selectedSides, item]);
       }
+    } else if (type === 'drink') {
+      setSelectedDrink(item);
     }
   };
 
@@ -96,6 +100,7 @@ const CustomerKiosk = () => {
         mealType: selectedMealType,
         entrees: selectedEntrees,
         sides: selectedSides,
+        drink: selectedDrink,
       };
 
       const newOrder = [...order];
@@ -108,6 +113,7 @@ const CustomerKiosk = () => {
       setOrder(newOrder);
       setSelectedEntrees([]);
       setSelectedSides([]);
+      setSelectedDrink(undefined);
       router.push('/meal-type-selection');
     }
   };
@@ -160,6 +166,27 @@ const CustomerKiosk = () => {
             </div>
           </section>
 
+          {selectedMealType.drink_size !== 'none' && (
+            <section className="mb-10">
+              <h2 className="text-3xl font-semibold mb-4">
+                Select Drink (1)
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {menuItems
+                  .filter((item) => item.item_type === 'drink')
+                  .map((item) => (
+                    <div
+                      key={item.menu_item_id}
+                      className={`bg-white rounded-lg shadow-md p-6 cursor-pointer border-2 ${selectedDrink?.menu_item_id === item.menu_item_id ? 'border-blue-500' : 'border-gray-200'}`}
+                      onClick={() => handleSelectItem(item, 'drink')}
+                    >
+                      <h3 className="text-xl font-bold mb-2">{item.name}</h3>
+                    </div>
+                  ))}
+              </div>
+            </section>
+          )}
+
           <div className="text-center mb-8">
             <button
               onClick={handleAddOrUpdateOrder}
@@ -167,7 +194,8 @@ const CustomerKiosk = () => {
               disabled={
                 selectedMealType &&
                 (selectedEntrees.length !== selectedMealType.entree_count ||
-                  selectedSides.length !== selectedMealType.side_count)
+                  selectedSides.length !== selectedMealType.side_count ||
+                  (selectedMealType.drink_size !== 'none' && !selectedDrink))
               }
             >
               {editIndex !== null ? 'Update Item' : 'Add to Order'}

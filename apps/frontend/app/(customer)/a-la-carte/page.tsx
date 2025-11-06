@@ -76,8 +76,9 @@ const ALaCartePage = () => {
   ];
 
   const sideSizes = [
-    { name: 'Medium', meal_type_id: 7 },
-    { name: 'Large', meal_type_id: 8 },
+    { name: 'Small', meal_type_id: 7 },
+    { name: 'Medium', meal_type_id: 8 },
+    { name: 'Large', meal_type_id: 9 },
   ];
 
   return (

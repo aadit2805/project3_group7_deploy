@@ -4,7 +4,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { OrderContext, OrderItem } from '@/app/context/OrderContext';
 
-// Interfaces to match the data structure
+// Interfaces
 interface MenuItem {
   menu_item_id: number;
   name: string;
@@ -24,20 +24,17 @@ interface MealType {
 
 const DrinksPage = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [drinkMealType, setDrinkMealType] = useState<MealType | null>(null);
+  const [mealTypes, setMealTypes] = useState<MealType[]>([]);
   const context = useContext(OrderContext);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const menuItemsRes = await fetch('http://localhost:3001/api/menu-items');
-        const menuItemsData = await menuItemsRes.json();
-        setMenuItems(menuItemsData);
+        setMenuItems(await menuItemsRes.json());
 
-        // Fetch the generic 'Drink' meal type
-        const mealTypeRes = await fetch('http://localhost:3001/api/meal-types/9');
-        const mealTypeData = await mealTypeRes.json();
-        setDrinkMealType(mealTypeData);
+        const mealTypesRes = await fetch('http://localhost:3001/api/meal-types');
+        setMealTypes(await mealTypesRes.json());
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -51,23 +48,29 @@ const DrinksPage = () => {
 
   const { order, setOrder } = context;
 
-  const handleAddDrink = (item: MenuItem) => {
-    if (!drinkMealType) {
-      console.error('Drink meal type not loaded yet.');
+  const handleAddDrink = (item: MenuItem, sizeMealTypeId: number) => {
+    const mealType = mealTypes.find(mt => mt.meal_type_id === sizeMealTypeId);
+    if (!mealType) {
+      console.error('Drink meal type not found for ID:', sizeMealTypeId);
       return;
     }
 
-    // A drink is treated as a 'side' in this context for simplicity
     const newOrderItem: OrderItem = {
-      mealType: drinkMealType,
+      mealType: mealType,
       entrees: [],
-      sides: [item],
+      sides: [],
+      drink: item
     };
 
     setOrder([...order, newOrderItem]);
   };
 
   const drinks = menuItems.filter((item) => item.item_type === 'drink');
+  const drinkSizes = [
+    { name: 'Small', meal_type_id: 13 },
+    { name: 'Medium', meal_type_id: 14 },
+    { name: 'Large', meal_type_id: 15 },
+  ];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -79,10 +82,13 @@ const DrinksPage = () => {
               {drinks.map((item) => (
                 <div key={item.menu_item_id} className="bg-white rounded-lg shadow-md p-6">
                   <h3 className="text-xl font-bold mb-2">{item.name}</h3>
-                  <p className="text-gray-700">Price: ${item.upcharge.toFixed(2)}</p>
-                  <button onClick={() => handleAddDrink(item)} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm mt-4">
-                    Add
-                  </button>
+                  <div className="flex space-x-2 mt-4">
+                    {drinkSizes.map(size => (
+                      <button key={size.meal_type_id} onClick={() => handleAddDrink(item, size.meal_type_id)} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm">
+                        Add {size.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
@@ -98,6 +104,9 @@ const DrinksPage = () => {
                 {[...orderItem.entrees, ...orderItem.sides].map(item => (
                   <p key={item.menu_item_id} className="pl-2">- {item.name}</p>
                 ))}
+                {orderItem.drink && (
+                  <p className="pl-2">- {orderItem.drink.name}</p>
+                )}
               </div>
             ))}
           </div>
