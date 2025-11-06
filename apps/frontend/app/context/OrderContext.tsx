@@ -58,7 +58,8 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
           (upchargeAcc, side) => upchargeAcc + side.upcharge,
           0
         );
-        return acc + mealPrice + entreesUpcharge + sidesUpcharge;
+        const drinkUpcharge = orderItem.drink ? orderItem.drink.upcharge : 0;
+        return acc + mealPrice + entreesUpcharge + sidesUpcharge + drinkUpcharge;
       }, 0);
       setTotalPrice(total);
     };

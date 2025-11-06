@@ -84,8 +84,8 @@ const ALaCartePage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold text-center mb-8">A La Carte</h1>
-      <div className="grid grid-cols-3 gap-8">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 gap-8">
+        <div className="col-span-1">
           <section className="mb-10">
             <h2 className="text-3xl font-semibold mb-4">Entrees</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -121,23 +121,6 @@ const ALaCartePage = () => {
               ))}
             </div>
           </section>
-        </div>
-
-        <div className="col-span-1 bg-gray-100 p-6 rounded-lg">
-          <h2 className="text-2xl font-bold mb-4">Current Order</h2>
-          <div className="flex flex-col space-y-4">
-            {order.map((orderItem, index) => (
-              <div key={index} className="bg-white p-3 rounded shadow">
-                <p className="font-bold">{orderItem.mealType.meal_type_name}</p>
-                {[...orderItem.entrees, ...orderItem.sides].map(item => (
-                  <p key={item.menu_item_id} className="pl-2">- {item.name}</p>
-                ))}
-              </div>
-            ))}
-          </div>
-          <Link href="/meal-type-selection" className="block text-center bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-6">
-            Done
-          </Link>
         </div>
       </div>
     </div>
