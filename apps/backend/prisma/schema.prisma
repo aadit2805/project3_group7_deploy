@@ -36,6 +36,7 @@ model inventory {
   menu_item_id Int?
   stock        Int?
   reorder      Boolean?
+  storage      String?     @db.VarChar(255)
   menu_items   menu_items? @relation(fields: [menu_item_id], references: [menu_item_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
