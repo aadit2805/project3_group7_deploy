@@ -51,7 +51,7 @@ const ALaCartePage = () => {
   const { order, setOrder } = context;
 
   const handleAddItem = (item: MenuItem, sizeMealTypeId: number) => {
-    const mealType = mealTypes.find(mt => mt.meal_type_id === sizeMealTypeId);
+    const mealType = mealTypes.find((mt) => mt.meal_type_id === sizeMealTypeId);
     if (!mealType) {
       console.error('Corresponding meal type not found for ID:', sizeMealTypeId);
       return;
@@ -85,8 +85,24 @@ const ALaCartePage = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold text-center mb-8">A La Carte</h1>
       <div className="mb-4">
-        <Link href="/meal-type-selection" className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        <Link
+          href="/meal-type-selection"
+          className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
+        >
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            ></path>
+          </svg>
           Back to Meal Type Selection
         </Link>
       </div>
@@ -99,8 +115,12 @@ const ALaCartePage = () => {
                 <div key={item.menu_item_id} className="bg-white rounded-lg shadow-md p-6">
                   <h3 className="text-xl font-bold mb-2">{item.name}</h3>
                   <div className="flex space-x-2 mt-4">
-                    {entreeSizes.map(size => (
-                      <button key={size.meal_type_id} onClick={() => handleAddItem(item, size.meal_type_id)} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm">
+                    {entreeSizes.map((size) => (
+                      <button
+                        key={size.meal_type_id}
+                        onClick={() => handleAddItem(item, size.meal_type_id)}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm"
+                      >
                         Add {size.name}
                       </button>
                     ))}
@@ -117,8 +137,12 @@ const ALaCartePage = () => {
                 <div key={item.menu_item_id} className="bg-white rounded-lg shadow-md p-6">
                   <h3 className="text-xl font-bold mb-2">{item.name}</h3>
                   <div className="flex space-x-2 mt-4">
-                    {sideSizes.map(size => (
-                      <button key={size.meal_type_id} onClick={() => handleAddItem(item, size.meal_type_id)} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm">
+                    {sideSizes.map((size) => (
+                      <button
+                        key={size.meal_type_id}
+                        onClick={() => handleAddItem(item, size.meal_type_id)}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm"
+                      >
                         Add {size.name}
                       </button>
                     ))}

@@ -49,7 +49,7 @@ const DrinksPage = () => {
   const { order, setOrder } = context;
 
   const handleAddDrink = (item: MenuItem, sizeMealTypeId: number) => {
-    const mealType = mealTypes.find(mt => mt.meal_type_id === sizeMealTypeId);
+    const mealType = mealTypes.find((mt) => mt.meal_type_id === sizeMealTypeId);
     if (!mealType) {
       console.error('Drink meal type not found for ID:', sizeMealTypeId);
       return;
@@ -59,7 +59,7 @@ const DrinksPage = () => {
       mealType: mealType,
       entrees: [],
       sides: [],
-      drink: item
+      drink: item,
     };
 
     setOrder([...order, newOrderItem]);
@@ -76,8 +76,24 @@ const DrinksPage = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold text-center mb-8">Drinks</h1>
       <div className="mb-4">
-        <Link href="/meal-type-selection" className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        <Link
+          href="/meal-type-selection"
+          className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
+        >
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            ></path>
+          </svg>
           Back to Meal Type Selection
         </Link>
       </div>
@@ -89,8 +105,12 @@ const DrinksPage = () => {
                 <div key={item.menu_item_id} className="bg-white rounded-lg shadow-md p-6">
                   <h3 className="text-xl font-bold mb-2">{item.name}</h3>
                   <div className="flex flex-col space-y-2 mt-4">
-                    {drinkSizes.map(size => (
-                      <button key={size.meal_type_id} onClick={() => handleAddDrink(item, size.meal_type_id)} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm">
+                    {drinkSizes.map((size) => (
+                      <button
+                        key={size.meal_type_id}
+                        onClick={() => handleAddDrink(item, size.meal_type_id)}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
+                      >
                         Add {size.name}
                       </button>
                     ))}

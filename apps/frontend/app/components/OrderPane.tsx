@@ -59,11 +59,13 @@ const OrderPane = () => {
       ) : (
         <>
           {order.map((orderItem, index) => {
-            const isDrinkOnly = orderItem.entrees.length === 0 && orderItem.sides.length === 0 && orderItem.drink;
-            const itemTotalPrice = orderItem.mealType.meal_type_price +
-                                   orderItem.entrees.reduce((sum, item) => sum + item.upcharge, 0) +
-                                   orderItem.sides.reduce((sum, item) => sum + item.upcharge, 0) +
-                                   (orderItem.drink ? orderItem.drink.upcharge : 0);
+            const isDrinkOnly =
+              orderItem.entrees.length === 0 && orderItem.sides.length === 0 && orderItem.drink;
+            const itemTotalPrice =
+              orderItem.mealType.meal_type_price +
+              orderItem.entrees.reduce((sum, item) => sum + item.upcharge, 0) +
+              orderItem.sides.reduce((sum, item) => sum + item.upcharge, 0) +
+              (orderItem.drink ? orderItem.drink.upcharge : 0);
 
             return (
               <div key={index} className="mb-4 pb-4 border-b border-gray-200">
@@ -88,7 +90,9 @@ const OrderPane = () => {
                   <>
                     <p>Base Price: ${orderItem.mealType.meal_type_price.toFixed(2)}</p>
                     {orderItem.drink && (
-                      <p>Drink: {orderItem.drink.name} (+${orderItem.drink.upcharge.toFixed(2)})</p>
+                      <p>
+                        Drink: {orderItem.drink.name} (+${orderItem.drink.upcharge.toFixed(2)})
+                      </p>
                     )}
                   </>
                 ) : (
