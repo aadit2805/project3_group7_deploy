@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { OrderContext, OrderItem } from '@/app/context/OrderContext';
 
@@ -21,7 +21,7 @@ interface MealType {
   drink_size: string;
 }
 
-const CustomerKiosk = () => {
+const CustomerKioskContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const mealTypeId = searchParams.get('mealTypeId');
@@ -179,6 +179,14 @@ const CustomerKiosk = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const CustomerKiosk = () => {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-8 text-center">Loading...</div>}>
+      <CustomerKioskContent />
+    </Suspense>
   );
 };
 
