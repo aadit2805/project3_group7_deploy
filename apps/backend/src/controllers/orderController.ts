@@ -56,10 +56,10 @@ export const createOrder = async (req: Request, res: Response) => {
       nextMealId++;
     }
 
-    res.status(201).json({ success: true, data: { orderId } });
+    return res.status(201).json({ success: true, data: { orderId } });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: (error as Error).message });
+    return res.status(500).json({ success: false, error: (error as Error).message });
   } finally {
     client.release();
   }
