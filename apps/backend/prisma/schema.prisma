@@ -8,14 +8,15 @@ datasource db {
 }
 
 model Order {
-  order_id Int       @id
-  staff_id Int?
-  datetime DateTime? @db.Timestamp(6)
-  meal_id  Int?
-  price    Float?
-  staff    staff?    @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
-  meal     meal[]
-  payment  payment[]
+  order_id     Int       @id
+  staff_id     Int?
+  datetime     DateTime? @db.Timestamp(6)
+  meal_id      Int?
+  price        Float?
+  order_status String?   @default("pending") @db.VarChar(50)
+  staff        staff?    @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
+  meal         meal[]
+  payment      payment[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -36,6 +37,7 @@ model inventory {
   menu_item_id Int?
   stock        Int?
   reorder      Boolean?
+  storage      String?     @db.VarChar(255)
   menu_items   menu_items? @relation(fields: [menu_item_id], references: [menu_item_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
