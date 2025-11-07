@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
@@ -13,10 +15,15 @@ export default function Home() {
             <li>ESLint for code quality</li>
           </ul>
         </div>
-        <div className="mt-8 text-center">
-          <a href="/customer-kiosk" className="text-blue-500 hover:underline">
-            Go to Customer Kiosk
-          </a>
+        <div className="mt-8 text-center space-y-4">
+          <div>
+            <Link href="/customer-kiosk" className="text-blue-500 hover:underline block mb-2">
+              Go to Customer Kiosk
+            </Link>
+            <Link href="/login" className="text-green-500 hover:underline block font-semibold">
+              🔐 Test OAuth Login
+            </Link>
+          </div>
         </div>
       </div>
     </main>
