@@ -23,6 +23,10 @@ export default function Home() {
           >
             Manager Portal
           </Link>
+        <div className="mt-8 text-center">
+          <a href="/customer-kiosk" className="text-blue-500 hover:underline">
+            Go to Customer Kiosk
+          </a>
         </div>
       </div>
     </main>
