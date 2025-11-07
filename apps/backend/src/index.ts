@@ -1,33 +1,24 @@
-<<<<<<< HEAD
 import express, { Express, Request, Response, NextFunction } from 'express';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { PrismaClient } from '@prisma/client';
-=======
 import dotenv from 'dotenv';
-dotenv.config();
-
-import express from 'express';
-import pool from './db';
->>>>>>> 3fa7181f5a0a6b38ad0598991e4c9abc4ece6617
 import cors from 'cors';
-import dotenv from 'dotenv';
 import apiRouter from './routes/api';
+import pool from './db';
 
-<<<<<<< HEAD
 dotenv.config();
 
-// Initialize Prisma Client
-const prisma = new PrismaClient();
+// Initialize
 const app: Express = express();
+const prisma = new PrismaClient();
 const port = process.env.PORT || 3001;
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS configuration
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
@@ -35,27 +26,26 @@ app.use(
   })
 );
 
-// Session configuration
+// Session setup
 app.use(
   session({
-    // FIND SECRET KEY
-    secret: process.env.SESSION_SECRET || 'your_secret_key',
+    secret: process.env.AUTH_SECRET || 'supersecret',
     resave: false,
     saveUninitialized: false,
   })
 );
 
-// Passport configuration
+// Passport setup
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Google OAuth Strategy
+// Google OAuth setup
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      callbackURL: `${process.env.BACKEND_URL}/auth/google/callback`,
+      callbackURL: `${process.env.AUTH_URL}/auth/google/callback`,
     },
     async (_accessToken, _refreshToken, profile, done) => {
       try {
@@ -66,7 +56,7 @@ passport.use(
             googleId: profile.id,
             email: profile.emails?.[0].value!,
             name: profile.displayName,
-            role: 'MANAGER',
+            role: 'MANAGER', // default for now
           },
         });
         return done(null, user);
@@ -90,13 +80,14 @@ passport.deserializeUser(async (id: number, done) => {
   }
 });
 
-// Routes
+// --- AUTH ROUTES ---
+
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/'}),
+app.get(
+  '/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/' }),
   (req: Request, res: Response) => {
-    // Successful authentication, redirect home.
     res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
   }
 );
@@ -108,53 +99,28 @@ app.get('/api/user', (req: Request, res: Response) => {
 
 app.post('/api/logout', (req: Request, res: Response, next: NextFunction) => {
   req.logout((err) => {
-    if (err) { return next(err); }
+    if (err) return next(err);
     res.sendStatus(200);
   });
 });
 
-app.get('/', (_req: Request, res: Response) => {
-  res.json({
-    message: 'Project 3 - Group 7 API',
-    version: '1.0.0',
-    endpoints: {
-      health: '/health',
-      api: '/api',
-    },
-  });
-});
+// --- OTHER API ROUTES ---
 
-app.get('/health', (_req: Request, res: Response) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-  });
-});
-=======
-const app = express();
-app.use(cors());
-app.use(express.json());
-const port = process.env.PORT || 3001;
->>>>>>> 3fa7181f5a0a6b38ad0598991e4c9abc4ece6617
-
-// Mount API router
 app.use('/api', apiRouter);
 
+// Example order creation endpoint (unchanged from yours)
 app.post('/api/orders', async (req, res) => {
   const { order_items } = req.body;
-
   if (!order_items || !Array.isArray(order_items)) {
     return res.status(400).json({ error: 'Invalid order data' });
   }
 
   const client = await pool.connect();
-
   try {
     await client.query('BEGIN');
-
     const orderInsertQuery =
       'INSERT INTO "Order" (staff_id, datetime, price) VALUES ($1, $2, $3) RETURNING order_id';
-    const orderValues = [1, new Date(), 0]; // Assuming staff_id 1 and initial price 0
+    const orderValues = [1, new Date(), 0];
     const orderResult = await client.query(orderInsertQuery, orderValues);
     const orderId = orderResult.rows[0].order_id;
 
@@ -195,8 +161,8 @@ app.post('/api/orders', async (req, res) => {
 
     const updateOrderPriceQuery = 'UPDATE "Order" SET price = $1 WHERE order_id = $2';
     await client.query(updateOrderPriceQuery, [totalPrice, orderId]);
-
     await client.query('COMMIT');
+
     res.status(201).json({ message: 'Order submitted successfully', orderId });
   } catch (err) {
     await client.query('ROLLBACK');
@@ -207,52 +173,14 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-app.get('/api/meal-types/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await pool.query('SELECT * FROM meal_types WHERE meal_type_id = $1', [id]);
-    if (result.rows.length > 0) {
-      res.json(result.rows[0]);
-    } else {
-      res.status(404).json({ error: 'Meal type not found' });
-    }
-  } catch (err) {
-    console.error('Error fetching meal type by ID:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.get('/api/meal-types', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM meal_types');
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.get('/api/menu-items', async (req, res) => {
-  try {
-    const { type } = req.query;
-    let query = 'SELECT * FROM menu_items';
-    const params = [];
-    if (type) {
-      query += ' WHERE item_type = $1';
-      params.push(type as string);
-    }
-    const result = await pool.query(query, params);
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.get('/', (req, res) => {
-  res.send('Hello from the backend!');
+// --- HEALTH ROUTE ---
+app.get('/health', (_req: Request, res: Response) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.listen(port, () => {
-  console.log(`Server listening at http://localhost:${port}`);
+  console.log(`Server running at http://localhost:${port}`);
 });
