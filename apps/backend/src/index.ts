@@ -248,12 +248,11 @@ app.post('/api/orders', async (req: Request, res: Response) => {
     const updateOrderPriceQuery = 'UPDATE "Order" SET price = $1 WHERE order_id = $2';
     await client.query(updateOrderPriceQuery, [totalPrice, orderId]);
     await client.query('COMMIT');
-
-    res.status(201).json({ message: 'Order submitted successfully', orderId });
+    return res.status(201).json({ message: 'Order submitted successfully', orderId });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('Error submitting order:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   } finally {
     client.release();
   }
@@ -265,6 +264,50 @@ app.get('/health', (_req: Request, res: Response) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
   });
+app.get('/api/meal-types/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('SELECT * FROM meal_types WHERE meal_type_id = $1', [id]);
+    if (result.rows.length > 0) {
+      res.json(result.rows[0]);
+    } else {
+      res.status(404).json({ error: 'Meal type not found' });
+    }
+  } catch (err) {
+    console.error('Error fetching meal type by ID:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/meal-types', async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM meal_types');
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/menu-items', async (req, res) => {
+  try {
+    const { type } = req.query;
+    let query = 'SELECT * FROM menu_items';
+    const params = [];
+    if (type) {
+      query += ' WHERE item_type = $1';
+      params.push(type as string);
+    }
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/', (_req, res) => {
+  res.send('Hello from the backend!');
 });
 
 app.listen(port, () => {
