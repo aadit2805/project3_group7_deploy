@@ -106,18 +106,20 @@ passport.serializeUser((user: Express.User, done: (err: any, id?: number) => voi
   done(null, user.id);
 });
 
-passport.deserializeUser(async (id: number, done: (err: any, user?: Express.User | null) => void) => {
-  try {
-    const user = await prisma.user.findUnique({ where: { id } });
-    if (!user) {
-      return done(new Error('User not found'), null);
+passport.deserializeUser(
+  async (id: number, done: (err: any, user?: Express.User | null) => void) => {
+    try {
+      const user = await prisma.user.findUnique({ where: { id } });
+      if (!user) {
+        return done(new Error('User not found'), null);
+      }
+      done(null, user);
+    } catch (err) {
+      console.error('Error deserializing user:', err);
+      done(err, null);
     }
-    done(null, user);
-  } catch (err) {
-    console.error('Error deserializing user:', err);
-    done(err, null);
   }
-});
+);
 
 // --- AUTH MIDDLEWARE ---
 
@@ -274,8 +276,14 @@ app.post('/api/orders', async (req: Request, res: Response) => {
   }
 });
 
-// Meal types endpoints (for customer kiosk)
-app.get('/api/meal-types/:id', async (req: Request, res: Response) => {
+// --- HEALTH ROUTE ---
+app.get('/health', (_req: Request, res: Response) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+  });
+});
+app.get('/api/meal-types/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query('SELECT * FROM meal_types WHERE meal_type_id = $1', [id]);

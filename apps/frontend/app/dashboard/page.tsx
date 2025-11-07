@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/dist/client/link';
 
 interface User {
   id: number;
@@ -78,7 +79,9 @@ export default function DashboardPage() {
       });
       const data = await response.json();
       console.log('Auth Status:', data);
-      alert(`Authenticated: ${data.authenticated}\nUser: ${data.user ? JSON.stringify(data.user, null, 2) : 'None'}`);
+      alert(
+        `Authenticated: ${data.authenticated}\nUser: ${data.user ? JSON.stringify(data.user, null, 2) : 'None'}`
+      );
     } catch (err) {
       console.error('Error checking auth status:', err);
     }
@@ -119,10 +122,18 @@ export default function DashboardPage() {
           <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded">
             <h2 className="text-xl font-semibold mb-4">User Information</h2>
             <div className="space-y-2">
-              <p><span className="font-medium">ID:</span> {user?.id}</p>
-              <p><span className="font-medium">Email:</span> {user?.email || 'N/A'}</p>
-              <p><span className="font-medium">Name:</span> {user?.name || 'N/A'}</p>
-              <p><span className="font-medium">Role:</span> {user?.role || 'N/A'}</p>
+              <p>
+                <span className="font-medium">ID:</span> {user?.id}
+              </p>
+              <p>
+                <span className="font-medium">Email:</span> {user?.email || 'N/A'}
+              </p>
+              <p>
+                <span className="font-medium">Name:</span> {user?.name || 'N/A'}
+              </p>
+              <p>
+                <span className="font-medium">Role:</span> {user?.role || 'N/A'}
+              </p>
             </div>
           </div>
         </div>
@@ -136,6 +147,7 @@ export default function DashboardPage() {
               Manager Dashboard
             </a>
           )}
+        <div className="flex gap-4 justify-center">
           <button
             onClick={checkAuthStatus}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
@@ -151,9 +163,9 @@ export default function DashboardPage() {
         </div>
 
         <div className="mt-6 text-center">
-          <a href="/" className="text-blue-500 hover:underline text-sm">
+          <Link href="/" className="text-blue-500 hover:underline text-sm">
             ← Back to Home
-          </a>
+          </Link>
         </div>
       </div>
     </main>

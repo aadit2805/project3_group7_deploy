@@ -1,0 +1,21 @@
+# Add these lines to your apps/backend/.env file:
+
+# Google OAuth Configuration
+# Get these from: https://console.cloud.google.com/apis/credentials
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+
+# Backend Configuration
+PORT=3001
+AUTH_URL=http://localhost:3001
+
+# Session Secret (generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+AUTH_SECRET=7cb1059260e30a65b84c7c5dc23f7b0f5dc6aaf49de7c1b95d05c3e81a5614dc
+
+# Frontend URL (for CORS and redirects)
+FRONTEND_URL=http://localhost:3000
+
+# Note: You already have DATABASE_URL or PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD
+# If you have separate PG variables, you can also add:
+# DATABASE_URL=postgresql://group_7:!teamIndia_tidaa@csce-315-db.engr.tamu.edu:5432/group_7_db
+
