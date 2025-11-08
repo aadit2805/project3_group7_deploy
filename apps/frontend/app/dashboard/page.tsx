@@ -113,7 +113,7 @@ export default function DashboardPage() {
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="z-10 max-w-2xl w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
         <h1 className="text-3xl font-bold text-center mb-6">Dashboard</h1>
-
+        
         <div className="bg-green-100 dark:bg-green-900 border border-green-400 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-6">
           <p className="font-semibold">✓ Successfully Authenticated!</p>
         </div>
@@ -138,6 +138,15 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        <div className="flex gap-4 justify-center flex-wrap">
+          {user?.role === 'MANAGER' && (
+            <a
+              href="/manager"
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+            >
+              Manager Dashboard
+            </a>
+          )}
         <div className="flex gap-4 justify-center">
           <button
             onClick={checkAuthStatus}
@@ -152,6 +161,7 @@ export default function DashboardPage() {
             Logout
           </button>
         </div>
+        </div>
 
         <div className="mt-6 text-center">
           <Link href="/" className="text-blue-500 hover:underline text-sm">
@@ -162,3 +172,4 @@ export default function DashboardPage() {
     </main>
   );
 }
+

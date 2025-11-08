@@ -1,11 +1,19 @@
 import { Router, Request, Response } from 'express';
-import { getMenuItems, getMealTypes, getMealTypeById } from '../controllers/menuController';
+import {
+  getMenuItems,
+  createMenuItem,
+  updateMenuItem,
+  deleteMenuItem,
+  getMealTypes,
+  getMealTypeById
+} from '../controllers/menuController';
 import { createOrder } from '../controllers/orderController';
 import { ApiResponse } from '../types';
 import pool from '../config/db';
 import translationRoutes from './translation.routes';
 import weatherRoutes from './weather.routes';
 import inventoryRoutes from './inventory.routes';
+import { isAuthenticated, isManager } from '../middleware/auth';
 
 const router = Router();
 
@@ -14,6 +22,11 @@ router.use('/inventory', inventoryRoutes);
 
 // GET /api/menu-items
 router.get('/menu-items', getMenuItems);
+
+// Manager-only routes for menu items
+router.post('/menu-items', isAuthenticated, isManager, createMenuItem);
+router.put('/menu-items/:id', isAuthenticated, isManager, updateMenuItem);
+router.delete('/menu-items/:id', isAuthenticated, isManager, deleteMenuItem);
 
 // POST /api/orders
 router.post('/orders', createOrder);

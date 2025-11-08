@@ -6,6 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import apiRouter from './routes/api';
+import { isAuthenticated } from './middleware/auth';
 // Type declarations are automatically included from src/types/express.d.ts
 
 dotenv.config();
@@ -64,12 +65,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: `${process.env.AUTH_URL}/auth/google/callback`,
       },
-      async (
-        _accessToken: string,
-        _refreshToken: string,
-        profile: any,
-        done: (error: any, user?: any) => void
-      ) => {
+      async (_accessToken: string, _refreshToken: string, profile: any, done: (error: any, user?: any) => void) => {
         try {
           if (!profile.id) {
             return done(new Error('Google profile ID is missing'), null);
@@ -126,15 +122,7 @@ passport.deserializeUser(
 );
 
 // --- AUTH MIDDLEWARE ---
-
-// Middleware to check if user is authenticated
-export const isAuthenticated = (req: Request, res: Response, next: NextFunction): void => {
-  if (req.isAuthenticated && req.isAuthenticated()) {
-    next();
-    return;
-  }
-  res.status(401).json({ message: 'Not authenticated' });
-};
+// Authentication middleware is now in ./middleware/auth.ts
 
 // --- AUTH ROUTES ---
 
@@ -202,6 +190,13 @@ app.use('/api', apiRouter);
 
 // Example order creation endpoint (unchanged from yours)
 
+// --- HEALTH ROUTE ---
+app.get('/health', (_req: Request, res: Response) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+  });
+});
 
 app.get('/', (_req, res) => {
   res.send('Hello from the backend!');
