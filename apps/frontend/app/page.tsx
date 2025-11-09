@@ -17,6 +17,9 @@ export default function Home() {
         </div>
         <div className="mt-8 text-center space-y-4">
           <div>
+            <Link href="/cashier-interface" className="text-blue-500 hover:underline block mb-2">
+              Go to Cashier Side
+            </Link>
             <Link href="/customer-kiosk" className="text-blue-500 hover:underline block mb-2">
               Go to Customer Kiosk
             </Link>
