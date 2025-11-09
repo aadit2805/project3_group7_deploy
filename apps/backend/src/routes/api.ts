@@ -7,7 +7,7 @@ import {
   getMealTypes,
   getMealTypeById
 } from '../controllers/menuController';
-import { createOrder } from '../controllers/orderController';
+import { createOrder, getActiveOrders } from '../controllers/orderController';
 import { ApiResponse } from '../types';
 import pool from '../config/db';
 import translationRoutes from './translation.routes';
@@ -30,6 +30,9 @@ router.delete('/menu-items/:id', isAuthenticated, isManager, deleteMenuItem);
 
 // POST /api/orders
 router.post('/orders', createOrder);
+
+// GET /api/orders/active - Get all active orders (manager only)
+router.get('/orders/active', isAuthenticated, isManager, getActiveOrders);
 
 // Meal Type routes
 router.get('/meal-types', getMealTypes);
