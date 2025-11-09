@@ -95,3 +95,47 @@ export const createOrder = async (req: Request, res: Response) => {
     client.release();
   }
 };
+
+export const getActiveOrders = async (req: Request, res: Response) => {
+  const client = await pool.connect();
+
+  try {
+    // Get all orders that are not completed or cancelled
+    // Active orders are those with status: pending, processing, preparing, ready, etc.
+    // Excluding: completed, cancelled
+    const result = await client.query(
+      `SELECT 
+        o.order_id,
+        o.staff_id,
+        o.datetime,
+        o.price,
+        o.order_status,
+        s.username as staff_username,
+        COUNT(DISTINCT m.meal_id) as meal_count
+      FROM "Order" o
+      LEFT JOIN staff s ON o.staff_id = s.staff_id
+      LEFT JOIN meal m ON o.order_id = m.order_id
+      WHERE (o.order_status IS NULL OR o.order_status NOT IN ('completed', 'cancelled'))
+      GROUP BY o.order_id, o.staff_id, o.datetime, o.price, o.order_status, s.username
+      ORDER BY o.datetime DESC NULLS LAST, o.order_id DESC`
+    );
+
+    return res.status(200).json({ 
+      success: true, 
+      data: result.rows.map(row => ({
+        order_id: row.order_id,
+        staff_id: row.staff_id,
+        staff_username: row.staff_username,
+        datetime: row.datetime,
+        price: row.price ? parseFloat(row.price) : 0,
+        order_status: row.order_status || 'pending',
+        meal_count: parseInt(row.meal_count) || 0
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching active orders:', error);
+    return res.status(500).json({ success: false, error: (error as Error).message });
+  } finally {
+    client.release();
+  }
+};

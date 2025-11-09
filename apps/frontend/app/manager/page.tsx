@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AddMenuItemForm from './components/AddMenuItemForm';
 import MenuItemsList from './components/MenuItemsList';
+import ActiveOrdersList from './components/ActiveOrdersList';
 
 interface User {
   id: number;
@@ -17,7 +18,7 @@ export default function ManagerPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'add' | 'list'>('add');
+  const [activeTab, setActiveTab] = useState<'add' | 'list' | 'orders'>('orders');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -122,6 +123,16 @@ export default function ManagerPage() {
           <div className="border-b border-gray-200">
             <nav className="flex -mb-px">
               <button
+                onClick={() => setActiveTab('orders')}
+                className={`px-6 py-4 font-medium text-sm ${
+                  activeTab === 'orders'
+                    ? 'border-b-2 border-blue-500 text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } transition-colors`}
+              >
+                Active Orders
+              </button>
+              <button
                 onClick={() => setActiveTab('add')}
                 className={`px-6 py-4 font-medium text-sm ${
                   activeTab === 'add'
@@ -147,7 +158,9 @@ export default function ManagerPage() {
 
         {/* Content */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          {activeTab === 'add' ? (
+          {activeTab === 'orders' ? (
+            <ActiveOrdersList />
+          ) : activeTab === 'add' ? (
             <AddMenuItemForm onSuccess={() => setActiveTab('list')} />
           ) : (
             <MenuItemsList />
