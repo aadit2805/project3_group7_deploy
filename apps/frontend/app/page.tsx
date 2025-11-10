@@ -2,22 +2,22 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-50 dark:bg-gray-900">
-      <div className="w-full max-w-4xl rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
-        <h1 className="mb-6 text-center text-4xl font-bold text-gray-800 dark:text-white">
+    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-50">
+      <div className="w-full max-w-4xl rounded-lg bg-white p-8 shadow-lg">
+        <h1 className="mb-6 text-center text-4xl font-bold text-gray-800">
           Panda Express POS System
         </h1>
-        <p className="mb-10 text-center text-lg text-gray-600 dark:text-gray-300">
+        <p className="mb-10 text-center text-lg text-gray-600">
           Select an interface to continue
         </p>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {/* Public Access Section */}
-          <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
-            <h2 className="mb-4 text-2xl font-semibold text-gray-700 dark:text-gray-200">
+          <div className="rounded-lg border border-gray-200 p-6">
+            <h2 className="mb-4 text-2xl font-semibold text-gray-700">
               Public Access
             </h2>
-            <p className="mb-6 text-gray-500 dark:text-gray-400">
+            <p className="mb-6 text-gray-500">
               For customers to place their orders.
             </p>
             <Link
@@ -29,11 +29,11 @@ export default function Home() {
           </div>
 
           {/* Employee Access Section */}
-          <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
-            <h2 className="mb-4 text-2xl font-semibold text-gray-700 dark:text-gray-200">
+          <div className="rounded-lg border border-gray-200 p-6">
+            <h2 className="mb-4 text-2xl font-semibold text-gray-700">
               Employee Access
             </h2>
-            <p className="mb-6 text-gray-500 dark:text-gray-400">
+            <p className="mb-6 text-gray-500">
               Login required for employee roles.
             </p>
             <Link

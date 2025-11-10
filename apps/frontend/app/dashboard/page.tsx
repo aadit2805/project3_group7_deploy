@@ -95,12 +95,12 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-50 dark:bg-gray-900">
-      <div className="w-full max-w-4xl rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
+    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-50">
+      <div className="w-full max-w-4xl rounded-lg bg-white p-8 shadow-lg">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Employee Dashboard</h1>
-            <p className="text-gray-600 mt-1 dark:text-gray-300">
+            <h1 className="text-3xl font-bold text-gray-800">Employee Dashboard</h1>
+            <p className="text-gray-600 mt-1">
               Welcome, {user?.name || user?.email || 'Employee'}
             </p>
           </div>
@@ -115,11 +115,11 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Cashier Interface */}
           {(user?.role === 'MANAGER' || user?.role === 'CASHIER') && (
-            <Link href="/cashier-interface" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow dark:border-gray-700">
-              <h2 className="mb-2 text-xl font-semibold text-gray-700 dark:text-gray-200">
+            <Link href="/cashier-interface" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+              <h2 className="mb-2 text-xl font-semibold text-gray-700">
                 Cashier Interface
               </h2>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500">
                 Process customer orders.
               </p>
             </Link>
@@ -127,11 +127,11 @@ export default function DashboardPage() {
 
           {/* Manager Dashboard */}
           {user?.role === 'MANAGER' && (
-            <Link href="/manager" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow dark:border-gray-700">
-              <h2 className="mb-2 text-xl font-semibold text-gray-700 dark:text-gray-200">
+            <Link href="/manager" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+              <h2 className="mb-2 text-xl font-semibold text-gray-700">
                 Manager Dashboard
               </h2>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500">
                 Manage menu items and view active orders.
               </p>
             </Link>
@@ -139,11 +139,11 @@ export default function DashboardPage() {
 
           {/* Kitchen Monitor */}
           {(user?.role === 'MANAGER' || user?.role === 'KITCHEN') && (
-            <Link href="/kitchen-monitor" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow dark:border-gray-700">
-              <h2 className="mb-2 text-xl font-semibold text-gray-700 dark:text-gray-200">
+            <Link href="/kitchen-monitor" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+              <h2 className="mb-2 text-xl font-semibold text-gray-700">
                 Kitchen Monitor
               </h2>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500">
                 View and manage incoming orders for the kitchen.
               </p>
             </Link>
@@ -151,11 +151,11 @@ export default function DashboardPage() {
 
           {/* Inventory Manager */}
           {user?.role === 'MANAGER' && (
-            <Link href="/inventory-manager" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow dark:border-gray-700">
-              <h2 className="mb-2 text-xl font-semibold text-gray-700 dark:text-gray-200">
+            <Link href="/inventory-manager" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+              <h2 className="mb-2 text-xl font-semibold text-gray-700">
                 Inventory Manager
               </h2>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500">
                 Manage food and non-food inventory.
               </p>
             </Link>
@@ -163,11 +163,11 @@ export default function DashboardPage() {
 
           {/* Restock Report */}
           {user?.role === 'MANAGER' && (
-            <Link href="/restock-report" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow dark:border-gray-700">
-              <h2 className="mb-2 text-xl font-semibold text-gray-700 dark:text-gray-200">
+            <Link href="/restock-report" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+              <h2 className="mb-2 text-xl font-semibold text-gray-700">
                 Restock Report
               </h2>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500">
                 Generate a report of items that need to be restocked.
               </p>
             </Link>
