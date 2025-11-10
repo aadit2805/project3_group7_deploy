@@ -253,4 +253,3 @@ const CashierInterface = () => {
 };
 
 export default CashierInterface;
-

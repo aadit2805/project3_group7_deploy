@@ -29,6 +29,11 @@ function LoginContent() {
     }
   };
 
+  const handleMockLogin = () => {
+    localStorage.setItem('authToken', 'mock-auth-token');
+    router.push('/dashboard');
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="z-10 max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
@@ -64,6 +69,14 @@ function LoginContent() {
               />
             </svg>
             <span className="text-gray-700 font-medium">Sign in with Google</span>
+          </button>
+
+          <button
+            onClick={handleMockLogin}
+            type="button"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors shadow-sm"
+          >
+            Mock Login (for testing)
           </button>
 
           <div className="text-center text-sm text-gray-600 dark:text-gray-400">
