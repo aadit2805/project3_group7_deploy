@@ -1,18 +1,42 @@
 import { Router, Request, Response } from 'express';
-import { getMenuItems } from '../controllers/menuController';
-import { createOrder } from '../controllers/orderController';
+import {
+  getMenuItems,
+  createMenuItem,
+  updateMenuItem,
+  deleteMenuItem,
+  getMealTypes,
+  getMealTypeById
+} from '../controllers/menuController';
+import { createOrder, getActiveOrders } from '../controllers/orderController';
 import { ApiResponse } from '../types';
 import pool from '../config/db';
 import translationRoutes from './translation.routes';
 import weatherRoutes from './weather.routes';
+import inventoryRoutes from './inventory.routes';
+import { isAuthenticated, isManager } from '../middleware/auth';
 
 const router = Router();
+
+// Inventory routes
+router.use('/inventory', inventoryRoutes);
 
 // GET /api/menu-items
 router.get('/menu-items', getMenuItems);
 
+// Manager-only routes for menu items
+router.post('/menu-items', isAuthenticated, isManager, createMenuItem);
+router.put('/menu-items/:id', isAuthenticated, isManager, updateMenuItem);
+router.delete('/menu-items/:id', isAuthenticated, isManager, deleteMenuItem);
+
 // POST /api/orders
 router.post('/orders', createOrder);
+
+// GET /api/orders/active - Get all active orders (manager only)
+router.get('/orders/active', isAuthenticated, isManager, getActiveOrders);
+
+// Meal Type routes
+router.get('/meal-types', getMealTypes);
+router.get('/meal-types/:id', getMealTypeById);
 
 // GET /api/db-test
 router.get('/db-test', async (_req: Request, res: Response) => {

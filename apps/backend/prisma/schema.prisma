@@ -13,6 +13,7 @@ model Order {
   datetime     DateTime? @db.Timestamp(6)
   price        Float?
   order_status String?   @db.VarChar(50)
+  customer_name String?  @db.VarChar(255) // Added customer_name field
   staff        staff?    @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
   meal         meal[]
   payment      payment[]
@@ -37,7 +38,7 @@ model inventory {
   stock        Int?
   reorder      Boolean?
   storage      String?     @db.VarChar(255)
-  menu_items   menu_items? @relation(fields: [menu_item_id], references: [menu_item_id], onDelete: NoAction, onUpdate: NoAction)
+  menu_items   menu_items? @relation(fields: [menu_item_id], references: [menu_item_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model meal {
