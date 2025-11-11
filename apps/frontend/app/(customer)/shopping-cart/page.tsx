@@ -98,104 +98,111 @@ const ShoppingCart = () => {
             </Link>
           </div>
         ) : (
-          <>
-            {order.map((orderItem, index) => {
-              const isDrinkOnly =
-                orderItem.entrees.length === 0 && orderItem.sides.length === 0 && orderItem.drink;
-              const itemTotalPrice =
-                orderItem.mealType.meal_type_price +
-                orderItem.entrees.reduce((sum, item) => sum + item.upcharge, 0) +
-                orderItem.sides.reduce((sum, item) => sum + item.upcharge, 0) +
-                (orderItem.drink ? orderItem.drink.upcharge : 0);
+          <div className="flex gap-6">
+            {/* Left side - Order details */}
+            <div className="flex-1">
+              {order.map((orderItem, index) => {
+                const isDrinkOnly =
+                  orderItem.entrees.length === 0 && orderItem.sides.length === 0 && orderItem.drink;
+                const itemTotalPrice =
+                  orderItem.mealType.meal_type_price +
+                  orderItem.entrees.reduce((sum, item) => sum + item.upcharge, 0) +
+                  orderItem.sides.reduce((sum, item) => sum + item.upcharge, 0) +
+                  (orderItem.drink ? orderItem.drink.upcharge : 0);
 
-              return (
-                <div key={index} className="mb-4 pb-4 border-b border-gray-200 bg-white p-4 rounded">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-2xl font-bold">{orderItem.mealType.meal_type_name}</h3>
-                    <div>
-                      <button
-                        onClick={() => handleEditItem(index)}
-                        className="text-blue-500 hover:text-blue-700 font-bold mr-2 px-3 py-1 border border-blue-500 rounded"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleRemoveFromOrder(index)}
-                        className="text-red-500 hover:text-red-700 font-bold px-3 py-1 border border-red-500 rounded"
-                      >
-                        Remove
-                      </button>
+                return (
+                  <div key={index} className="mb-4 pb-4 border-b border-gray-200 bg-white p-4 rounded">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-2xl font-bold">{orderItem.mealType.meal_type_name}</h3>
+                      <div>
+                        <button
+                          onClick={() => handleEditItem(index)}
+                          className="text-blue-500 hover:text-blue-700 font-bold mr-2 px-3 py-1 border border-blue-500 rounded"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleRemoveFromOrder(index)}
+                          className="text-red-500 hover:text-red-700 font-bold px-3 py-1 border border-red-500 rounded"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                    {isDrinkOnly ? (
+                      <>
+                        <p className="text-lg mt-2">Base Price: ${orderItem.mealType.meal_type_price.toFixed(2)}</p>
+                        {orderItem.drink && (
+                          <p className="text-lg">
+                            Drink: {orderItem.drink.name} (+${orderItem.drink.upcharge.toFixed(2)})
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-lg mt-2">Base Price: ${orderItem.mealType.meal_type_price.toFixed(2)}</p>
+                        {orderItem.entrees.length > 0 && (
+                          <>
+                            <h4 className="text-xl font-semibold mt-4">Entrees:</h4>
+                            <ul className="list-disc list-inside ml-4">
+                              {orderItem.entrees.map((item) => (
+                                <li key={item.menu_item_id} className="text-lg">
+                                  {item.name} (+${item.upcharge.toFixed(2)})
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                        {orderItem.sides.length > 0 && (
+                          <>
+                            <h4 className="text-xl font-semibold mt-4">Sides:</h4>
+                            <ul className="list-disc list-inside ml-4">
+                              {orderItem.sides.map((item) => (
+                                <li key={item.menu_item_id} className="text-lg">
+                                  {item.name} (+${item.upcharge.toFixed(2)})
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                        {orderItem.drink && (
+                          <p className="text-xl font-semibold mt-4">
+                            Drink: {orderItem.drink.name} (+${orderItem.drink.upcharge.toFixed(2)})
+                          </p>
+                        )}
+                      </>
+                    )}
+                    <div className="mt-2 text-right">
+                      <p className="text-xl font-semibold">Item Total: ${itemTotalPrice.toFixed(2)}</p>
                     </div>
                   </div>
-                  {isDrinkOnly ? (
-                    <>
-                      <p className="text-lg mt-2">Base Price: ${orderItem.mealType.meal_type_price.toFixed(2)}</p>
-                      {orderItem.drink && (
-                        <p className="text-lg">
-                          Drink: {orderItem.drink.name} (+${orderItem.drink.upcharge.toFixed(2)})
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-lg mt-2">Base Price: ${orderItem.mealType.meal_type_price.toFixed(2)}</p>
-                      {orderItem.entrees.length > 0 && (
-                        <>
-                          <h4 className="text-xl font-semibold mt-4">Entrees:</h4>
-                          <ul className="list-disc list-inside ml-4">
-                            {orderItem.entrees.map((item) => (
-                              <li key={item.menu_item_id} className="text-lg">
-                                {item.name} (+${item.upcharge.toFixed(2)})
-                              </li>
-                            ))}
-                          </ul>
-                        </>
-                      )}
-                      {orderItem.sides.length > 0 && (
-                        <>
-                          <h4 className="text-xl font-semibold mt-4">Sides:</h4>
-                          <ul className="list-disc list-inside ml-4">
-                            {orderItem.sides.map((item) => (
-                              <li key={item.menu_item_id} className="text-lg">
-                                {item.name} (+${item.upcharge.toFixed(2)})
-                              </li>
-                            ))}
-                          </ul>
-                        </>
-                      )}
-                      {orderItem.drink && (
-                        <p className="text-xl font-semibold mt-4">
-                          Drink: {orderItem.drink.name} (+${orderItem.drink.upcharge.toFixed(2)})
-                        </p>
-                      )}
-                    </>
-                  )}
-                  <div className="mt-2 text-right">
-                    <p className="text-xl font-semibold">Item Total: ${itemTotalPrice.toFixed(2)}</p>
-                  </div>
-                </div>
-              );
-            })}
-            <div className="mt-6 pt-4 border-t-2 border-gray-300">
-              <div className="mb-4">
-                <label htmlFor="customer-name" className="block text-xl font-semibold mb-2">
-                  Customer Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="customer-name"
-                  type="text"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Enter your name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="flex justify-between items-center mb-4">
+                );
+              })}
+              <div className="mt-6 pt-4 border-t-2 border-gray-300">
                 <h3 className="text-2xl font-bold">Total: ${totalPrice.toFixed(2)}</h3>
+              </div>
+            </div>
+
+            {/* Right side - Customer Name and Submit Button */}
+            <div className="w-[576px] flex-shrink-0">
+              <div className="bg-white p-6 rounded-lg sticky top-4">
+                <div className="mb-4">
+                  <label htmlFor="customer-name" className="block text-xl font-semibold mb-2">
+                    Customer Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="customer-name"
+                    type="text"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="Enter your name"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
                 <button
                   onClick={handleSubmitOrder}
                   disabled={!customerName.trim()}
-                  className={`font-bold py-3 px-6 rounded-lg text-xl ${
+                  className={`w-full font-bold py-3 px-6 rounded-lg text-xl ${
                     customerName.trim()
                       ? 'bg-green-500 hover:bg-green-700 text-white cursor-pointer'
                       : 'bg-gray-400 text-gray-200 cursor-not-allowed'
@@ -205,7 +212,7 @@ const ShoppingCart = () => {
                 </button>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
@@ -213,4 +220,3 @@ const ShoppingCart = () => {
 };
 
 export default ShoppingCart;
-
