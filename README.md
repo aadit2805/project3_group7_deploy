@@ -15,11 +15,11 @@ npm install
 ```bash
 # Navigate to apps/frontend to run the frontend
 # Start frontend (port 3000)
-npm run dev:frontend
+npm run dev
 
 # In a separate terminal, navigate to apps/backend to run the backend
 # Start backend (port 3001)
-npm run dev:backend
+npm run dev
 ```
 
 ### Access Applications
