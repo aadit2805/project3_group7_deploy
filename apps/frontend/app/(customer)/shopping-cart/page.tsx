@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { OrderContext, OrderItem } from '@/app/context/OrderContext';
@@ -8,6 +8,7 @@ import { OrderContext, OrderItem } from '@/app/context/OrderContext';
 const ShoppingCart = () => {
   const context = useContext(OrderContext);
   const router = useRouter();
+  const [customerName, setCustomerName] = useState('');
 
   if (!context) {
     return null;
@@ -29,18 +30,25 @@ const ShoppingCart = () => {
   };
 
   const handleSubmitOrder = async () => {
+    if (!customerName.trim()) {
+      alert('Please enter your name before submitting the order.');
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:3001/api/orders', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const response = await fetch(`${backendUrl}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ order_items: order }),
+        body: JSON.stringify({ order_items: order, customer_name: customerName.trim() }),
       });
 
       if (response.ok) {
         alert('Order submitted successfully!');
         setOrder([]);
+        setCustomerName('');
         localStorage.removeItem('order');
         router.push('/meal-type-selection');
       } else {
@@ -169,11 +177,29 @@ const ShoppingCart = () => {
               );
             })}
             <div className="mt-6 pt-4 border-t-2 border-gray-300">
+              <div className="mb-4">
+                <label htmlFor="customer-name" className="block text-xl font-semibold mb-2">
+                  Customer Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="customer-name"
+                  type="text"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Enter your name"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-2xl font-bold">Total: ${totalPrice.toFixed(2)}</h3>
                 <button
                   onClick={handleSubmitOrder}
-                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-xl"
+                  disabled={!customerName.trim()}
+                  className={`font-bold py-3 px-6 rounded-lg text-xl ${
+                    customerName.trim()
+                      ? 'bg-green-500 hover:bg-green-700 text-white cursor-pointer'
+                      : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                  }`}
                 >
                   Submit Order
                 </button>
