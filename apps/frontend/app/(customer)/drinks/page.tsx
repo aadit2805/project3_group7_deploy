@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { OrderContext, OrderItem } from '@/app/context/OrderContext';
+import { useTranslatedTexts, useTranslation } from '@/app/hooks/useTranslation';
 
 // Interfaces
 interface MenuItem {
@@ -25,7 +26,33 @@ interface MealType {
 const DrinksPage = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [mealTypes, setMealTypes] = useState<MealType[]>([]);
+  const [translatedMenuItems, setTranslatedMenuItems] = useState<Record<number, string>>({});
   const context = useContext(OrderContext);
+  const { translateBatch, currentLanguage } = useTranslation();
+
+  const textLabels = [
+    'Drinks',
+    'Shopping Cart',
+    'Back to Meal Type Selection',
+    'Small',
+    'Medium',
+    'Large',
+    'Add',
+    'Loading...',
+  ];
+
+  const { translatedTexts } = useTranslatedTexts(textLabels);
+
+  const t = {
+    title: translatedTexts[0] || 'Drinks',
+    shoppingCart: translatedTexts[1] || 'Shopping Cart',
+    backToSelection: translatedTexts[2] || 'Back to Meal Type Selection',
+    small: translatedTexts[3] || 'Small',
+    medium: translatedTexts[4] || 'Medium',
+    large: translatedTexts[5] || 'Large',
+    add: translatedTexts[6] || 'Add',
+    loading: translatedTexts[7] || 'Loading...',
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,8 +69,31 @@ const DrinksPage = () => {
     fetchData();
   }, []);
 
+  // Translate menu items when data or language changes
+  useEffect(() => {
+    const translateMenuItems = async () => {
+      if (menuItems.length > 0) {
+        const drinkNames = menuItems
+          .filter((item) => item.item_type === 'drink')
+          .map((item) => item.name);
+        const translated = await translateBatch(drinkNames);
+        
+        const translatedMap: Record<number, string> = {};
+        let translationIndex = 0;
+        menuItems.forEach((item) => {
+          if (item.item_type === 'drink') {
+            translatedMap[item.menu_item_id] = translated[translationIndex++];
+          }
+        });
+        setTranslatedMenuItems(translatedMap);
+      }
+    };
+
+    translateMenuItems();
+  }, [menuItems, currentLanguage, translateBatch]);
+
   if (!context) {
-    return <div>Loading...</div>;
+    return <div>{t.loading}</div>;
   }
 
   const { order, setOrder } = context;
@@ -76,7 +126,7 @@ const DrinksPage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">Drinks</h1>
+        <h1 className="text-4xl font-bold">{t.title}</h1>
         <Link
           href="/shopping-cart"
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg inline-flex items-center"
@@ -95,7 +145,7 @@ const DrinksPage = () => {
               d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
             ></path>
           </svg>
-          Shopping Cart
+          {t.shoppingCart}
           {itemCount > 0 && (
             <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-1 text-sm">
               {itemCount}
@@ -122,7 +172,7 @@ const DrinksPage = () => {
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             ></path>
           </svg>
-          Back to Meal Type Selection
+          {t.backToSelection}
         </Link>
       </div>
       <div className="grid grid-cols-1 gap-8">
@@ -131,17 +181,26 @@ const DrinksPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {drinks.map((item) => (
                 <div key={item.menu_item_id} className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-xl font-bold mb-2">{item.name}</h3>
+                  <h3 className="text-xl font-bold mb-2">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
                   <div className="flex flex-col space-y-2 mt-4">
-                    {drinkSizes.map((size) => (
-                      <button
-                        key={size.meal_type_id}
-                        onClick={() => handleAddDrink(item, size.meal_type_id)}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
-                      >
-                        Add {size.name}
-                      </button>
-                    ))}
+                    <button
+                      onClick={() => handleAddDrink(item, 13)}
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
+                    >
+                      {t.add} {t.small}
+                    </button>
+                    <button
+                      onClick={() => handleAddDrink(item, 14)}
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
+                    >
+                      {t.add} {t.medium}
+                    </button>
+                    <button
+                      onClick={() => handleAddDrink(item, 15)}
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
+                    >
+                      {t.add} {t.large}
+                    </button>
                   </div>
                 </div>
               ))}

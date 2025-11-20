@@ -4,6 +4,7 @@ import React, { useState, useEffect, useContext, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { OrderContext, OrderItem } from '@/app/context/OrderContext';
+import { useTranslatedTexts, useTranslation } from '@/app/hooks/useTranslation';
 
 interface MenuItem {
   menu_item_id: number;
@@ -29,6 +30,33 @@ const CustomerKioskContent = () => {
   const editIndex = searchParams.get('editIndex');
 
   const context = useContext(OrderContext);
+  const { translateBatch, currentLanguage } = useTranslation();
+
+  const textLabels = [
+    'Back to Meal Type Selection',
+    'Customize Your',
+    'Shopping Cart',
+    'Select Entrees',
+    'Select Sides',
+    'Select Drink',
+    'Upcharge',
+    'Update Item',
+    'Add to Order',
+  ];
+
+  const { translatedTexts } = useTranslatedTexts(textLabels);
+
+  const t = {
+    backToSelection: translatedTexts[0] || 'Back to Meal Type Selection',
+    customizeYour: translatedTexts[1] || 'Customize Your',
+    shoppingCart: translatedTexts[2] || 'Shopping Cart',
+    selectEntrees: translatedTexts[3] || 'Select Entrees',
+    selectSides: translatedTexts[4] || 'Select Sides',
+    selectDrink: translatedTexts[5] || 'Select Drink',
+    upcharge: translatedTexts[6] || 'Upcharge',
+    updateItem: translatedTexts[7] || 'Update Item',
+    addToOrder: translatedTexts[8] || 'Add to Order',
+  };
 
   if (!context) {
     throw new Error('CustomerKiosk must be used within an OrderProvider');
@@ -38,6 +66,8 @@ const CustomerKioskContent = () => {
 
   const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [translatedMenuItems, setTranslatedMenuItems] = useState<Record<number, string>>({});
+  const [translatedMealTypeName, setTranslatedMealTypeName] = useState<string>('');
   const [selectedEntrees, setSelectedEntrees] = useState<MenuItem[]>([]);
   const [selectedSides, setSelectedSides] = useState<MenuItem[]>([]);
   const [selectedDrink, setSelectedDrink] = useState<MenuItem | undefined>(undefined);
@@ -77,6 +107,29 @@ const CustomerKioskContent = () => {
       fetchMealTypeAndMenuItems();
     }
   }, [mealTypeId, editIndex, order]);
+
+  // Translate menu items and meal type name when data or language changes
+  useEffect(() => {
+    const translateContent = async () => {
+      if (menuItems.length > 0) {
+        const menuItemNames = menuItems.map((item) => item.name);
+        const translated = await translateBatch(menuItemNames);
+        
+        const translatedMap: Record<number, string> = {};
+        menuItems.forEach((item, index) => {
+          translatedMap[item.menu_item_id] = translated[index];
+        });
+        setTranslatedMenuItems(translatedMap);
+      }
+
+      if (selectedMealType) {
+        const [translatedName] = await translateBatch([selectedMealType.meal_type_name]);
+        setTranslatedMealTypeName(translatedName);
+      }
+    };
+
+    translateContent();
+  }, [menuItems, selectedMealType, currentLanguage, translateBatch]);
 
   const handleSelectItem = (item: MenuItem, type: 'entree' | 'side' | 'drink') => {
     if (type === 'entree') {
@@ -127,7 +180,7 @@ const CustomerKioskContent = () => {
       <div className="mb-4">
         <Link href="/meal-type-selection">
           <button className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
-            ← Back to Meal Type Selection
+            ← {t.backToSelection}
           </button>
         </Link>
       </div>
@@ -135,7 +188,7 @@ const CustomerKioskContent = () => {
         <>
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-4xl font-bold">
-              Customize Your {selectedMealType.meal_type_name}
+              {t.customizeYour} {translatedMealTypeName || selectedMealType.meal_type_name}
             </h1>
             <Link
               href="/shopping-cart"
@@ -155,7 +208,7 @@ const CustomerKioskContent = () => {
                   d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
                 ></path>
               </svg>
-              Shopping Cart
+              {t.shoppingCart}
               {itemCount > 0 && (
                 <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-1 text-sm">
                   {itemCount}
@@ -166,7 +219,7 @@ const CustomerKioskContent = () => {
 
           <section className="mb-10">
             <h2 className="text-3xl font-semibold mb-4">
-              Select Entrees ({selectedEntrees.length}/{selectedMealType.entree_count})
+              {t.selectEntrees} ({selectedEntrees.length}/{selectedMealType.entree_count})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {menuItems
@@ -177,8 +230,8 @@ const CustomerKioskContent = () => {
                     className={`bg-white rounded-lg shadow-md p-6 cursor-pointer border-2 ${selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id) ? 'border-blue-500' : 'border-gray-200'}`}
                     onClick={() => handleSelectItem(item, 'entree')}
                   >
-                    <h3 className="text-xl font-bold mb-2">{item.name}</h3>
-                    <p className="text-gray-700">Upcharge: ${item.upcharge.toFixed(2)}</p>
+                    <h3 className="text-xl font-bold mb-2">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
+                    <p className="text-gray-700">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
                   </div>
                 ))}
             </div>
@@ -186,7 +239,7 @@ const CustomerKioskContent = () => {
 
           <section className="mb-10">
             <h2 className="text-3xl font-semibold mb-4">
-              Select Sides ({selectedSides.length}/{selectedMealType.side_count})
+              {t.selectSides} ({selectedSides.length}/{selectedMealType.side_count})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {menuItems
@@ -197,8 +250,8 @@ const CustomerKioskContent = () => {
                     className={`bg-white rounded-lg shadow-md p-6 cursor-pointer border-2 ${selectedSides.some((s) => s.menu_item_id === item.menu_item_id) ? 'border-blue-500' : 'border-gray-200'}`}
                     onClick={() => handleSelectItem(item, 'side')}
                   >
-                    <h3 className="text-xl font-bold mb-2">{item.name}</h3>
-                    <p className="text-gray-700">Upcharge: ${item.upcharge.toFixed(2)}</p>
+                    <h3 className="text-xl font-bold mb-2">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
+                    <p className="text-gray-700">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
                   </div>
                 ))}
             </div>
@@ -206,7 +259,7 @@ const CustomerKioskContent = () => {
 
           {selectedMealType.drink_size !== 'none' && (
             <section className="mb-10">
-              <h2 className="text-3xl font-semibold mb-4">Select Drink (1)</h2>
+              <h2 className="text-3xl font-semibold mb-4">{t.selectDrink} (1)</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {menuItems
                   .filter((item) => item.item_type === 'drink')
@@ -216,7 +269,7 @@ const CustomerKioskContent = () => {
                       className={`bg-white rounded-lg shadow-md p-6 cursor-pointer border-2 ${selectedDrink?.menu_item_id === item.menu_item_id ? 'border-blue-500' : 'border-gray-200'}`}
                       onClick={() => handleSelectItem(item, 'drink')}
                     >
-                      <h3 className="text-xl font-bold mb-2">{item.name}</h3>
+                      <h3 className="text-xl font-bold mb-2">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
                     </div>
                   ))}
               </div>
@@ -234,7 +287,7 @@ const CustomerKioskContent = () => {
                   (selectedMealType.drink_size !== 'none' && !selectedDrink))
               }
             >
-              {editIndex !== null ? 'Update Item' : 'Add to Order'}
+              {editIndex !== null ? t.updateItem : t.addToOrder}
             </button>
           </div>
         </>

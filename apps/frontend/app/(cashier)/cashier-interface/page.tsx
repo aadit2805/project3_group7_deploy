@@ -4,6 +4,7 @@ import React, { useState, useEffect, useContext, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { OrderContext, OrderItem } from '@/app/context/OrderContext';
+import { useTranslatedTexts, useTranslation } from '@/app/hooks/useTranslation';
 
 interface MenuItem {
   menu_item_id: number;
@@ -29,6 +30,56 @@ const CashierInterfaceContent = () => {
   const editIndex = searchParams.get('editIndex');
 
   const context = useContext(OrderContext);
+  const { translateBatch, currentLanguage } = useTranslation();
+
+  // Translation labels
+  const textLabels = [
+    'Back to Dashboard',
+    'Cashier Interface - Select Meal Type',
+    'Price',
+    'Entrees',
+    'Sides',
+    'Drink',
+    'Submit Order',
+    'Back to Meal Types',
+    'Cashier Interface - Customize',
+    'Select Entrees',
+    'Select Sides',
+    'Upcharge',
+    'Unavailable',
+    'Update Item',
+    'Add to Order',
+    'Loading meal type...',
+    'Loading...',
+    'Order submitted successfully!',
+    'Failed to submit order.',
+    'An error occurred while submitting the order.',
+  ];
+
+  const { translatedTexts } = useTranslatedTexts(textLabels);
+
+  const t = {
+    backToDashboard: translatedTexts[0] || 'Back to Dashboard',
+    selectMealType: translatedTexts[1] || 'Cashier Interface - Select Meal Type',
+    price: translatedTexts[2] || 'Price',
+    entrees: translatedTexts[3] || 'Entrees',
+    sides: translatedTexts[4] || 'Sides',
+    drink: translatedTexts[5] || 'Drink',
+    submitOrder: translatedTexts[6] || 'Submit Order',
+    backToMealTypes: translatedTexts[7] || 'Back to Meal Types',
+    customize: translatedTexts[8] || 'Cashier Interface - Customize',
+    selectEntrees: translatedTexts[9] || 'Select Entrees',
+    selectSides: translatedTexts[10] || 'Select Sides',
+    upcharge: translatedTexts[11] || 'Upcharge',
+    unavailable: translatedTexts[12] || 'Unavailable',
+    updateItem: translatedTexts[13] || 'Update Item',
+    addToOrder: translatedTexts[14] || 'Add to Order',
+    loadingMealType: translatedTexts[15] || 'Loading meal type...',
+    loading: translatedTexts[16] || 'Loading...',
+    successMessage: translatedTexts[17] || 'Order submitted successfully!',
+    failMessage: translatedTexts[18] || 'Failed to submit order.',
+    errorMessage: translatedTexts[19] || 'An error occurred while submitting the order.',
+  };
 
   if (!context) {
     throw new Error('CashierInterface must be used within an OrderProvider');
@@ -41,6 +92,8 @@ const CashierInterfaceContent = () => {
   const [selectedEntrees, setSelectedEntrees] = useState<MenuItem[]>([]);
   const [selectedSides, setSelectedSides] = useState<MenuItem[]>([]);
   const [mealTypes, setMealTypes] = useState<MealType[]>([]);
+  const [translatedMealTypes, setTranslatedMealTypes] = useState<Record<number, string>>({});
+  const [translatedMenuItems, setTranslatedMenuItems] = useState<Record<number, string>>({});
 
   useEffect(() => {
     const fetchMealTypes = async () => {
@@ -55,6 +108,42 @@ const CashierInterfaceContent = () => {
 
     fetchMealTypes();
   }, []);
+
+  // Translate meal types when data or language changes
+  useEffect(() => {
+    const translateMealTypes = async () => {
+      if (mealTypes.length > 0) {
+        const mealTypeNames = mealTypes.map((mt) => mt.meal_type_name);
+        const translated = await translateBatch(mealTypeNames);
+        
+        const translatedMap: Record<number, string> = {};
+        mealTypes.forEach((mt, index) => {
+          translatedMap[mt.meal_type_id] = translated[index];
+        });
+        setTranslatedMealTypes(translatedMap);
+      }
+    };
+
+    translateMealTypes();
+  }, [mealTypes, currentLanguage, translateBatch]);
+
+  // Translate menu items when data or language changes
+  useEffect(() => {
+    const translateMenuItems = async () => {
+      if (menuItems.length > 0) {
+        const menuItemNames = menuItems.map((item) => item.name);
+        const translated = await translateBatch(menuItemNames);
+        
+        const translatedMap: Record<number, string> = {};
+        menuItems.forEach((item, index) => {
+          translatedMap[item.menu_item_id] = translated[index];
+        });
+        setTranslatedMenuItems(translatedMap);
+      }
+    };
+
+    translateMenuItems();
+  }, [menuItems, currentLanguage, translateBatch]);
 
   useEffect(() => {
     if (mealTypeId) {
@@ -134,16 +223,16 @@ const CashierInterfaceContent = () => {
       });
 
       if (response.ok) {
-        alert('Order submitted successfully!');
+        alert(t.successMessage);
         setOrder([]);
         localStorage.removeItem('order');
         router.push('/cashier-interface');
       } else {
-        alert('Failed to submit order.');
+        alert(t.failMessage);
       }
     } catch (error) {
       console.error('Error submitting order:', error);
-      alert('An error occurred while submitting the order.');
+      alert(t.errorMessage);
     }
   };
 
@@ -159,11 +248,11 @@ const CashierInterfaceContent = () => {
           <div className="mb-4">
             <Link href="/dashboard">
               <button className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
-                ← Back to Dashboard
+                ← {t.backToDashboard}
               </button>
             </Link>
           </div>
-          <h1 className="text-4xl font-bold text-center mb-8">Cashier Interface - Select Meal Type</h1>
+          <h1 className="text-4xl font-bold text-center mb-8">{t.selectMealType}</h1>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {mealTypes.map((mealType) => (
               <div
@@ -171,11 +260,13 @@ const CashierInterfaceContent = () => {
                 onClick={() => handleSelectMealType(mealType)}
                 className="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow duration-200"
               >
-                <h2 className="text-2xl font-bold mb-2">{mealType.meal_type_name}</h2>
-                <p className="text-gray-700">Price: ${mealType.meal_type_price.toFixed(2)}</p>
-                <p className="text-gray-700">Entrees: {mealType.entree_count}</p>
-                <p className="text-gray-700">Sides: {mealType.side_count}</p>
-                {mealType.drink_size && <p className="text-gray-700">Drink: {mealType.drink_size}</p>}
+                <h2 className="text-2xl font-bold mb-2">
+                  {translatedMealTypes[mealType.meal_type_id] || mealType.meal_type_name}
+                </h2>
+                <p className="text-gray-700">{t.price}: ${mealType.meal_type_price.toFixed(2)}</p>
+                <p className="text-gray-700">{t.entrees}: {mealType.entree_count}</p>
+                <p className="text-gray-700">{t.sides}: {mealType.side_count}</p>
+                {mealType.drink_size && <p className="text-gray-700">{t.drink}: {mealType.drink_size}</p>}
               </div>
             ))}
           </div>
@@ -185,7 +276,7 @@ const CashierInterfaceContent = () => {
               className="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-xl"
               disabled={order.length === 0}
             >
-              Submit Order
+              {t.submitOrder}
             </button>
           </div>
         </>
@@ -201,16 +292,16 @@ const CashierInterfaceContent = () => {
               }}
               className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg"
             >
-              ← Back to Meal Types
+              ← {t.backToMealTypes}
             </button>
           </div>
           <h1 className="text-4xl font-bold text-center mb-8">
-            Cashier Interface - Customize {selectedMealType.meal_type_name}
+            {t.customize} {translatedMealTypes[selectedMealType.meal_type_id] || selectedMealType.meal_type_name}
           </h1>
 
           <section className="mb-10">
             <h2 className="text-3xl font-semibold mb-4">
-              Select Entrees ({selectedEntrees.length}/{selectedMealType.entree_count})
+              {t.selectEntrees} ({selectedEntrees.length}/{selectedMealType.entree_count})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {menuItems
@@ -225,10 +316,10 @@ const CashierInterfaceContent = () => {
                     } ${!item.is_available ? 'opacity-50 cursor-not-allowed' : ''}`}
                     onClick={() => item.is_available && handleSelectItem(item, 'entree')}
                   >
-                    <h3 className="text-xl font-bold mb-2">{item.name}</h3>
-                    <p className="text-gray-700">Upcharge: ${item.upcharge.toFixed(2)}</p>
+                    <h3 className="text-xl font-bold mb-2">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
+                    <p className="text-gray-700">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
                     {!item.is_available && (
-                      <p className="text-red-500 font-semibold mt-2">Unavailable</p>
+                      <p className="text-red-500 font-semibold mt-2">{t.unavailable}</p>
                     )}
                   </div>
                 ))}
@@ -237,7 +328,7 @@ const CashierInterfaceContent = () => {
 
           <section className="mb-10">
             <h2 className="text-3xl font-semibold mb-4">
-              Select Sides ({selectedSides.length}/{selectedMealType.side_count})
+              {t.selectSides} ({selectedSides.length}/{selectedMealType.side_count})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {menuItems
@@ -252,10 +343,10 @@ const CashierInterfaceContent = () => {
                     } ${!item.is_available ? 'opacity-50 cursor-not-allowed' : ''}`}
                     onClick={() => item.is_available && handleSelectItem(item, 'side')}
                   >
-                    <h3 className="text-xl font-bold mb-2">{item.name}</h3>
-                    <p className="text-gray-700">Upcharge: ${item.upcharge.toFixed(2)}</p>
+                    <h3 className="text-xl font-bold mb-2">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
+                    <p className="text-gray-700">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
                     {!item.is_available && (
-                      <p className="text-red-500 font-semibold mt-2">Unavailable</p>
+                      <p className="text-red-500 font-semibold mt-2">{t.unavailable}</p>
                     )}
                   </div>
                 ))}
@@ -272,13 +363,13 @@ const CashierInterfaceContent = () => {
                   selectedSides.length !== selectedMealType.side_count)
               }
             >
-              {editIndex !== null ? 'Update Item' : 'Add to Order'}
+              {editIndex !== null ? t.updateItem : t.addToOrder}
             </button>
           </div>
         </>
       ) : (
         <div className="text-center py-10">
-          <h1 className="text-3xl font-bold">Loading meal type...</h1>
+          <h1 className="text-3xl font-bold">{t.loadingMealType}</h1>
         </div>
       )}
     </div>
