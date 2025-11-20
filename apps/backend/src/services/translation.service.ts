@@ -70,3 +70,28 @@ export const detectLanguage = async (text: string) => {
     };
   }
 };
+
+export const getSupportedLanguages = async () => {
+  try {
+    const response = await axios.get(`${GOOGLE_TRANSLATE_URL}/languages`, {
+      params: {
+        key: GOOGLE_TRANSLATE_API_KEY,
+      },
+    });
+
+    return {
+      success: true,
+      languages: response.data.data.languages,
+    };
+  } catch (error: unknown) {
+    const err = error as {
+      response?: { data?: { error?: { message?: string } } };
+      message?: string;
+    };
+    console.error('Get Languages Error:', err.response?.data || err.message);
+    return {
+      success: false,
+      error: err.response?.data?.error?.message || 'Failed to fetch supported languages',
+    };
+  }
+};
