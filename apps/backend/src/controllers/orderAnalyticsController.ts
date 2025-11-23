@@ -15,12 +15,6 @@ interface HourlyCompletionTimeStats {
   order_count: number;
 }
 
-interface StatusTransitionStats {
-  status: string;
-  average_time_to_status_minutes: number;
-  order_count: number;
-}
-
 // Get average order completion time by date
 export const getAverageCompletionTime = async (req: Request, res: Response): Promise<void> => {
   try {
