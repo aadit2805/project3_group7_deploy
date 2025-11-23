@@ -35,7 +35,7 @@ import pool from '../config/db';
 import translationRoutes from './translation.routes';
 import weatherRoutes from './weather.routes';
 import inventoryRoutes from './inventory.routes';
-import { isAuthenticated, isManager } from '../middleware/auth';
+import { isAuthenticated, isManager, isCashierOrManager } from '../middleware/auth';
 import axios from 'axios';
 
 const router = Router();
@@ -57,8 +57,8 @@ router.post('/orders', createOrder);
 // GET /api/orders/active - Get all active orders (manager only)
 router.get('/orders/active', isAuthenticated, isManager, getActiveOrders);
 
-// GET /api/orders/kitchen - Get detailed orders for kitchen monitor (manager only)
-router.get('/orders/kitchen', isAuthenticated, isManager, getKitchenOrders);
+// GET /api/orders/kitchen - Get detailed orders for kitchen monitor (cashier or manager)
+router.get('/orders/kitchen', isAuthenticated, isCashierOrManager, getKitchenOrders);
 
 // PATCH /api/orders/:orderId/status - Update order status (manager only)
 router.patch('/orders/:orderId/status', isAuthenticated, isManager, updateOrderStatus);
@@ -105,40 +105,13 @@ router.get('/hello', (_req: Request, res: Response<ApiResponse<{ greeting: strin
   });
 });
 
-// GET /api/users (example)
-router.get(
-  '/users',
-  (_req: Request, res: Response<ApiResponse<{ id: number; name: string }[]>>) => {
-    res.json({
-      success: true,
-      data: [
-        { id: 1, name: 'John Doe' },
-        { id: 2, name: 'Jane Smith' },
-        { id: 3, name: 'Bob Johnson' },
-      ],
-    });
-  }
-);
+import userRoutes from './user.routes';
+// ... (other imports)
 
-// POST /api/users (example)
-router.post('/users', (req: Request, res: Response<ApiResponse<{ id: number; name: string }>>) => {
-  const { name } = req.body;
+// ... (other routes)
 
-  if (!name) {
-    return res.status(400).json({
-      success: false,
-      error: 'Name is required',
-    });
-  }
-
-  return res.status(201).json({
-    success: true,
-    data: {
-      id: Date.now(),
-      name,
-    },
-  });
-});
+// User management routes (manager only)
+router.use('/users', isAuthenticated, isManager, userRoutes);
 
 // External API routes
 router.use('/translation', translationRoutes);

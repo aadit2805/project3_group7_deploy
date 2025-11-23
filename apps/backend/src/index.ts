@@ -92,7 +92,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
               googleId: profile.id,
               email,
               name: profile.displayName || undefined,
-              role: 'MANAGER', // default for now
+              role: 'CASHIER', // default for new users
             },
           });
           return done(null, user);
