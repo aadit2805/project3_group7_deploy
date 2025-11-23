@@ -147,10 +147,15 @@ export default function KitchenMonitor() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <div className="mb-4">
+      <div className="mb-4 flex gap-2">
         <Link href="/dashboard">
           <button className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
             ← Back to Dashboard
+          </button>
+        </Link>
+        <Link href="/inventory-manager">
+          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            Inventory Manager
           </button>
         </Link>
       </div>
