@@ -102,9 +102,10 @@ export const getActiveOrders = async (_req: Request, res: Response) => {
   const client = await pool.connect();
 
   try {
-    // Get all orders that are not completed or cancelled
-    // Active orders are those with status: pending, processing, preparing, ready, etc.
-    // Excluding: completed, cancelled
+    // Get all orders that are not addressed or cancelled
+    // Active orders are those with status: pending, processing, preparing, ready, completed, etc.
+    // Excluding: addressed, cancelled
+    // Note: 'completed' orders are still active until they are marked as 'addressed'
     const result = await client.query(
       `SELECT 
         o.order_id,
@@ -117,7 +118,7 @@ export const getActiveOrders = async (_req: Request, res: Response) => {
       FROM "Order" o
       LEFT JOIN staff s ON o.staff_id = s.staff_id
       LEFT JOIN meal m ON o.order_id = m.order_id
-      WHERE (o.order_status IS NULL OR o.order_status NOT IN ('completed', 'cancelled'))
+      WHERE (o.order_status IS NULL OR o.order_status NOT IN ('addressed', 'cancelled'))
       GROUP BY o.order_id, o.staff_id, o.datetime, o.price, o.order_status, s.username
       ORDER BY o.datetime DESC NULLS LAST, o.order_id DESC`
     );
@@ -146,7 +147,8 @@ export const getKitchenOrders = async (_req: Request, res: Response) => {
   const client = await pool.connect();
 
   try {
-    // Get all orders that are not completed or cancelled, with full details
+    // Get all orders that are not completed, addressed, or cancelled, with full details
+    // Kitchen Monitor should only show orders that are still being prepared
     const ordersResult = await client.query(
       `SELECT 
         o.order_id,
@@ -156,7 +158,7 @@ export const getKitchenOrders = async (_req: Request, res: Response) => {
         s.username as staff_username
       FROM "Order" o
       LEFT JOIN staff s ON o.staff_id = s.staff_id
-      WHERE (o.order_status IS NULL OR o.order_status NOT IN ('completed', 'cancelled'))
+      WHERE (o.order_status IS NULL OR o.order_status NOT IN ('completed', 'addressed', 'cancelled'))
       ORDER BY o.datetime ASC NULLS FIRST, o.order_id ASC`
     );
 
@@ -301,6 +303,84 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Error updating order status:', error);
+    return res.status(500).json({ success: false, error: (error as Error).message });
+  } finally {
+    client.release();
+  }
+};
+
+export const getPreparedOrders = async (_req: Request, res: Response) => {
+  const client = await pool.connect();
+
+  try {
+    // Get all orders with status 'completed' (prepared but not yet addressed)
+    const result = await client.query(
+      `SELECT 
+        o.order_id,
+        o.customer_name,
+        o.datetime,
+        o.order_status,
+        o.completed_at
+      FROM "Order" o
+      WHERE o.order_status = 'completed'
+      ORDER BY o.completed_at ASC NULLS LAST, o.order_id ASC`
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: result.rows.map((row) => ({
+        order_id: row.order_id,
+        customer_name: row.customer_name || 'Guest',
+        datetime: row.datetime,
+        completed_at: row.completed_at,
+        order_status: row.order_status,
+      })),
+    });
+  } catch (error) {
+    console.error('Error fetching prepared orders:', error);
+    return res.status(500).json({ success: false, error: (error as Error).message });
+  } finally {
+    client.release();
+  }
+};
+
+export const markOrderAddressed = async (req: Request, res: Response) => {
+  const { orderId } = req.params;
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // Update order status to 'addressed'
+    const result = await client.query(
+      `UPDATE "Order" 
+       SET order_status = 'addressed' 
+       WHERE order_id = $1 AND order_status = 'completed'
+       RETURNING *`,
+      [orderId]
+    );
+
+    if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Order not found or not in completed status' 
+      });
+    }
+
+    await client.query('COMMIT');
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        order_id: result.rows[0].order_id,
+        order_status: result.rows[0].order_status,
+      },
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error marking order as addressed:', error);
     return res.status(500).json({ success: false, error: (error as Error).message });
   } finally {
     client.release();

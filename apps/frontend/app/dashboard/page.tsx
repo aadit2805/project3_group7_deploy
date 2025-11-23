@@ -208,6 +208,16 @@ export default function DashboardPage() {
               </p>
             </Link>
           )}
+
+          {/* Prepared Orders */}
+          <Link href="/prepared-orders" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+            <h2 className="mb-2 text-xl font-semibold text-gray-700">
+              Prepared Orders
+            </h2>
+            <p className="text-gray-500">
+              View and mark prepared orders as addressed.
+            </p>
+          </Link>
         </div>
 
         <div className="mt-8 text-center">

@@ -12,6 +12,8 @@ import {
   getActiveOrders,
   getKitchenOrders,
   updateOrderStatus,
+  getPreparedOrders,
+  markOrderAddressed,
 } from '../controllers/orderController';
 import {
   getDailyRevenueReport,
@@ -62,6 +64,12 @@ router.get('/orders/kitchen', isAuthenticated, isManager, getKitchenOrders);
 
 // PATCH /api/orders/:orderId/status - Update order status (manager only)
 router.patch('/orders/:orderId/status', isAuthenticated, isManager, updateOrderStatus);
+
+// GET /api/orders/prepared - Get prepared orders (completed but not addressed)
+router.get('/orders/prepared', isAuthenticated, getPreparedOrders);
+
+// PATCH /api/orders/:orderId/address - Mark order as addressed
+router.patch('/orders/:orderId/address', isAuthenticated, markOrderAddressed);
 
 // Revenue Report routes (manager only)
 router.get('/revenue/daily', isAuthenticated, isManager, getDailyRevenueReport);
