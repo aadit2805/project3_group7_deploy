@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -29,6 +29,31 @@ export default function KitchenMonitor() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const previousOrderIdsRef = useRef<Set<number>>(new Set());
+
+  const playBingSound = useCallback(() => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      
+      const now = audioContext.currentTime;
+      gainNode.gain.setValueAtTime(0, now);
+      gainNode.gain.linearRampToValueAtTime(0.6, now + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+
+      oscillator.start(now);
+      oscillator.stop(now + 0.15);
+    } catch (err) {
+      console.debug('Could not play sound:', err);
+    }
+  }, []);
 
   // Fetch orders from the API
   const fetchOrders = useCallback(async () => {
@@ -50,7 +75,18 @@ export default function KitchenMonitor() {
 
       const data = await response.json();
       if (data.success) {
-        setOrders(data.data);
+        const newOrders = data.data as KitchenOrder[];
+        const currentOrderIds = new Set(newOrders.map(order => order.order_id));
+        const previousOrderIds = previousOrderIdsRef.current;
+
+        const hasNewOrders = newOrders.some(order => !previousOrderIds.has(order.order_id));
+
+        if (previousOrderIds.size > 0 && hasNewOrders) {
+          playBingSound();
+        }
+
+        previousOrderIdsRef.current = currentOrderIds;
+        setOrders(newOrders);
         setError(null);
       }
     } catch (err) {
@@ -59,7 +95,7 @@ export default function KitchenMonitor() {
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, playBingSound]);
 
   // Mark order as done
   const markOrderDone = async (orderId: number) => {
