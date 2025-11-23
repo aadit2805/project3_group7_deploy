@@ -24,6 +24,12 @@ import {
   getHourlyCompletionTime,
   getCompletionTimeSummary,
 } from '../controllers/orderAnalyticsController';
+import {
+  getBestSellingItems,
+  getSalesByCategory,
+  getSalesTrends,
+  getSalesSummary,
+} from '../controllers/salesAnalyticsController';
 import { ApiResponse } from '../types';
 import pool from '../config/db';
 import translationRoutes from './translation.routes';
@@ -67,6 +73,12 @@ router.get('/revenue/export/csv', isAuthenticated, isManager, exportRevenueRepor
 router.get('/analytics/completion-time', isAuthenticated, isManager, getAverageCompletionTime);
 router.get('/analytics/completion-time/hourly', isAuthenticated, isManager, getHourlyCompletionTime);
 router.get('/analytics/completion-time/summary', isAuthenticated, isManager, getCompletionTimeSummary);
+
+// Sales Analytics routes (manager only)
+router.get('/analytics/best-selling', isAuthenticated, isManager, getBestSellingItems);
+router.get('/analytics/sales-by-category', isAuthenticated, isManager, getSalesByCategory);
+router.get('/analytics/sales-trends', isAuthenticated, isManager, getSalesTrends);
+router.get('/analytics/sales-summary', isAuthenticated, isManager, getSalesSummary);
 
 // Meal Type routes
 router.get('/meal-types', getMealTypes);
