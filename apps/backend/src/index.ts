@@ -205,6 +205,17 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
+// Debug route to check env vars
+app.get('/debug/config', (_req: Request, res: Response) => {
+  res.json({
+    AUTH_URL: process.env.AUTH_URL,
+    FRONTEND_URL: process.env.FRONTEND_URL,
+    HAS_GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
+    CALLBACK_URL: `${process.env.AUTH_URL}/auth/google/callback`,
+    NODE_ENV: process.env.NODE_ENV,
+  });
+});
+
 app.get('/', (_req, res) => {
   res.send('Hello from the backend!');
 });
