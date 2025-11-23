@@ -47,7 +47,8 @@ app.use(
       secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
       httpOnly: true, // Prevent XSS attacks
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'lax', // CSRF protection
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      domain: process.env.NODE_ENV === 'production' ? '.railway.app' : undefined,
     },
   })
 );
