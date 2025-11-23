@@ -51,7 +51,8 @@ const MealTypeSelection = () => {
   useEffect(() => {
     const fetchMealTypes = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/meal-types');
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const res = await fetch(`${backendUrl}/api/meal-types`);
         const data = await res.json();
         setMealTypes(data);
       } catch (error) {

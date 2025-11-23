@@ -61,11 +61,12 @@ const ALaCartePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const menuItemsRes = await fetch('http://localhost:3001/api/menu-items');
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const menuItemsRes = await fetch(`${backendUrl}/api/menu-items`);
         const menuItemsData = await menuItemsRes.json();
         setMenuItems(menuItemsData);
 
-        const mealTypesRes = await fetch('http://localhost:3001/api/meal-types');
+        const mealTypesRes = await fetch(`${backendUrl}/api/meal-types`);
         const mealTypesData = await mealTypesRes.json();
         setMealTypes(mealTypesData);
       } catch (error) {

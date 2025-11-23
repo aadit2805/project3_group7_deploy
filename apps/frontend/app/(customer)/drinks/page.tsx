@@ -57,10 +57,11 @@ const DrinksPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const menuItemsRes = await fetch('http://localhost:3001/api/menu-items');
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const menuItemsRes = await fetch(`${backendUrl}/api/menu-items`);
         setMenuItems(await menuItemsRes.json());
 
-        const mealTypesRes = await fetch('http://localhost:3001/api/meal-types');
+        const mealTypesRes = await fetch(`${backendUrl}/api/meal-types`);
         setMealTypes(await mealTypesRes.json());
       } catch (error) {
         console.error('Error fetching data:', error);
