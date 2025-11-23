@@ -138,7 +138,7 @@ export default function DashboardPage() {
           )}
 
           {/* Kitchen Monitor */}
-          {(user?.role === 'MANAGER' || user?.role === 'KITCHEN') && (
+          {(user?.role === 'MANAGER' || user?.role === 'CASHIER') && (
             <Link href="/kitchen-monitor" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
               <h2 className="mb-2 text-xl font-semibold text-gray-700">
                 Kitchen Monitor

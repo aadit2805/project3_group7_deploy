@@ -105,40 +105,13 @@ router.get('/hello', (_req: Request, res: Response<ApiResponse<{ greeting: strin
   });
 });
 
-// GET /api/users (example)
-router.get(
-  '/users',
-  (_req: Request, res: Response<ApiResponse<{ id: number; name: string }[]>>) => {
-    res.json({
-      success: true,
-      data: [
-        { id: 1, name: 'John Doe' },
-        { id: 2, name: 'Jane Smith' },
-        { id: 3, name: 'Bob Johnson' },
-      ],
-    });
-  }
-);
+import userRoutes from './user.routes';
+// ... (other imports)
 
-// POST /api/users (example)
-router.post('/users', (req: Request, res: Response<ApiResponse<{ id: number; name: string }>>) => {
-  const { name } = req.body;
+// ... (other routes)
 
-  if (!name) {
-    return res.status(400).json({
-      success: false,
-      error: 'Name is required',
-    });
-  }
-
-  return res.status(201).json({
-    success: true,
-    data: {
-      id: Date.now(),
-      name,
-    },
-  });
-});
+// User management routes (manager only)
+router.use('/users', isAuthenticated, isManager, userRoutes);
 
 // External API routes
 router.use('/translation', translationRoutes);
