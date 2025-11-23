@@ -54,34 +54,30 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     localStorage.setItem('order', JSON.stringify(order));
-    const calculateTotalPrice = () => {
-      const total = order.reduce((acc, orderItem) => {
-        const mealPrice = orderItem.mealType.meal_type_price;
-        const entreesUpcharge = orderItem.entrees.reduce(
-          (upchargeAcc, entree) => upchargeAcc + entree.upcharge,
-          0
-        );
-        const sidesUpcharge = orderItem.sides.reduce(
-          (upchargeAcc, side) => upchargeAcc + side.upcharge,
-          0
-        );
-        const drinkUpcharge = orderItem.drink ? orderItem.drink.upcharge : 0;
-        return acc + mealPrice + entreesUpcharge + sidesUpcharge + drinkUpcharge;
-      }, 0);
-      setTotalPrice(total);
-    };
-
-    calculateTotalPrice();
+    const total = order.reduce((acc, orderItem) => {
+      const mealPrice = orderItem.mealType.meal_type_price;
+      const entreesUpcharge = orderItem.entrees.reduce(
+        (upchargeAcc, entree) => upchargeAcc + entree.upcharge,
+        0
+      );
+      const sidesUpcharge = orderItem.sides.reduce(
+        (upchargeAcc, side) => upchargeAcc + side.upcharge,
+        0
+      );
+      const drinkUpcharge = orderItem.drink ? orderItem.drink.upcharge : 0;
+      return acc + mealPrice + entreesUpcharge + sidesUpcharge + drinkUpcharge;
+    }, 0);
+    setTotalPrice(total);
 
     // Announce order changes to screen readers
     if (order.length > previousOrderLength.current) {
       const newItem = order[order.length - 1];
       setAnnouncement(
-        `Added ${newItem.mealType.meal_type_name} to cart. Cart now has ${order.length} item${order.length !== 1 ? 's' : ''}. Total is $${totalPrice.toFixed(2)}`
+        `Added ${newItem.mealType.meal_type_name} to cart. Cart now has ${order.length} item${order.length !== 1 ? 's' : ''}. Total is $${total.toFixed(2)}`
       );
     } else if (order.length < previousOrderLength.current) {
       setAnnouncement(
-        `Item removed from cart. Cart now has ${order.length} item${order.length !== 1 ? 's' : ''}. Total is $${totalPrice.toFixed(2)}`
+        `Item removed from cart. Cart now has ${order.length} item${order.length !== 1 ? 's' : ''}. Total is $${total.toFixed(2)}`
       );
     } else if (order.length === 0 && previousOrderLength.current > 0) {
       setAnnouncement('Cart cleared. Cart is now empty.');
