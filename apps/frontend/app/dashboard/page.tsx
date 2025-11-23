@@ -172,6 +172,42 @@ export default function DashboardPage() {
               </p>
             </Link>
           )}
+
+          {/* Revenue Reports */}
+          {user?.role === 'MANAGER' && (
+            <Link href="/manager/revenue-reports" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+              <h2 className="mb-2 text-xl font-semibold text-gray-700">
+                Revenue Reports
+              </h2>
+              <p className="text-gray-500">
+                View daily revenue reports and track performance metrics.
+              </p>
+            </Link>
+          )}
+
+          {/* Order Analytics */}
+          {user?.role === 'MANAGER' && (
+            <Link href="/manager/order-analytics" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+              <h2 className="mb-2 text-xl font-semibold text-gray-700">
+                Order Analytics
+              </h2>
+              <p className="text-gray-500">
+                View average order completion times and identify bottlenecks.
+              </p>
+            </Link>
+          )}
+
+          {/* Best-Selling Items */}
+          {user?.role === 'MANAGER' && (
+            <Link href="/manager/best-selling" className="block rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+              <h2 className="mb-2 text-xl font-semibold text-gray-700">
+                Best-Selling Items
+              </h2>
+              <p className="text-gray-500">
+                See which items sell best and plan promotions.
+              </p>
+            </Link>
+          )}
         </div>
 
         <div className="mt-8 text-center">

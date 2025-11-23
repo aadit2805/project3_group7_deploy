@@ -13,6 +13,23 @@ import {
   getKitchenOrders,
   updateOrderStatus,
 } from '../controllers/orderController';
+import {
+  getDailyRevenueReport,
+  getOrdersByDate,
+  getRevenueSummary,
+  exportRevenueReportCSV,
+} from '../controllers/revenueController';
+import {
+  getAverageCompletionTime,
+  getHourlyCompletionTime,
+  getCompletionTimeSummary,
+} from '../controllers/orderAnalyticsController';
+import {
+  getBestSellingItems,
+  getSalesByCategory,
+  getSalesTrends,
+  getSalesSummary,
+} from '../controllers/salesAnalyticsController';
 import { ApiResponse } from '../types';
 import pool from '../config/db';
 import translationRoutes from './translation.routes';
@@ -45,6 +62,23 @@ router.get('/orders/kitchen', isAuthenticated, isManager, getKitchenOrders);
 
 // PATCH /api/orders/:orderId/status - Update order status (manager only)
 router.patch('/orders/:orderId/status', isAuthenticated, isManager, updateOrderStatus);
+
+// Revenue Report routes (manager only)
+router.get('/revenue/daily', isAuthenticated, isManager, getDailyRevenueReport);
+router.get('/revenue/summary', isAuthenticated, isManager, getRevenueSummary);
+router.get('/revenue/orders/:date', isAuthenticated, isManager, getOrdersByDate);
+router.get('/revenue/export/csv', isAuthenticated, isManager, exportRevenueReportCSV);
+
+// Order Analytics routes (manager only)
+router.get('/analytics/completion-time', isAuthenticated, isManager, getAverageCompletionTime);
+router.get('/analytics/completion-time/hourly', isAuthenticated, isManager, getHourlyCompletionTime);
+router.get('/analytics/completion-time/summary', isAuthenticated, isManager, getCompletionTimeSummary);
+
+// Sales Analytics routes (manager only)
+router.get('/analytics/best-selling', isAuthenticated, isManager, getBestSellingItems);
+router.get('/analytics/sales-by-category', isAuthenticated, isManager, getSalesByCategory);
+router.get('/analytics/sales-trends', isAuthenticated, isManager, getSalesTrends);
+router.get('/analytics/sales-summary', isAuthenticated, isManager, getSalesSummary);
 
 // Meal Type routes
 router.get('/meal-types', getMealTypes);

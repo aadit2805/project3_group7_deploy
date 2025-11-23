@@ -109,6 +109,24 @@ export default function ManagerPage() {
               >
                 User Dashboard
               </a>
+              <Link
+                href="/manager/revenue-reports"
+                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors font-semibold"
+              >
+                Revenue Reports
+              </Link>
+              <Link
+                href="/manager/order-analytics"
+                className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors font-semibold"
+              >
+                Order Analytics
+              </Link>
+              <Link
+                href="/manager/best-selling"
+                className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors font-semibold"
+              >
+                Best Sellers
+              </Link>
               <a
                 href="/kitchen-monitor"
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors font-semibold"

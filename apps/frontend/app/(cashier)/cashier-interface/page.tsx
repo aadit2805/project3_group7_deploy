@@ -114,7 +114,8 @@ const CashierInterfaceContent = () => {
   useEffect(() => {
     const fetchMealTypes = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/meal-types');
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const res = await fetch(`${backendUrl}/api/meal-types`);
         const data = await res.json();
         setMealTypes(data);
       } catch (error) {
@@ -177,11 +178,12 @@ const CashierInterfaceContent = () => {
 
       const fetchMealTypeAndMenuItems = async () => {
         try {
-          const mealTypeRes = await fetch(`http://localhost:3001/api/meal-types/${mealTypeId}`);
+          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+          const mealTypeRes = await fetch(`${backendUrl}/api/meal-types/${mealTypeId}`);
           const mealTypeData: MealType = await mealTypeRes.json();
           setSelectedMealType(mealTypeData);
 
-          const menuItemsRes = await fetch(`http://localhost:3001/api/menu-items`);
+          const menuItemsRes = await fetch(`${backendUrl}/api/menu-items`);
           const menuItemsData: MenuItem[] = await menuItemsRes.json();
           setMenuItems(menuItemsData);
 
@@ -252,7 +254,8 @@ const CashierInterfaceContent = () => {
 
   const handleSubmitOrder = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/orders', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const response = await fetch(`${backendUrl}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
