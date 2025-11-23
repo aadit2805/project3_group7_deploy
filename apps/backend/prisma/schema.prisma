@@ -8,15 +8,15 @@ datasource db {
 }
 
 model Order {
-  order_id     Int       @id @default(autoincrement())
-  staff_id     Int?
-  datetime     DateTime? @db.Timestamp(6)
-  price        Float?
-  order_status String?   @db.VarChar(50)
-  customer_name String?  @db.VarChar(255) // Added customer_name field
-  staff        staff?    @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
-  meal         meal[]
-  payment      payment[]
+  order_id      Int       @id @default(autoincrement())
+  staff_id      Int?
+  datetime      DateTime? @db.Timestamp(6)
+  price         Float?
+  order_status  String?   @db.VarChar(50)
+  customer_name String?   @db.VarChar(255)
+  staff         staff?    @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
+  meal          meal[]
+  payment       payment[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
