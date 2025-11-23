@@ -94,6 +94,7 @@ const CashierInterfaceContent = () => {
   const [mealTypes, setMealTypes] = useState<MealType[]>([]);
   const [translatedMealTypes, setTranslatedMealTypes] = useState<Record<number, string>>({});
   const [translatedMenuItems, setTranslatedMenuItems] = useState<Record<number, string>>({});
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     const fetchMealTypes = async () => {
@@ -208,6 +209,7 @@ const CashierInterfaceContent = () => {
       setSelectedEntrees([]);
       setSelectedSides([]);
       setSelectedMealType(null);
+      setSearchQuery('');
       router.push('/cashier-interface');
     }
   };
@@ -239,6 +241,18 @@ const CashierInterfaceContent = () => {
   const handleSelectMealType = (mealType: MealType) => {
     setSelectedMealType(mealType);
     router.push(`/cashier-interface?mealTypeId=${mealType.meal_type_id}`);
+  };
+
+  const filterMenuItems = (items: MenuItem[]) => {
+    if (!searchQuery.trim()) {
+      return items;
+    }
+    const query = searchQuery.toLowerCase().trim();
+    return items.filter((item) => {
+      const originalName = item.name.toLowerCase();
+      const translatedName = (translatedMenuItems[item.menu_item_id] || '').toLowerCase();
+      return originalName.includes(query) || translatedName.includes(query);
+    });
   };
 
   return (
@@ -288,6 +302,7 @@ const CashierInterfaceContent = () => {
                 setSelectedMealType(null);
                 setSelectedEntrees([]);
                 setSelectedSides([]);
+                setSearchQuery('');
                 router.push('/cashier-interface');
               }}
               className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg"
@@ -299,13 +314,22 @@ const CashierInterfaceContent = () => {
             {t.customize} {translatedMealTypes[selectedMealType.meal_type_id] || selectedMealType.meal_type_name}
           </h1>
 
+          <div className="mb-6 max-w-2xl mx-auto">
+            <input
+              type="text"
+              placeholder="Search meal options..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
           <section className="mb-10">
             <h2 className="text-3xl font-semibold mb-4">
               {t.selectEntrees} ({selectedEntrees.length}/{selectedMealType.entree_count})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {menuItems
-                .filter((item) => item.item_type === 'entree')
+              {filterMenuItems(menuItems.filter((item) => item.item_type === 'entree'))
                 .map((item) => (
                   <div
                     key={item.menu_item_id}
@@ -331,8 +355,7 @@ const CashierInterfaceContent = () => {
               {t.selectSides} ({selectedSides.length}/{selectedMealType.side_count})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {menuItems
-                .filter((item) => item.item_type === 'side')
+              {filterMenuItems(menuItems.filter((item) => item.item_type === 'side'))
                 .map((item) => (
                   <div
                     key={item.menu_item_id}
