@@ -46,7 +46,7 @@ export default function AccessibilityPage() {
               </li>
               <li>
                 <strong>Font Scaling:</strong> Text can be resized up to 200% without loss of 
-                content or functionality. Use your browser's zoom feature or adjust settings in 
+                content or functionality. Use your browser&apos;s zoom feature or adjust settings in 
                 the accessibility menu.
               </li>
               <li>
