@@ -13,6 +13,11 @@ import {
   getKitchenOrders,
   updateOrderStatus,
 } from '../controllers/orderController';
+import {
+  getDailyRevenueReport,
+  getOrdersByDate,
+  getRevenueSummary,
+} from '../controllers/revenueController';
 import { ApiResponse } from '../types';
 import pool from '../config/db';
 import translationRoutes from './translation.routes';
@@ -45,6 +50,11 @@ router.get('/orders/kitchen', isAuthenticated, isManager, getKitchenOrders);
 
 // PATCH /api/orders/:orderId/status - Update order status (manager only)
 router.patch('/orders/:orderId/status', isAuthenticated, isManager, updateOrderStatus);
+
+// Revenue Report routes (manager only)
+router.get('/revenue/daily', isAuthenticated, isManager, getDailyRevenueReport);
+router.get('/revenue/summary', isAuthenticated, isManager, getRevenueSummary);
+router.get('/revenue/orders/:date', isAuthenticated, isManager, getOrdersByDate);
 
 // Meal Type routes
 router.get('/meal-types', getMealTypes);
