@@ -5,9 +5,11 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 interface AccessibilityContextType {
   highContrast: boolean;
   reducedMotion: boolean;
+  simplifiedView: boolean;
   fontSize: 'normal' | 'large' | 'extra-large';
   toggleHighContrast: () => void;
   toggleReducedMotion: () => void;
+  toggleSimplifiedView: () => void;
   setFontSize: (size: 'normal' | 'large' | 'extra-large') => void;
   announceToScreenReader: (message: string, priority?: 'polite' | 'assertive') => void;
 }
@@ -17,6 +19,7 @@ const AccessibilityContext = createContext<AccessibilityContextType | undefined>
 export const AccessibilityProvider = ({ children }: { children: ReactNode }) => {
   const [highContrast, setHighContrast] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [simplifiedView, setSimplifiedView] = useState(false);
   const [fontSize, setFontSize] = useState<'normal' | 'large' | 'extra-large'>('normal');
   const [announcement, setAnnouncement] = useState('');
   const [announcementPriority, setAnnouncementPriority] = useState<'polite' | 'assertive'>('polite');
@@ -24,9 +27,11 @@ export const AccessibilityProvider = ({ children }: { children: ReactNode }) => 
   // Load preferences from localStorage and system preferences
   useEffect(() => {
     const savedHighContrast = localStorage.getItem('highContrast') === 'true';
+    const savedSimplifiedView = localStorage.getItem('simplifiedView') === 'true';
     const savedFontSize = localStorage.getItem('fontSize') as 'normal' | 'large' | 'extra-large' || 'normal';
     
     setHighContrast(savedHighContrast);
+    setSimplifiedView(savedSimplifiedView);
     setFontSize(savedFontSize);
 
     // Check system preference for reduced motion
@@ -66,9 +71,15 @@ export const AccessibilityProvider = ({ children }: { children: ReactNode }) => 
       root.classList.remove('reduced-motion');
     }
 
+    if (simplifiedView) {
+      root.classList.add('simplified-view');
+    } else {
+      root.classList.remove('simplified-view');
+    }
+
     root.classList.remove('font-normal', 'font-large', 'font-extra-large');
     root.classList.add(`font-${fontSize}`);
-  }, [highContrast, reducedMotion, fontSize]);
+  }, [highContrast, reducedMotion, simplifiedView, fontSize]);
 
   const toggleHighContrast = () => {
     const newValue = !highContrast;
@@ -85,6 +96,15 @@ export const AccessibilityProvider = ({ children }: { children: ReactNode }) => 
     localStorage.setItem('reducedMotion', String(newValue));
     announceToScreenReader(
       newValue ? 'Reduced motion enabled' : 'Reduced motion disabled'
+    );
+  };
+
+  const toggleSimplifiedView = () => {
+    const newValue = !simplifiedView;
+    setSimplifiedView(newValue);
+    localStorage.setItem('simplifiedView', String(newValue));
+    announceToScreenReader(
+      newValue ? 'Simplified view enabled' : 'Simplified view disabled'
     );
   };
 
@@ -113,9 +133,11 @@ export const AccessibilityProvider = ({ children }: { children: ReactNode }) => 
       value={{
         highContrast,
         reducedMotion,
+        simplifiedView,
         fontSize,
         toggleHighContrast,
         toggleReducedMotion,
+        toggleSimplifiedView,
         setFontSize: handleSetFontSize,
         announceToScreenReader,
       }}

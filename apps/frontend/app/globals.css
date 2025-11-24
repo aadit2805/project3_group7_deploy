@@ -378,6 +378,53 @@ textarea:focus-visible {
   border-color: #ffffff !important;
 }
 
+/* Simplified View - Minimize non-essential UI elements without changing layout */
+.simplified-view * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Minimize shadows */
+.simplified-view [class*="shadow"] {
+  box-shadow: none !important;
+}
+
+/* Hide decorative images/icons that are not functional */
+.simplified-view img[alt=""],
+.simplified-view img:not([alt]):not([role="img"]) {
+  opacity: 0.3 !important;
+}
+
+/* Keep functional icons visible */
+.simplified-view [role="button"] img,
+.simplified-view [role="link"] img,
+.simplified-view button img,
+.simplified-view a img,
+.simplified-view [role="img"] {
+  opacity: 1 !important;
+}
+
+/* Minimize decorative borders while keeping essential ones */
+.simplified-view [class*="border"]:not([class*="border-solid"]):not([class*="border-2"]):not([class*="border-b"]):not([class*="border-t"]) {
+  border-width: 1px !important;
+}
+
+/* Reduce decorative text styling */
+.simplified-view [class*="italic"]:not([class*="not-italic"]):not(em):not(i) {
+  font-style: normal !important;
+}
+
+/* Minimize rounded corners slightly */
+.simplified-view [class*="rounded"]:not([class*="rounded-none"]):not([class*="rounded-full"]) {
+  border-radius: 0.125rem !important;
+}
+
+/* Keep rounded-full for buttons and important elements */
+.simplified-view button[class*="rounded-full"],
+.simplified-view a[class*="rounded-full"] {
+  border-radius: 9999px !important;
+}
+
 /* Improve button accessibility */
 button,
 a[role="button"] {

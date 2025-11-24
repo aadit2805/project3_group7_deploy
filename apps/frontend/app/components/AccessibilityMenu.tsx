@@ -13,9 +13,11 @@ export default function AccessibilityMenu() {
   const {
     highContrast,
     reducedMotion,
+    simplifiedView,
     fontSize,
     toggleHighContrast,
     toggleReducedMotion,
+    toggleSimplifiedView,
     setFontSize,
   } = useAccessibility();
 
@@ -141,6 +143,28 @@ export default function AccessibilityMenu() {
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                     reducedMotion ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Simplified View Toggle */}
+            <div className="flex items-center justify-between">
+              <label htmlFor="simplified-view" className="text-sm font-medium text-gray-700">
+                Simplified View
+              </label>
+              <button
+                id="simplified-view"
+                role="switch"
+                aria-checked={simplifiedView}
+                onClick={toggleSimplifiedView}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  simplifiedView ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    simplifiedView ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
               </button>
