@@ -13,6 +13,8 @@ interface MenuItem {
   upcharge: number;
   is_available: boolean;
   item_type: string;
+  availability_start_time?: string | null;
+  availability_end_time?: string | null;
 }
 
 interface MealType {
@@ -156,7 +158,8 @@ const CashierInterfaceContent = () => {
           const mealTypeData: MealType = await mealTypeRes.json();
           setSelectedMealType(mealTypeData);
 
-          const menuItemsRes = await fetch(`${backendUrl}/api/menu-items`);
+          // Fetch menu items with time-based availability filtering (same as customer kiosk)
+          const menuItemsRes = await fetch(`${backendUrl}/api/menu-items?is_available=true`);
           const menuItemsData: MenuItem[] = await menuItemsRes.json();
           setMenuItems(menuItemsData);
 
