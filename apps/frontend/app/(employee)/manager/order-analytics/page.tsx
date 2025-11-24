@@ -114,21 +114,36 @@ export default function OrderAnalyticsPage() {
         const dailyData = await dailyRes.json();
         if (dailyData.success) {
           setDailyStats(dailyData.data);
+        } else {
+          console.error('Daily stats error:', dailyData.error || dailyData.message);
         }
+      } else {
+        const errorData = await dailyRes.json().catch(() => ({}));
+        console.error('Failed to fetch daily stats:', dailyRes.status, errorData);
       }
 
       if (hourlyRes.ok) {
         const hourlyData = await hourlyRes.json();
         if (hourlyData.success) {
           setHourlyStats(hourlyData.data);
+        } else {
+          console.error('Hourly stats error:', hourlyData.error || hourlyData.message);
         }
+      } else {
+        const errorData = await hourlyRes.json().catch(() => ({}));
+        console.error('Failed to fetch hourly stats:', hourlyRes.status, errorData);
       }
 
       if (summaryRes.ok) {
         const summaryData = await summaryRes.json();
         if (summaryData.success) {
           setSummary(summaryData.data);
+        } else {
+          console.error('Summary stats error:', summaryData.error || summaryData.message);
         }
+      } else {
+        const errorData = await summaryRes.json().catch(() => ({}));
+        console.error('Failed to fetch summary stats:', summaryRes.status, errorData);
       }
     } catch (err) {
       console.error('Error fetching stats:', err);
@@ -291,35 +306,48 @@ export default function OrderAnalyticsPage() {
         </div>
 
         {/* Summary Cards */}
-        {summary && (
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
-            <div className="bg-white rounded-lg shadow-md p-6">
+        {summary && summary.total_completed_orders > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6 animate-scale-in animate-stagger-1">
+            <div className="bg-white rounded-lg shadow-md p-6 hover-scale transition-all duration-200">
               <h3 className="text-sm font-medium text-gray-500 mb-2">Overall Average</h3>
               <p className="text-2xl font-bold text-gray-800">{formatMinutes(summary.overall_average_minutes)}</p>
               <p className="text-xs text-gray-500 mt-1">Per order</p>
             </div>
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg shadow-md p-6 hover-scale transition-all duration-200">
               <h3 className="text-sm font-medium text-gray-500 mb-2">Completed Orders</h3>
               <p className="text-2xl font-bold text-gray-800">{summary.total_completed_orders}</p>
               <p className="text-xs text-gray-500 mt-1">Total orders</p>
             </div>
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg shadow-md p-6 hover-scale transition-all duration-200">
               <h3 className="text-sm font-medium text-gray-500 mb-2">Fastest Order</h3>
               <p className="text-2xl font-bold text-green-600">{formatMinutes(summary.fastest_order_minutes)}</p>
               <p className="text-xs text-gray-500 mt-1">Best time</p>
             </div>
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg shadow-md p-6 hover-scale transition-all duration-200">
               <h3 className="text-sm font-medium text-gray-500 mb-2">Slowest Order</h3>
               <p className="text-2xl font-bold text-red-600">{formatMinutes(summary.slowest_order_minutes)}</p>
               <p className="text-xs text-gray-500 mt-1">Worst time</p>
             </div>
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg shadow-md p-6 hover-scale transition-all duration-200">
               <h3 className="text-sm font-medium text-gray-500 mb-2">Median Time</h3>
               <p className="text-2xl font-bold text-gray-800">{formatMinutes(summary.median_minutes)}</p>
               <p className="text-xs text-gray-500 mt-1">50th percentile</p>
             </div>
           </div>
-        )}
+        ) : summary && summary.total_completed_orders === 0 ? (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6 animate-fade-in">
+            <h3 className="text-lg font-semibold text-yellow-800 mb-2">No Completed Orders Found</h3>
+            <p className="text-yellow-700 text-sm mb-2">
+              There are no completed orders in the selected date range.
+            </p>
+            <p className="text-yellow-700 text-sm font-medium">To see analytics:</p>
+            <ul className="text-yellow-700 text-sm mt-2 list-disc list-inside text-left max-w-md">
+              <li>Mark orders as "DONE" in the Kitchen Monitor</li>
+              <li>Ensure orders have been completed (status = 'completed')</li>
+              <li>Try selecting a different date range</li>
+            </ul>
+          </div>
+        ) : null}
 
         {/* Hourly Breakdown */}
         {hourlyStats.length > 0 && (
@@ -401,9 +429,15 @@ export default function OrderAnalyticsPage() {
               <p className="text-gray-600">Loading analytics...</p>
             </div>
           ) : dailyStats.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <p>No completion time data found for the selected date range.</p>
-              <p className="text-sm mt-2">Complete some orders to see analytics.</p>
+            <div className="text-center py-12 text-gray-500 animate-fade-in">
+              <p className="text-lg font-semibold mb-2">No completion time data found</p>
+              <p className="text-sm">No completed orders found for the selected date range.</p>
+              <p className="text-sm mt-2">To see analytics:</p>
+              <ul className="text-sm mt-2 list-disc list-inside text-left max-w-md mx-auto">
+                <li>Mark orders as "DONE" in the Kitchen Monitor</li>
+                <li>Ensure orders have been completed (status = 'completed')</li>
+                <li>Try selecting a different date range</li>
+              </ul>
             </div>
           ) : (
             <div className="overflow-x-auto">
