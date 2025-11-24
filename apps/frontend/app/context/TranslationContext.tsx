@@ -68,19 +68,125 @@ const LANGUAGE_NAMES: { [key: string]: string } = {
   pa: 'Punjabi',
 };
 
+/**
+ * Detects browser language and maps it to a supported language code
+ * Prioritizes the first (most preferred) language in navigator.languages
+ * @param supportedLanguageCodes - Array of supported language codes
+ * @returns Detected language code or 'en' as fallback
+ */
+const detectBrowserLanguage = (supportedLanguageCodes: string[]): string => {
+  if (typeof window === 'undefined') {
+    return 'en';
+  }
+
+  // Get browser language preferences - navigator.languages is ordered by preference
+  // The first language is the most preferred
+  const browserLanguages = navigator.languages || [navigator.language || 'en'];
+  
+  console.log('[Translation] Browser languages (ordered by preference):', browserLanguages);
+  
+  // Map common browser language codes to our supported codes
+  const languageMap: { [key: string]: string } = {
+    'es': 'es',           // Spanish
+    'es-ES': 'es',        // Spanish (Spain)
+    'es-MX': 'es',        // Spanish (Mexico)
+    'es-AR': 'es',        // Spanish (Argentina)
+    'es-CO': 'es',        // Spanish (Colombia)
+    'es-CL': 'es',        // Spanish (Chile)
+    'es-PE': 'es',        // Spanish (Peru)
+    'es-VE': 'es',        // Spanish (Venezuela)
+    'en': 'en',           // English
+    'en-US': 'en',        // English (US)
+    'en-GB': 'en',        // English (UK)
+    'en-CA': 'en',        // English (Canada)
+    'en-AU': 'en',        // English (Australia)
+    'zh': 'zh',           // Chinese
+    'zh-CN': 'zh',        // Chinese (Simplified)
+    'zh-TW': 'zh-TW',     // Chinese (Traditional)
+    'hi': 'hi',           // Hindi
+    'ar': 'ar',           // Arabic
+    'fr': 'fr',           // French
+    'de': 'de',           // German
+    'ja': 'ja',           // Japanese
+    'ko': 'ko',           // Korean
+    'pt': 'pt',           // Portuguese
+    'ru': 'ru',           // Russian
+    'it': 'it',           // Italian
+    'vi': 'vi',           // Vietnamese
+    'th': 'th',           // Thai
+    'tr': 'tr',           // Turkish
+    'pl': 'pl',           // Polish
+    'nl': 'nl',           // Dutch
+    'id': 'id',           // Indonesian
+    'uk': 'uk',           // Ukrainian
+    'ro': 'ro',           // Romanian
+    'el': 'el',           // Greek
+    'cs': 'cs',           // Czech
+    'sv': 'sv',           // Swedish
+    'hu': 'hu',           // Hungarian
+    'da': 'da',           // Danish
+    'fi': 'fi',           // Finnish
+    'no': 'no',           // Norwegian
+    'he': 'he',           // Hebrew
+    'fa': 'fa',           // Persian
+    'bn': 'bn',           // Bengali
+    'ta': 'ta',           // Tamil
+    'te': 'te',           // Telugu
+    'mr': 'mr',           // Marathi
+    'ur': 'ur',           // Urdu
+    'gu': 'gu',           // Gujarati
+    'kn': 'kn',           // Kannada
+    'ml': 'ml',           // Malayalam
+    'pa': 'pa',           // Punjabi
+  };
+
+  // Process languages in order of preference (first is most preferred)
+  for (const browserLang of browserLanguages) {
+    const normalizedLang = browserLang.toLowerCase();
+    const langCode = normalizedLang.split('-')[0]; // Get base language code (e.g., 'es' from 'es-MX')
+    
+    // Try exact match first, then base language code
+    const mappedLang = languageMap[normalizedLang] || languageMap[browserLang] || languageMap[langCode];
+    
+    if (mappedLang && supportedLanguageCodes.includes(mappedLang)) {
+      console.log('[Translation] Browser language detected (top preference):', browserLang, '->', mappedLang);
+      return mappedLang;
+    }
+  }
+
+  // Fallback to English
+  console.log('[Translation] No matching browser language found, defaulting to English');
+  return 'en';
+};
+
 export const TranslationProvider = ({ children }: { children: ReactNode }) => {
   const [currentLanguage, setCurrentLanguageState] = useState<string>('en');
   const [supportedLanguages, setSupportedLanguages] = useState<Language[]>([]);
   const [translationCache, setTranslationCache] = useState<TranslationCache>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load current language from localStorage on mount
+  // Load current language from localStorage or detect browser language
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('appLanguage');
-    if (savedLanguage) {
-      setCurrentLanguageState(savedLanguage);
+    // Wait for supported languages to be loaded before detecting browser language
+    if (supportedLanguages.length === 0) {
+      return;
     }
-  }, []);
+
+    const supportedCodes = supportedLanguages.map(lang => lang.language);
+    const savedLanguage = localStorage.getItem('appLanguage');
+    
+    if (savedLanguage) {
+      // Use saved preference if it exists
+      console.log('[Translation] Using saved language from localStorage:', savedLanguage);
+      setCurrentLanguageState(savedLanguage);
+    } else {
+      // No saved preference - detect browser language
+      const detectedLanguage = detectBrowserLanguage(supportedCodes);
+      console.log('[Translation] No saved language, detected browser language:', detectedLanguage);
+      setCurrentLanguageState(detectedLanguage);
+      localStorage.setItem('appLanguage', detectedLanguage);
+    }
+  }, [supportedLanguages]);
 
   // Fetch supported languages on mount
   useEffect(() => {
@@ -262,8 +368,41 @@ export const TranslationProvider = ({ children }: { children: ReactNode }) => {
           
           console.log('[Translation] Batch translation complete, returning', results.length, 'results');
           return results;
+        } else if (data.translations && Array.isArray(data.translations)) {
+          // Handle partial failures - use successful translations, fall back to original for failed ones
+          console.warn('[Translation] Some translations failed, using successful ones and falling back to original text for failures');
+          const newCache: TranslationCache = {};
+          let translationIndex = 0;
+          const results = texts.map((text, index) => {
+            if (cachedResults[index]) {
+              return cachedResults[index];
+            } else {
+              const translation = data.translations[translationIndex++];
+              if (translation && translation.translatedText) {
+                const cacheKey = `${text}|${target}`;
+                newCache[cacheKey] = translation.translatedText;
+                return translation.translatedText;
+              } else {
+                // Check if we have results array with error info
+                const result = data.results && data.results[translationIndex - 1];
+                if (result && !result.success) {
+                  console.warn('[Translation] Translation failed for:', text.substring(0, 30), 'Error:', result.error, 'using original text');
+                } else {
+                  console.warn('[Translation] Translation missing for:', text.substring(0, 30), 'using original text');
+                }
+                return text; // Fall back to original text
+              }
+            }
+          });
+          
+          // Update cache with successful translations
+          if (Object.keys(newCache).length > 0) {
+            setTranslationCache((prev) => ({ ...prev, ...newCache }));
+          }
+          
+          return results;
         } else {
-          console.error('[Translation] Batch translation failed:', data.error);
+          console.error('[Translation] Batch translation failed:', data.error || 'Unknown error');
           return texts; // Return original texts on failure
         }
       } catch (error) {

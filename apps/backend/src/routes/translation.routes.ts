@@ -68,6 +68,7 @@ router.post('/batch', async (req: Request, res: Response) => {
     );
 
     const allSuccess = results.every((result) => result.success);
+    const successCount = results.filter((result) => result.success).length;
 
     if (allSuccess) {
       return res.json({
@@ -78,13 +79,25 @@ router.post('/batch', async (req: Request, res: Response) => {
         })),
       });
     } else {
-      return res.status(500).json({
-        success: false,
-        error: 'Some translations failed',
-        results,
+      // Return partial results - maintain order, frontend will handle failures
+      console.warn(`[Translation] Batch translation: ${successCount}/${results.length} succeeded`);
+      return res.json({
+        success: successCount > 0, // Consider it successful if at least one translation worked
+        translations: results.map((result) => 
+          result.success 
+            ? {
+                translatedText: result.translatedText,
+                detectedSourceLanguage: result.detectedSourceLanguage,
+              }
+            : null // Keep null to maintain order
+        ),
+        results, // Include full results for error handling
+        partial: true, // Indicate this is a partial success
+        error: successCount === 0 ? 'All translations failed' : `Some translations failed (${successCount}/${results.length} succeeded)`,
       });
     }
   } catch (error) {
+    console.error('[Translation] Batch translation error:', error);
     return res.status(500).json({
       success: false,
       error: 'Batch translation failed',
