@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { getLocalStaff, updateLocalStaff, updateLocalStaffPassword, createLocalStaff, authenticateStaff } from '../services/staffService'; // Import authenticateStaff
-import passport from 'passport'; // Import passport
+import { getLocalStaff, updateLocalStaff, updateLocalStaffPassword, createLocalStaff } from '../services/staffService';
+import passport from 'passport';
 
 export const getAuthenticatedUserController = (req: Request, res: Response) => {
   if (req.user) {
@@ -13,19 +13,22 @@ export const getAuthenticatedUserController = (req: Request, res: Response) => {
   }
 };
 
-export const staffLoginController = (req: Request, res: Response, next: NextFunction) => {
+export const staffLoginController = (req: Request, res: Response, next: NextFunction): void => {
   passport.authenticate('local', (err: any, user: any, info: any) => {
     if (err) {
       console.error('Passport authentication error:', err);
-      return res.status(500).json({ message: 'Internal server error during authentication' });
+      res.status(500).json({ message: 'Internal server error during authentication' });
+      return;
     }
     if (!user) {
-      return res.status(401).json({ message: info.message || 'Authentication failed' });
+      res.status(401).json({ message: info.message || 'Authentication failed' });
+      return;
     }
     req.logIn(user, (loginErr) => {
       if (loginErr) {
         console.error('Error logging in user:', loginErr);
-        return res.status(500).json({ message: 'Could not log in user' });
+        res.status(500).json({ message: 'Could not log in user' });
+        return;
       }
       // Attach a 'type' property to distinguish local staff when logging in
       (user as any).type = 'local';
@@ -35,7 +38,7 @@ export const staffLoginController = (req: Request, res: Response, next: NextFunc
   })(req, res, next);
 };
 
-export const getLocalStaffController = async (req: Request, res: Response) => {
+export const getLocalStaffController = async (_req: Request, res: Response): Promise<void> => {
   try {
     const staff = await getLocalStaff();
     res.status(200).json(staff);
@@ -45,16 +48,18 @@ export const getLocalStaffController = async (req: Request, res: Response) => {
   }
 };
 
-export const updateLocalStaffController = async (req: Request, res: Response) => {
+export const updateLocalStaffController = async (req: Request, res: Response): Promise<void> => {
   try {
     const staff_id = parseInt(req.params.id, 10);
     const { username, role } = req.body;
 
     if (isNaN(staff_id)) {
-      return res.status(400).json({ message: 'Invalid staff ID' });
+      res.status(400).json({ message: 'Invalid staff ID' });
+      return;
     }
     if (!username || !role) {
-        return res.status(400).json({ message: 'Username and role are required' });
+      res.status(400).json({ message: 'Username and role are required' });
+      return;
     }
 
     const updatedStaff = await updateLocalStaff(staff_id, username, role);
@@ -65,16 +70,18 @@ export const updateLocalStaffController = async (req: Request, res: Response) =>
   }
 };
 
-export const updateLocalStaffPasswordController = async (req: Request, res: Response) => {
+export const updateLocalStaffPasswordController = async (req: Request, res: Response): Promise<void> => {
   try {
     const staff_id = parseInt(req.params.id, 10);
     const { newPassword } = req.body;
 
     if (isNaN(staff_id)) {
-      return res.status(400).json({ message: 'Invalid staff ID' });
+      res.status(400).json({ message: 'Invalid staff ID' });
+      return;
     }
     if (!newPassword) {
-        return res.status(400).json({ message: 'New password is required' });
+      res.status(400).json({ message: 'New password is required' });
+      return;
     }
 
     const updatedStaff = await updateLocalStaffPassword(staff_id, newPassword);
@@ -85,12 +92,13 @@ export const updateLocalStaffPasswordController = async (req: Request, res: Resp
   }
 };
 
-export const createLocalStaffController = async (req: Request, res: Response) => {
+export const createLocalStaffController = async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, role, password } = req.body;
 
     if (!username || !role || !password) {
-      return res.status(400).json({ message: 'Username, role, and password are required' });
+      res.status(400).json({ message: 'Username, role, and password are required' });
+      return;
     }
 
     const newStaff = await createLocalStaff(username, role, password);

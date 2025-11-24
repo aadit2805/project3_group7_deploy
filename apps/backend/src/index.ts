@@ -2,13 +2,12 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import { Strategy as LocalStrategy } from 'passport-local'; // Import LocalStrategy
+import { Strategy as LocalStrategy } from 'passport-local';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import apiRouter from './routes/api';
-import { isAuthenticated } from './middleware/auth';
-import { authenticateStaff } from './services/staffService'; // Import authenticateStaff
+import { authenticateStaff } from './services/staffService';
 // Type declarations are automatically included from src/types/express.d.ts
 
 dotenv.config();
@@ -113,7 +112,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 
 // Local Strategy for Staff Login
 passport.use(new LocalStrategy(
-  async (username, password, done) => {
+  async (username: string, password: string, done: (error: any, user?: any, options?: { message: string }) => void) => {
     try {
       const staff = await authenticateStaff(username, password);
       if (!staff) {
@@ -142,13 +141,13 @@ passport.serializeUser((user: any, done: (err: any, userObject?: any) => void) =
 
 // Deserialize user from the session
 passport.deserializeUser(
-  async (userObject: { id?: number; staff_id?: number; type: 'google' | 'local' }, done: (err: any, user?: Express.User | null) => void) => {
+  async (userObject: { id?: number; staff_id?: number; type: 'google' | 'local' }, done: (err: any, user?: any) => void) => {
     try {
-      let user: Express.User | null = null;
+      let user: any = null;
       if (userObject.type === 'google' && userObject.id) {
         const googleUser = await prisma.user.findUnique({ where: { id: userObject.id } });
         if (googleUser) {
-          user = { ...googleUser, type: 'google' };
+          user = { ...googleUser, type: 'google' } as any;
         }
       } else if (userObject.type === 'local' && userObject.staff_id) {
         const localStaff = await prisma.staff.findUnique({ where: { staff_id: userObject.staff_id } });
@@ -160,9 +159,9 @@ passport.deserializeUser(
             role: localStaff.role,
             createdAt: localStaff.createdAt,
             updatedAt: localStaff.updatedAt,
-            password_hash: localStaff.password_hash, // Include for consistency, but remove before sending to frontend
+            password_hash: localStaff.password_hash,
             type: 'local'
-          };
+          } as any;
         }
       }
 
@@ -190,7 +189,7 @@ app.get(
   passport.authenticate('google', {
     failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=auth_failed`,
   }),
-  (req: Request, res: Response) => {
+  (_req: Request, res: Response) => {
     // Successful authentication
     res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard`);
   }
