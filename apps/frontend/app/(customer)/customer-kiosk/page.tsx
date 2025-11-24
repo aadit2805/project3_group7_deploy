@@ -119,7 +119,7 @@ const CustomerKioskContent = () => {
       if (menuItems.length > 0) {
         const menuItemNames = menuItems.map((item) => item.name);
         const translated = await translateBatch(menuItemNames);
-        
+
         const translatedMap: Record<number, string> = {};
         menuItems.forEach((item, index) => {
           translatedMap[item.menu_item_id] = translated[index];
@@ -184,7 +184,7 @@ const CustomerKioskContent = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-4">
         <Link href="/meal-type-selection">
-          <button 
+          <button
             className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 inline-flex items-center"
             aria-label={t.backToSelection}
           >
@@ -265,7 +265,9 @@ const CustomerKioskContent = () => {
                   if (item.item_type !== 'entree') return false;
                   if (!searchQuery.trim()) return true;
                   const searchLower = searchQuery.toLowerCase();
-                  const itemName = (translatedMenuItems[item.menu_item_id] || item.name).toLowerCase();
+                  const itemName = (
+                    translatedMenuItems[item.menu_item_id] || item.name
+                  ).toLowerCase();
                   return itemName.includes(searchLower);
                 })
                 .map((item, index) => (
@@ -274,8 +276,12 @@ const CustomerKioskContent = () => {
                     className={`bg-white rounded-lg shadow-md p-6 cursor-pointer border-2 hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id) ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200'}`}
                     onClick={() => handleSelectItem(item, 'entree')}
                   >
-                    <h3 className="text-xl font-bold mb-2">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
-                    <p className="text-gray-700">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
+                    <h3 className="text-xl font-bold mb-2">
+                      {translatedMenuItems[item.menu_item_id] || item.name}
+                    </h3>
+                    <p className="text-gray-700">
+                      {t.upcharge}: ${item.upcharge.toFixed(2)}
+                    </p>
                   </div>
                 ))}
             </div>
@@ -300,7 +306,9 @@ const CustomerKioskContent = () => {
                   if (item.item_type !== 'side') return false;
                   if (!searchQuery.trim()) return true;
                   const searchLower = searchQuery.toLowerCase();
-                  const itemName = (translatedMenuItems[item.menu_item_id] || item.name).toLowerCase();
+                  const itemName = (
+                    translatedMenuItems[item.menu_item_id] || item.name
+                  ).toLowerCase();
                   return itemName.includes(searchLower);
                 })
                 .map((item, index) => (
@@ -309,8 +317,12 @@ const CustomerKioskContent = () => {
                     className={`bg-white rounded-lg shadow-md p-6 cursor-pointer border-2 hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${selectedSides.some((s) => s.menu_item_id === item.menu_item_id) ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200'}`}
                     onClick={() => handleSelectItem(item, 'side')}
                   >
-                    <h3 className="text-xl font-bold mb-2">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
-                    <p className="text-gray-700">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
+                    <h3 className="text-xl font-bold mb-2">
+                      {translatedMenuItems[item.menu_item_id] || item.name}
+                    </h3>
+                    <p className="text-gray-700">
+                      {t.upcharge}: ${item.upcharge.toFixed(2)}
+                    </p>
                   </div>
                 ))}
             </div>
@@ -318,7 +330,9 @@ const CustomerKioskContent = () => {
 
           {selectedMealType.drink_size !== 'none' && (
             <section className="mb-10 animate-fade-in">
-              <h2 className="text-3xl font-semibold mb-4 animate-slide-in-down">{t.selectDrink} (1)</h2>
+              <h2 className="text-3xl font-semibold mb-4 animate-slide-in-down">
+                {t.selectDrink} (1)
+              </h2>
               <div className="mb-4 animate-fade-in animate-stagger-1">
                 <VoiceSearchInput
                   value={searchQuery}
@@ -334,7 +348,9 @@ const CustomerKioskContent = () => {
                     if (item.item_type !== 'drink') return false;
                     if (!searchQuery.trim()) return true;
                     const searchLower = searchQuery.toLowerCase();
-                    const itemName = (translatedMenuItems[item.menu_item_id] || item.name).toLowerCase();
+                    const itemName = (
+                      translatedMenuItems[item.menu_item_id] || item.name
+                    ).toLowerCase();
                     return itemName.includes(searchLower);
                   })
                   .map((item, index) => (
@@ -343,7 +359,9 @@ const CustomerKioskContent = () => {
                       className={`bg-white rounded-lg shadow-md p-6 cursor-pointer border-2 hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${selectedDrink?.menu_item_id === item.menu_item_id ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200'}`}
                       onClick={() => handleSelectItem(item, 'drink')}
                     >
-                      <h3 className="text-xl font-bold mb-2">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
+                      <h3 className="text-xl font-bold mb-2">
+                        {translatedMenuItems[item.menu_item_id] || item.name}
+                      </h3>
                     </div>
                   ))}
               </div>
