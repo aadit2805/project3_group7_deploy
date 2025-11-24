@@ -193,8 +193,21 @@ export default function KitchenMonitor() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      {/* Weather Dropdown - Top of Page */}
-      <div className="mb-4 flex justify-end">
+      {/* Navigation buttons and Weather Dropdown */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex gap-2">
+          <Link href="/dashboard">
+            <button className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
+              ← Back to Dashboard
+            </button>
+          </Link>
+          <Link href="/inventory-manager">
+            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+              Inventory Manager
+            </button>
+          </Link>
+        </div>
+        
         <div className="relative">
           <button
             onClick={() => setIsWeatherDropdownOpen(!isWeatherDropdownOpen)}
@@ -235,19 +248,6 @@ export default function KitchenMonitor() {
             </>
           )}
         </div>
-      </div>
-
-      <div className="mb-4 flex gap-2">
-        <Link href="/dashboard">
-          <button className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
-            ← Back to Dashboard
-          </button>
-        </Link>
-        <Link href="/inventory-manager">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            Inventory Manager
-          </button>
-        </Link>
       </div>
       {/* Header */}
       <div className="mb-6">
