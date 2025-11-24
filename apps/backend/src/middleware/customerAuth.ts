@@ -28,7 +28,8 @@ export const authenticateCustomer = (req: Request, res: Response, next: NextFunc
     const decoded = jwt.verify(token, JWT_SECRET) as { customerId: string };
     req.customer = { id: decoded.customerId };
     next();
+    return; // Explicitly return to satisfy TypeScript
   } catch (err) {
-    res.status(401).json({ message: 'Token is not valid' });
+    return res.status(401).json({ message: 'Token is not valid' });
   }
 };

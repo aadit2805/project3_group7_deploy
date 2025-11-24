@@ -21,6 +21,7 @@ const MealTypeSelection = () => {
   const context = useContext(OrderContext);
   const { translateBatch, currentLanguage } = useTranslation();
   const [translatedMealTypeNames, setTranslatedMealTypeNames] = useState<string[]>([]);
+  const navRouter = useRouter();
 
   const textLabels = [
     'Select Your Meal Type',
@@ -87,52 +88,39 @@ const MealTypeSelection = () => {
     return null;
   }
 
-  const { order } = context;
-  const itemCount = order.length;
-  const router = useRouter(); // Import useRouter for handleLogout
+      const { order } = context;
 
-  return (
-    <div className="container mx-auto px-4">
-      <header className="flex justify-between items-center my-8">
-        <h1 className="text-4xl font-bold">{t.title}</h1>
-        <Link
-          href="/shopping-cart"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg inline-flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          aria-label={`View shopping cart${itemCount > 0 ? ` with ${itemCount} item${itemCount !== 1 ? 's' : ''}` : ', currently empty'}`}
-        >
-          <Tooltip text={t.shoppingCart} position="bottom">
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-              ></path>
-            </svg>
-          </Tooltip>
-          <span>{t.shoppingCart}</span>
-          {itemCount > 0 && (
-            <span 
-              className="ml-2 bg-red-500 text-white rounded-full px-2 py-1 text-sm"
-              aria-label={`${itemCount} items in cart`}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-              ></path>
-            </svg>
+      const itemCount = order.length; // Use a different name for the router instance
+  
+    return (
+      <div className="container mx-auto px-4">
+        <header className="flex justify-between items-center my-8">
+          <h1 className="text-4xl font-bold">{t.title}</h1>
+          <Link
+            href="/shopping-cart"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg inline-flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            aria-label={`View shopping cart${itemCount > 0 ? ` with ${itemCount} item${itemCount !== 1 ? 's' : ''}` : ', currently empty'}`}
+          >
+            <Tooltip text={t.shoppingCart} position="bottom">
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                ></path>
+              </svg>
+            </Tooltip>
             <span>{t.shoppingCart}</span>
             {itemCount > 0 && (
-              <span 
+              <span
                 className="ml-2 bg-red-500 text-white rounded-full px-2 py-1 text-sm"
                 aria-label={`${itemCount} items in cart`}
               >
@@ -140,10 +128,8 @@ const MealTypeSelection = () => {
               </span>
             )}
           </Link>
-        </div>
-      </header>
-      <nav aria-label="Meal options">
-        <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="list">
+        </header>
+        <nav aria-label="Meal options">        <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="list">
           {mealTypes
             .filter(
               (mt) =>
