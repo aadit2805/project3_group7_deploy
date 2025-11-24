@@ -192,7 +192,6 @@ app.get(
   }),
   (req: Request, res: Response) => {
     // Successful authentication
-    console.log('✅ OAuth Success! User:', (req.user as any)?.email, 'Session ID:', req.sessionID);
     res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard`);
   }
 );
@@ -236,17 +235,6 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-  });
-});
-
-// Debug route to check env vars
-app.get('/debug/config', (_req: Request, res: Response) => {
-  res.json({
-    AUTH_URL: process.env.AUTH_URL,
-    FRONTEND_URL: process.env.FRONTEND_URL,
-    HAS_GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
-    CALLBACK_URL: `${process.env.AUTH_URL}/auth/google/callback`,
-    NODE_ENV: process.env.NODE_ENV,
   });
 });
 
