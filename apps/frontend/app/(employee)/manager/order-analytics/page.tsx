@@ -342,8 +342,8 @@ export default function OrderAnalyticsPage() {
             </p>
             <p className="text-yellow-700 text-sm font-medium">To see analytics:</p>
             <ul className="text-yellow-700 text-sm mt-2 list-disc list-inside text-left max-w-md">
-              <li>Mark orders as "DONE" in the Kitchen Monitor</li>
-              <li>Ensure orders have been completed (status = 'completed')</li>
+              <li>Mark orders as &quot;DONE&quot; in the Kitchen Monitor</li>
+              <li>Ensure orders have been completed (status = &apos;completed&apos;)</li>
               <li>Try selecting a different date range</li>
             </ul>
           </div>
@@ -434,8 +434,8 @@ export default function OrderAnalyticsPage() {
               <p className="text-sm">No completed orders found for the selected date range.</p>
               <p className="text-sm mt-2">To see analytics:</p>
               <ul className="text-sm mt-2 list-disc list-inside text-left max-w-md mx-auto">
-                <li>Mark orders as "DONE" in the Kitchen Monitor</li>
-                <li>Ensure orders have been completed (status = 'completed')</li>
+                <li>Mark orders as &quot;DONE&quot; in the Kitchen Monitor</li>
+                <li>Ensure orders have been completed (status = &apos;completed&apos;)</li>
                 <li>Try selecting a different date range</li>
               </ul>
             </div>
