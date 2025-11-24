@@ -26,11 +26,20 @@ interface KitchenOrder {
   meals: Meal[];
 }
 
+interface WeatherData {
+  temperature: number;
+  city: string;
+  country: string;
+}
+
 export default function KitchenMonitor() {
   const [orders, setOrders] = useState<KitchenOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCompactView, setIsCompactView] = useState(false);
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [isWeatherDropdownOpen, setIsWeatherDropdownOpen] = useState(false);
+  const [weatherLoading, setWeatherLoading] = useState(false);
   const router = useRouter();
   const previousOrderIdsRef = useRef<Set<number>>(new Set());
 
@@ -125,12 +134,42 @@ export default function KitchenMonitor() {
     }
   };
 
+  // Getting the weather data
+  const fetchWeather = useCallback(async (city: string = 'College Station') => {
+    try {
+      setWeatherLoading(true);
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const response = await fetch(`${backendUrl}/api/weather/current?city=${encodeURIComponent(city)}`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.weather) {
+          setWeather({
+            temperature: data.weather.temperature,
+            city: data.weather.city,
+            country: data.weather.country,
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching weather:', err);
+    } finally {
+      setWeatherLoading(false);
+    }
+  }, []);
+
   // Poll for new orders every 5 seconds
   useEffect(() => {
     fetchOrders();
     const interval = setInterval(fetchOrders, 5000);
     return () => clearInterval(interval);
   }, [fetchOrders]);
+
+  useEffect(() => {
+    fetchWeather();
+  }, [fetchWeather]);
 
   if (loading) {
     return (
@@ -150,6 +189,48 @@ export default function KitchenMonitor() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      {/* Weather Dropdown - Top of Page */}
+      <div className="mb-4 flex justify-end">
+        <div className="relative">
+          <button
+            onClick={() => setIsWeatherDropdownOpen(!isWeatherDropdownOpen)}
+            className="bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2 shadow-sm transition-colors duration-200"
+            disabled={weatherLoading}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+            </svg>
+            <span className="text-sm">Weather</span>
+            <svg className={`w-4 h-4 transition-transform duration-200 ${isWeatherDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          {isWeatherDropdownOpen && (
+            <>
+              <div 
+                className="fixed inset-0 z-10" 
+                onClick={() => setIsWeatherDropdownOpen(false)}
+              />
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-20">
+                <div className="p-3">
+                  {weatherLoading ? (
+                    <div className="text-sm text-gray-600 text-center py-2">Loading temperature...</div>
+                  ) : weather ? (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-800">{Math.round(weather.temperature)}°C</div>
+                      <div className="text-xs text-gray-500 mt-1">{weather.city}, {weather.country}</div>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-600 text-center py-2">Weather data unavailable</div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
       <div className="mb-4 flex gap-2">
         <Link href="/dashboard">
           <button className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
