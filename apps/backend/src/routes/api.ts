@@ -67,6 +67,8 @@ router.get('/orders/customer/:customerId', authenticateCustomer, getCustomerOrde
 
 // PATCH /api/orders/:orderId/status - Update order status (manager only)
 router.patch('/orders/:orderId/status', isAuthenticated, isManager, updateOrderStatus);
+// PATCH /api/orders/:orderId/status - Update order status (cashier or manager - needed for kitchen monitor)
+router.patch('/orders/:orderId/status', isAuthenticated, isCashierOrManager, updateOrderStatus);
 
 // Revenue Report routes (manager only)
 router.get('/revenue/daily', isAuthenticated, isManager, getDailyRevenueReport);
@@ -76,8 +78,18 @@ router.get('/revenue/export/csv', isAuthenticated, isManager, exportRevenueRepor
 
 // Order Analytics routes (manager only)
 router.get('/analytics/completion-time', isAuthenticated, isManager, getAverageCompletionTime);
-router.get('/analytics/completion-time/hourly', isAuthenticated, isManager, getHourlyCompletionTime);
-router.get('/analytics/completion-time/summary', isAuthenticated, isManager, getCompletionTimeSummary);
+router.get(
+  '/analytics/completion-time/hourly',
+  isAuthenticated,
+  isManager,
+  getHourlyCompletionTime
+);
+router.get(
+  '/analytics/completion-time/summary',
+  isAuthenticated,
+  isManager,
+  getCompletionTimeSummary
+);
 
 // Sales Analytics routes (manager only)
 router.get('/analytics/best-selling', isAuthenticated, isManager, getBestSellingItems);
