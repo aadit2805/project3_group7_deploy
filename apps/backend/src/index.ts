@@ -1,3 +1,5 @@
+process.env.TZ = 'UTC'; // Ensure Node.js process operates in UTC
+
 import express, { Express, Request, Response, NextFunction } from 'express';
 import session from 'express-session';
 import passport from 'passport';

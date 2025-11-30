@@ -4,6 +4,7 @@ import React, { useState, useEffect, useContext, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { OrderContext, OrderItem } from '@/app/context/OrderContext';
+import { EmployeeContext } from '@/app/context/EmployeeContext'; // Import EmployeeContext
 import { useTranslatedTexts, useTranslation } from '@/app/hooks/useTranslation';
 import Tooltip from '@/app/components/Tooltip';
 
@@ -33,6 +34,7 @@ const CashierInterfaceContent = () => {
   const editIndex = searchParams.get('editIndex');
 
   const context = useContext(OrderContext);
+  const employeeContext = useContext(EmployeeContext); // Access EmployeeContext
   const { translateBatch, currentLanguage } = useTranslation();
 
   // Translation labels
@@ -96,10 +98,11 @@ const CashierInterfaceContent = () => {
     errorMessage: translatedTexts[25] || 'An error occurred while submitting the order.',
   };
 
-  if (!context) {
-    throw new Error('CashierInterface must be used within an OrderProvider');
+  if (!context || !employeeContext) {
+    throw new Error('CashierInterface must be used within an OrderProvider and EmployeeProvider');
   }
 
+  const { user } = employeeContext; // Get user from EmployeeContext
   const { order, setOrder } = context;
 
   const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null);
@@ -256,30 +259,7 @@ const CashierInterfaceContent = () => {
     }
   };
 
-  const handleSubmitOrder = async () => {
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
-      const response = await fetch(`${backendUrl}/api/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ order_items: order, rush_order: false }),
-      });
 
-      if (response.ok) {
-        alert(t.successMessage);
-        setOrder([]);
-        localStorage.removeItem('order');
-        router.push('/cashier-interface');
-      } else {
-        alert(t.failMessage);
-      }
-    } catch (error) {
-      console.error('Error submitting order:', error);
-      alert(t.errorMessage);
-    }
-  };
 
   const handleSelectMealType = (mealType: MealType) => {
     setSelectedMealType(mealType);
@@ -395,15 +375,6 @@ const CashierInterfaceContent = () => {
               <p className="text-white">{t.selectDrinkSize}</p>
             </div>
           </div>
-          <div className="text-center mt-8">
-            <button
-              onClick={handleSubmitOrder}
-              className="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-xl"
-              disabled={order.length === 0}
-            >
-              {t.submitOrder}
-            </button>
-          </div>
         </>
       ) : isDrinkSelection ? (
         <>
@@ -487,7 +458,7 @@ const CashierInterfaceContent = () => {
                             isSelected
                               ? 'bg-black border-white border-4 shadow-2xl ring-4 ring-white/50'
                               : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-xl hover:bg-[#B81520]'
-                          } ${!item.is_available ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          }`}
                           onClick={() => item.is_available && handleSelectDrinkItem(item)}
                         >
                           <h3 className="text-xl font-bold mb-2 text-white">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
@@ -566,7 +537,7 @@ const CashierInterfaceContent = () => {
                         isSelected
                           ? 'bg-black border-white border-4 shadow-2xl ring-4 ring-white/50'
                           : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-xl hover:bg-[#B81520]'
-                      } ${!item.is_available ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      }`}
                       onClick={() => item.is_available && handleSelectItem(item, 'entree')}
                     >
                       <h3 className="text-xl font-bold mb-2 text-white">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
@@ -595,7 +566,7 @@ const CashierInterfaceContent = () => {
                         isSelected
                           ? 'bg-black border-white border-4 shadow-2xl ring-4 ring-white/50'
                           : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-xl hover:bg-[#B81520]'
-                      } ${!item.is_available ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      }`}
                       onClick={() => item.is_available && handleSelectItem(item, 'side')}
                     >
                       <h3 className="text-xl font-bold mb-2 text-white">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
@@ -628,6 +599,8 @@ const CashierInterfaceContent = () => {
           <h1 className="text-3xl font-bold">{t.loadingMealType}</h1>
         </div>
       )}
+
+
     </div>
   );
 };

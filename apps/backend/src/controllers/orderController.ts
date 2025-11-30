@@ -7,7 +7,7 @@ const rushOrderCache = new Map<number, boolean>();
 const orderNotesCache = new Map<number, string>();
 
 export const createOrder = async (req: Request, res: Response) => {
-  const { order_items, customer_name, rush_order, order_notes, customerId, pointsApplied } = req.body; // Added customer_name, rush_order, order_notes, customerId, pointsApplied
+  const { order_items, customer_name, rush_order, order_notes, customerId, pointsApplied, staff_id } = req.body; // Added customer_name, rush_order, order_notes, customerId, pointsApplied, staff_id
 
   if (!order_items || !Array.isArray(order_items) || order_items.length === 0) {
     return res.status(400).json({ success: false, error: 'Order items are required' });
@@ -58,7 +58,7 @@ export const createOrder = async (req: Request, res: Response) => {
     // Insert order with a temporary price (0) and customerId
     const orderResult = await client.query(
       'INSERT INTO "Order" (order_id, price, order_status, staff_id, datetime, customer_name, "customerId") VALUES ($1, $2, $3, $4, NOW(), $5, $6) RETURNING order_id',
-      [newOrderId, 0, 'pending', 1, customer_name || null, customerId || null] // Added customer_name and customerId
+      [newOrderId, 0, 'pending', staff_id || 1, customer_name || null, customerId || null] // Added customer_name and customerId
     );
     const orderId = orderResult.rows[0].order_id;
 

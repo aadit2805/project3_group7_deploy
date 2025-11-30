@@ -30,6 +30,7 @@ const EmployeeLayout = ({ children }: { children: ReactNode }) => {
           throw new Error('Access denied');
         }
         setUser(userData);
+        console.log('Logged in employee data:', userData); // Add this line for debugging
       } catch (e) {
         router.push('/login');
       } finally {
