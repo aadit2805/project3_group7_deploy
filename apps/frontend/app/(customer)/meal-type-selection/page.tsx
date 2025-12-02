@@ -16,12 +16,16 @@ interface MealType {
   drink_size: string;
 }
 
+
+
 const MealTypeSelection = () => {
   const [mealTypes, setMealTypes] = useState<MealType[]>([]);
   const context = useContext(OrderContext);
   const { translateBatch, currentLanguage } = useTranslation();
   const [translatedMealTypeNames, setTranslatedMealTypeNames] = useState<string[]>([]);
   const navRouter = useRouter();
+
+
 
   const textLabels = [
     'Select Your Meal Type',
@@ -129,6 +133,8 @@ const MealTypeSelection = () => {
             )}
           </Link>
         </header>
+
+
         <nav aria-label="Meal options">        <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="list">
           {mealTypes
             .filter(

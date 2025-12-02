@@ -1,17 +1,28 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslatedTexts, useTranslation } from '@/app/hooks/useTranslation';
 import Link from 'next/link';
+import { OrderContext } from '@/app/context/OrderContext';
+
+interface MenuItem {
+  name: string;
+  menu_item_id: number;
+  upcharge: number;
+  is_available: boolean;
+}
+
+interface MealType {
+  meal_type_name: string;
+  meal_type_id: number;
+}
 
 interface OrderItem {
-  mealType: {
-    meal_type_name: string;
-  };
-  entrees: { name: string }[];
-  sides: { name: string }[];
-  drink?: { name: string };
+  mealType: MealType;
+  entrees: MenuItem[];
+  sides: MenuItem[];
+  drink?: MenuItem;
 }
 
 interface Order {
@@ -76,6 +87,9 @@ const MyProfile = () => {
     backToHome: translatedTexts[16] || 'Back to Home',
   };
 
+  const { setOrder } = useContext(OrderContext)!;
+  const [mealTypes, setMealTypes] = useState<any[]>([]);
+
   useEffect(() => {
     const fetchProfileData = async () => {
       const customerToken = localStorage.getItem('customerToken');
@@ -90,6 +104,14 @@ const MyProfile = () => {
         setLoading(true);
         setError(null);
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+
+        // Fetch meal types
+        const mealTypesRes = await fetch(`${backendUrl}/api/meal-types`);
+        if (!mealTypesRes.ok) {
+          throw new Error('Failed to fetch meal types.');
+        }
+        const mealTypesData = await mealTypesRes.json();
+        setMealTypes(mealTypesData);
 
         // Fetch customer data (for points)
         const customerRes = await fetch(`${backendUrl}/api/customer/auth/me`, {
@@ -154,14 +176,28 @@ const MyProfile = () => {
     fetchProfileData();
   }, [router, translateBatch, t.errorFetching]);
 
-  if (loading) {
+
+
+  const handleReorder = (orderItems: OrderItem[]) => {
+    const newOrderItems = orderItems.map(item => {
+      const fullMealType = mealTypes.find(mt => mt.meal_type_id === item.mealType.meal_type_id);
+      return {
+        ...item,
+        mealType: fullMealType,
+      };
+    });
+    setOrder(newOrderItems);
+    router.push('/shopping-cart');
+  };
+  
+    if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <p className="text-xl">{t.loading}</p>
       </div>
     );
   }
-
+  
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8 text-center text-red-500">
@@ -187,6 +223,29 @@ const MyProfile = () => {
         </p>
       </section>
 
+      {pastOrders.length > 0 && (
+        <section className="bg-white shadow-md rounded-lg p-4 sm:p-6 mb-8">
+          <h2 className="text-2xl font-semibold mb-4">Quick Reorder</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pastOrders.slice(0, 3).map((order) => (
+              <div key={order.order_id} className="border border-gray-200 rounded-lg p-4 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xl font-bold mb-2">Order ID: {order.order_id}</h3>
+                  <p className="text-gray-600 mb-2">Date: {new Date(order.order_date).toLocaleDateString()}</p>
+                  <p className="text-lg mb-2">Total: ${order.total_price.toFixed(2)}</p>
+                </div>
+                <button
+                  onClick={() => handleReorder(order.order_items)}
+                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4"
+                >
+                  Reorder
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="bg-white shadow-md rounded-lg p-4 sm:p-6">
         <h2 className="text-2xl font-semibold mb-4">{t.pastOrders}</h2>
         {pastOrders.length === 0 ? (
@@ -205,7 +264,14 @@ const MyProfile = () => {
                 )}
                 <p className="text-lg mb-4 text-blue-700">{t.pointsEarned}: {order.points_earned}</p>
 
-                <h4 className="text-lg font-semibold mb-2">{t.meals}:</h4>
+                <button
+                  onClick={() => handleReorder(order.order_items)}
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  Reorder
+                </button>
+
+                <h4 className="text-lg font-semibold mb-2 mt-4">{t.meals}:</h4>
                 <ul className="list-disc list-inside ml-4 space-y-1">
                   {order.order_items.map((item, itemIndex) => (
                     <li key={itemIndex}>
@@ -230,5 +296,6 @@ const MyProfile = () => {
     </div>
   );
 };
+
 
 export default MyProfile;
