@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useContext, Suspense } from 'react';
+import apiClient from '@/app/utils/apiClient';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { OrderContext, OrderItem } from '@/app/context/OrderContext';
@@ -25,6 +26,22 @@ interface MealType {
   drink_size: string;
 }
 
+interface OrderItemForRecommendation {
+  mealType: MealType;
+  entrees: MenuItem[];
+  sides: MenuItem[];
+  drink?: MenuItem;
+}
+
+interface Order {
+  order_id: number;
+  total_price: number;
+  order_date: string;
+  order_items: OrderItemForRecommendation[];
+  points_used?: number;
+  points_earned: number;
+}
+
 const CustomerKioskContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -33,6 +50,61 @@ const CustomerKioskContent = () => {
 
   const context = useContext(OrderContext);
   const { translateBatch, currentLanguage } = useTranslation();
+
+  const [pastOrders, setPastOrders] = useState<Order[]>([]);
+  const [recommendedItems, setRecommendedItems] = useState<MenuItem[]>([]);
+
+  useEffect(() => {
+    const fetchPastOrders = async () => {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) {
+        setPastOrders([]); // No authenticated customer
+        return;
+      }
+
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const ordersRes = await apiClient(`${backendUrl}/api/orders/customer/${customerId}`);
+
+        if (!ordersRes.ok) {
+          // The apiClient should handle 401, but for other errors, we can still log them.
+          const errorBody = await ordersRes.text();
+          throw new Error(
+            `Failed to fetch past orders. Status: ${ordersRes.status}. Body: ${errorBody}`
+          );
+        }
+
+        const responseData: { success: boolean; data: Order[] } = await ordersRes.json();
+        setPastOrders(responseData.data);
+      } catch (err) {
+        // apiClient will throw 'Unauthorized' for 401s, which will be caught here.
+        // We can choose to log it or handle it, but redirection is already handled.
+        if ((err as Error).message !== 'Unauthorized') {
+          console.error('Error fetching past orders:', err);
+        }
+        setPastOrders([]);
+      }
+    };
+    fetchPastOrders();
+  }, []);
+
+  useEffect(() => {
+    if (pastOrders.length > 0) {
+      const allEntrees = pastOrders.flatMap(order => order.order_items.flatMap(item => item.entrees));
+      const entreeCounts = allEntrees.reduce((acc, entree) => {
+        acc[entree.menu_item_id] = (acc[entree.menu_item_id] || 0) + 1;
+        return acc;
+      }, {} as Record<number, number>);
+
+      const sortedEntrees = Object.keys(entreeCounts)
+        .sort((a, b) => entreeCounts[parseInt(b)] - entreeCounts[parseInt(a)])
+        .slice(0, 3)
+        .map(id => allEntrees.find(e => e.menu_item_id === parseInt(id)))
+        .filter((e): e is MenuItem => e !== undefined);
+
+      setRecommendedItems(sortedEntrees);
+    }
+  }, [pastOrders]);
 
   const textLabels = [
     'Back to Meal Type Selection',
@@ -88,11 +160,12 @@ const CustomerKioskContent = () => {
       const fetchMealTypeAndMenuItems = async () => {
         try {
           const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
-          const mealTypeRes = await fetch(`${backendUrl}/api/meal-types/${mealTypeId}`);
+          
+          const mealTypeRes = await apiClient(`${backendUrl}/api/meal-types/${mealTypeId}`);
           const mealTypeData: MealType = await mealTypeRes.json();
           setSelectedMealType(mealTypeData);
 
-          const menuItemsRes = await fetch(`${backendUrl}/api/menu-items?is_available=true`);
+          const menuItemsRes = await apiClient(`${backendUrl}/api/menu-items?is_available=true`);
           const menuItemsData: MenuItem[] = await menuItemsRes.json();
           setMenuItems(menuItemsData);
 
@@ -245,6 +318,35 @@ const CustomerKioskContent = () => {
               )}
             </Link>
           </div>
+          
+
+
+          {recommendedItems.length > 0 && (
+            <section className="mb-10 animate-fade-in">
+              <h2 className="text-3xl font-semibold mb-4 animate-slide-in-down">Recommended for you</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {recommendedItems.map((item, index) => (
+                  <div
+                    key={item.menu_item_id}
+                    className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 border-gray-200 hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)}`}
+                  >
+                    <h3 className="text-xl font-bold mb-2">
+                      {translatedMenuItems[item.menu_item_id] || item.name}
+                    </h3>
+                    <p className="text-gray-700">
+                      {t.upcharge}: ${item.upcharge.toFixed(2)}
+                    </p>
+                    <button
+                      onClick={() => handleSelectItem(item, 'entree')}
+                      className="mt-4 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                    >
+                      Add to selection
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           <section className="mb-10 animate-fade-in">
             <h2 className="text-3xl font-semibold mb-4 animate-slide-in-down">

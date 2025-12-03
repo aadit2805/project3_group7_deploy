@@ -418,7 +418,10 @@ export const getCustomerOrders = async (req: Request, res: Response) => {
         const itemsResult = await client.query(
           `SELECT
             md.role,
-            mi.name
+            mi.name,
+            mi.menu_item_id,
+            mi.upcharge,
+            mi.is_available
           FROM meal_detail md
           LEFT JOIN menu_items mi ON md.menu_item_id = mi.menu_item_id
           WHERE md.meal_id = $1
@@ -426,9 +429,10 @@ export const getCustomerOrders = async (req: Request, res: Response) => {
           [mealRow.meal_id]
         );
 
-        const entrees = itemsResult.rows.filter(item => item.role === 'entree').map(item => ({ name: item.name }));
-        const sides = itemsResult.rows.filter(item => item.role === 'side').map(item => ({ name: item.name }));
-        const drink = itemsResult.rows.find(item => item.role === 'drink'); // Assuming one drink per meal
+        const entrees = itemsResult.rows.filter(item => item.role === 'entree').map(item => ({ name: item.name, menu_item_id: item.menu_item_id, upcharge: item.upcharge, is_available: item.is_available }));
+        const sides = itemsResult.rows.filter(item => item.role === 'side').map(item => ({ name: item.name, menu_item_id: item.menu_item_id, upcharge: item.upcharge, is_available: item.is_available }));
+        const drinkRow = itemsResult.rows.find(item => item.role === 'drink');
+        const drink = drinkRow ? { name: drinkRow.name, menu_item_id: drinkRow.menu_item_id, upcharge: drinkRow.upcharge, is_available: drinkRow.is_available } : undefined;
 
         orderItems.push({
           mealType: {
