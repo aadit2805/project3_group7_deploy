@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import pool from '../config/db';
+import { createAuditLog } from '../services/auditService';
 
 // TypeScript interface matching the database schema
 interface MenuItem {
@@ -274,6 +275,15 @@ export const createMenuItem = async (req: Request, res: Response): Promise<void>
       ]
     );
 
+    // Log audit entry
+    await createAuditLog(req, {
+      action_type: 'CREATE',
+      entity_type: 'menu_item',
+      entity_id: String(newMenuItem.menu_item_id),
+      new_values: newMenuItem,
+      description: `Created menu item: ${name} (ID: ${newMenuItem.menu_item_id})`,
+    });
+
     res.status(201).json({
       success: true,
       message: 'Menu item and inventory item created successfully',
@@ -300,6 +310,19 @@ export const updateMenuItem = async (req: Request, res: Response): Promise<void>
       availability_start_time,
       availability_end_time,
     } = req.body;
+
+    // Get old values for audit log
+    const oldItemResult = await pool.query<MenuItem>(
+      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time FROM menu_items WHERE menu_item_id = $1',
+      [id]
+    );
+
+    if (oldItemResult.rows.length === 0) {
+      res.status(404).json({ error: 'Menu item not found' });
+      return;
+    }
+
+    const oldMenuItem = oldItemResult.rows[0];
 
     // Build update query dynamically
     const updates: string[] = [];
@@ -361,10 +384,22 @@ export const updateMenuItem = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    const updatedMenuItem = result.rows[0];
+
+    // Log audit entry
+    await createAuditLog(req, {
+      action_type: 'UPDATE',
+      entity_type: 'menu_item',
+      entity_id: String(id),
+      old_values: oldMenuItem,
+      new_values: updatedMenuItem,
+      description: `Updated menu item: ${updatedMenuItem.name} (ID: ${id})`,
+    });
+
     res.status(200).json({
       success: true,
       message: 'Menu item updated successfully',
-      data: result.rows[0],
+      data: updatedMenuItem,
     });
   } catch (error) {
     console.error('Error updating menu item:', error);
@@ -380,8 +415,21 @@ export const deactivateMenuItem = async (req: Request, res: Response): Promise<v
   try {
     const { id } = req.params;
 
+    // Get old values for audit log
+    const oldItemResult = await pool.query<MenuItem>(
+      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time FROM menu_items WHERE menu_item_id = $1',
+      [id]
+    );
+
+    if (oldItemResult.rows.length === 0) {
+      res.status(404).json({ error: 'Menu item not found' });
+      return;
+    }
+
+    const oldMenuItem = oldItemResult.rows[0];
+
     const result = await pool.query(
-      'UPDATE menu_items SET is_available = false WHERE menu_item_id = $1 RETURNING menu_item_id, is_available',
+      'UPDATE menu_items SET is_available = false WHERE menu_item_id = $1 RETURNING menu_item_id, is_available, name',
       [id]
     );
 
@@ -389,6 +437,18 @@ export const deactivateMenuItem = async (req: Request, res: Response): Promise<v
       res.status(404).json({ error: 'Menu item not found' });
       return;
     }
+
+    const updatedMenuItem = result.rows[0];
+
+    // Log audit entry
+    await createAuditLog(req, {
+      action_type: 'DEACTIVATE',
+      entity_type: 'menu_item',
+      entity_id: String(id),
+      old_values: oldMenuItem,
+      new_values: { ...oldMenuItem, is_available: false },
+      description: `Deactivated menu item: ${oldMenuItem.name} (ID: ${id})`,
+    });
 
     res.status(200).json({
       success: true,

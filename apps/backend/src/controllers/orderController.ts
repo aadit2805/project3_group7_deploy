@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import pool from '../config/db';
 import prisma from '../config/prisma'; // Import centralized Prisma instance
+import { createAuditLog } from '../services/auditService';
 
 // Cache for rush orders and order notes (in-memory storage)
 const rushOrderCache = new Map<number, boolean>();
@@ -298,6 +299,19 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
     await client.query('BEGIN');
 
+    // Get old order values for audit log
+    const oldOrderResult = await client.query(
+      'SELECT order_id, order_status, completed_at, price, customer_name FROM "Order" WHERE order_id = $1',
+      [orderId]
+    );
+
+    if (oldOrderResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    const oldOrder = oldOrderResult.rows[0];
+
     // Update order status and set completed_at if status is 'completed'
     let updateQuery = 'UPDATE "Order" SET order_status = $1';
     const queryParams: any[] = [status];
@@ -352,6 +366,16 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
     }
 
     await client.query('COMMIT');
+
+    // Log audit entry
+    await createAuditLog(req, {
+      action_type: 'UPDATE',
+      entity_type: 'order',
+      entity_id: String(orderId),
+      old_values: { order_status: oldOrder.order_status, completed_at: oldOrder.completed_at },
+      new_values: { order_status: result.rows[0].order_status, completed_at: result.rows[0].completed_at },
+      description: `Updated order status from "${oldOrder.order_status}" to "${status}" (Order ID: ${orderId})`,
+    });
 
     if (status === 'completed' || status === 'addressed') {
       rushOrderCache.delete(parseInt(orderId));

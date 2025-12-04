@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { getLocalStaff, updateLocalStaff, updateLocalStaffPassword, createLocalStaff } from '../services/staffService';
 import passport from 'passport';
 import prisma from '../config/prisma'; // Import centralized Prisma instance
+import { createAuditLog } from '../services/auditService';
 
 export const getAuthenticatedUserController = async (req: Request, res: Response) => {
   if (req.user) {
@@ -16,14 +17,29 @@ export const getAuthenticatedUserController = async (req: Request, res: Response
 
         if (!staffExists) {
           // Create staff entry for Google user
-                        await prisma.staff.create({
-                          data: {
-                            staff_id: user.id,
-                            username: user.name || user.email, // Use name or email as username
-                            role: user.role,
-                            password_hash: "GOOGLE_AUTH_USER", // Placeholder for Google authenticated users
-                          },
-                        });          console.log(`Created staff entry for Google user: ${user.name}`);
+          await prisma.staff.create({
+            data: {
+              staff_id: user.id,
+              username: user.name || user.email, // Prefer name over email
+              role: user.role,
+              password_hash: "GOOGLE_AUTH_USER", // Placeholder for Google authenticated users
+            },
+          });
+          console.log(`Created staff entry for Google user: ${user.name}`);
+        } else {
+          // Always update username to use name if available and different from current
+          // This ensures the username is always the name, not the email
+          if (user.name && staffExists.username !== user.name) {
+            // Check if current username is an email (contains @)
+            const isEmail = staffExists.username.includes('@');
+            if (isEmail || staffExists.username === user.email) {
+              await prisma.staff.update({
+                where: { staff_id: user.id },
+                data: { username: user.name },
+              });
+              console.log(`Updated staff entry username from "${staffExists.username}" to "${user.name}"`);
+            }
+          }
         }
       } catch (error) {
         console.error('Error ensuring staff entry for Google user:', error);
@@ -87,7 +103,29 @@ export const updateLocalStaffController = async (req: Request, res: Response): P
       return;
     }
 
+    // Get old values for audit log
+    const oldStaff = await prisma.staff.findUnique({
+      where: { staff_id },
+      select: {
+        staff_id: true,
+        username: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
     const updatedStaff = await updateLocalStaff(staff_id, username, role);
+
+    // Log audit entry
+    await createAuditLog(req, {
+      action_type: 'UPDATE',
+      entity_type: 'staff',
+      entity_id: String(staff_id),
+      old_values: oldStaff,
+      new_values: updatedStaff,
+      description: `Updated staff member: ${username} (ID: ${staff_id})`,
+    });
+
     res.status(200).json(updatedStaff);
   } catch (error: any) {
     console.error('Error in updateLocalStaffController:', error);
@@ -109,7 +147,29 @@ export const updateLocalStaffPasswordController = async (req: Request, res: Resp
       return;
     }
 
+    // Get old values for audit log
+    const oldStaff = await prisma.staff.findUnique({
+      where: { staff_id },
+      select: {
+        staff_id: true,
+        username: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
     const updatedStaff = await updateLocalStaffPassword(staff_id, newPassword);
+
+    // Log audit entry (don't log password, just indicate it was changed)
+    await createAuditLog(req, {
+      action_type: 'UPDATE_PASSWORD',
+      entity_type: 'staff',
+      entity_id: String(staff_id),
+      old_values: oldStaff,
+      new_values: updatedStaff,
+      description: `Updated password for staff member: ${oldStaff?.username} (ID: ${staff_id})`,
+    });
+
     res.status(200).json(updatedStaff);
   } catch (error: any) {
     console.error('Error in updateLocalStaffPasswordController:', error);
@@ -127,6 +187,16 @@ export const createLocalStaffController = async (req: Request, res: Response): P
     }
 
     const newStaff = await createLocalStaff(username, role, password);
+
+    // Log audit entry
+    await createAuditLog(req, {
+      action_type: 'CREATE',
+      entity_type: 'staff',
+      entity_id: String(newStaff.staff_id),
+      new_values: newStaff,
+      description: `Created staff member: ${username} (ID: ${newStaff.staff_id}, Role: ${role})`,
+    });
+
     res.status(201).json(newStaff);
   } catch (error: any) {
     console.error('Error in createLocalStaffController:', error);

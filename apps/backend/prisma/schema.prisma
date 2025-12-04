@@ -76,15 +76,15 @@ model meal_types {
 }
 
 model menu_items {
-  menu_item_id           Int       @id
-  name                   String?   @db.VarChar(255)
-  upcharge               Float?
-  is_available           Boolean?
-  item_type              String?   @db.VarChar(50)
-  availability_start_time String?  @db.VarChar(10)
-  availability_end_time   String?  @db.VarChar(10)
-  inventory              inventory[]
-  meal_detail            meal_detail[]
+  menu_item_id            Int           @id
+  name                    String?       @db.VarChar(255)
+  upcharge                Float?
+  is_available            Boolean?
+  item_type               String?       @db.VarChar(50)
+  availability_start_time String?       @db.VarChar(10)
+  availability_end_time   String?       @db.VarChar(10)
+  inventory               inventory[]
+  meal_detail             meal_detail[]
 }
 
 model non_food_inventory {
@@ -103,23 +103,24 @@ model payment {
 }
 
 model staff {
-  staff_id      Int      @id @default(autoincrement())
-  username      String   @unique @db.VarChar(255)
-  password_hash String   @db.VarChar(255)
-  role          String   @default("CASHIER") @db.VarChar(50)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  staff_id      Int        @id @default(autoincrement())
+  username      String     @unique @db.VarChar(255)
+  password_hash String     @db.VarChar(255)
+  role          String     @default("CASHIER") @db.VarChar(50)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
   Order         Order[]
+  AuditLog      AuditLog[]
 }
 
 model Customer {
-  id             String    @id @default(uuid())
-  email          String?   @unique
-  phone_number   String?   @unique
+  id             String   @id @default(uuid())
+  email          String?  @unique
+  phone_number   String?  @unique
   password_hash  String
-  rewards_points Int       @default(0)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  rewards_points Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   orders         Order[]
 
   @@index([email])
@@ -134,4 +135,23 @@ model User {
   role      String?  @default("MANAGER") @db.VarChar(50)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  staff_id    Int? // Staff member who performed the action
+  staff       staff?   @relation(fields: [staff_id], references: [staff_id], onDelete: SetNull, onUpdate: NoAction)
+  action_type String   @db.VarChar(50) // CREATE, UPDATE, DELETE, DEACTIVATE, etc.
+  entity_type String   @db.VarChar(50) // menu_item, staff, inventory, order, user, etc.
+  entity_id   String?  @db.VarChar(255) // ID of the affected entity (as string to handle different ID types)
+  old_values  String?  @db.Text // JSON string of old values
+  new_values  String?  @db.Text // JSON string of new values
+  description String?  @db.VarChar(500) // Human-readable description
+  ip_address  String?  @db.VarChar(45) // IPv4 or IPv6 address
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([staff_id])
+  @@index([entity_type, entity_id])
+  @@index([created_at])
+  @@index([action_type])
 }

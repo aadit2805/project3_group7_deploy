@@ -41,6 +41,7 @@ import {
   staffLoginController,
   getAuthenticatedUserController, // Import getAuthenticatedUserController
 } from '../controllers/staffController'; // Import all staff controllers
+import { getAuditLogsController } from '../controllers/auditController';
 import { ApiResponse } from '../types';
 import pool from '../config/db';
 import translationRoutes from './translation.routes';
@@ -160,6 +161,9 @@ import customerAuthRoutes from './customerAuth.routes'; // Import the new custom
 
 // User management routes (manager only)
 router.use('/users', isAuthenticated, isManager, userRoutes);
+
+// Audit log routes (manager only)
+router.get('/audit-logs', isAuthenticated, isManager, getAuditLogsController);
 
 // Customer authentication routes
 router.use('/customer/auth', customerAuthRoutes); // Integrate new customer auth routes

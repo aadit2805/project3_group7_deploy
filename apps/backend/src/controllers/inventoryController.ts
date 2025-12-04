@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { db } from '../db';
+import { createAuditLog } from '../services/auditService';
 
 export const getInventory = async (_req: Request, res: Response) => {
   try {
@@ -76,6 +77,16 @@ export const addInventoryItem = async (req: Request, res: Response) => {
       const item = await db.inventory.create({
         data: { inventory_id: newId, menu_item_id, stock, reorder, storage },
       });
+
+      // Log audit entry
+      await createAuditLog(req, {
+        action_type: 'CREATE',
+        entity_type: 'inventory',
+        entity_id: String(newId),
+        new_values: item,
+        description: `Created food inventory item (ID: ${newId}, Menu Item ID: ${menu_item_id})`,
+      });
+
       res.json(item);
     } else {
       const { name, stock, reorder } = data;
@@ -84,6 +95,16 @@ export const addInventoryItem = async (req: Request, res: Response) => {
       const item = await db.non_food_inventory.create({
         data: { supply_id: newId, name, stock, reorder },
       });
+
+      // Log audit entry
+      await createAuditLog(req, {
+        action_type: 'CREATE',
+        entity_type: 'non_food_inventory',
+        entity_id: String(newId),
+        new_values: item,
+        description: `Created non-food inventory item: ${name} (ID: ${newId})`,
+      });
+
       res.json(item);
     }
   } catch (error) {
@@ -99,6 +120,11 @@ export const updateInventoryItem = async (req: Request, res: Response) => {
     if (is_food) {
       const { stock, reorder, storage } = data;
 
+      // Get old values for audit log
+      const oldItem = await db.inventory.findUnique({
+        where: { inventory_id: Number(id) },
+      });
+
       const parsedStock = Number(stock);
       const parsedReorder = reorder === 'true' || reorder === 'on'; // Handle both boolean and string 'on'
 
@@ -108,9 +134,24 @@ export const updateInventoryItem = async (req: Request, res: Response) => {
         data: { stock: parsedStock, reorder: parsedReorder, storage },
       });
 
+      // Log audit entry
+      await createAuditLog(req, {
+        action_type: 'UPDATE',
+        entity_type: 'inventory',
+        entity_id: String(id),
+        old_values: oldItem,
+        new_values: inventoryItem,
+        description: `Updated food inventory item (ID: ${id})`,
+      });
+
       return res.json({ inventoryItem });
     } else {
       const { stock, reorder } = data;
+
+      // Get old values for audit log
+      const oldItem = await db.non_food_inventory.findUnique({
+        where: { supply_id: Number(id) },
+      });
 
       const parsedStock = Number(stock);
       const parsedReorder = reorder === 'true' || reorder === 'on';
@@ -119,6 +160,17 @@ export const updateInventoryItem = async (req: Request, res: Response) => {
         where: { supply_id: Number(id) },
         data: { stock: parsedStock, reorder: parsedReorder },
       });
+
+      // Log audit entry
+      await createAuditLog(req, {
+        action_type: 'UPDATE',
+        entity_type: 'non_food_inventory',
+        entity_id: String(id),
+        old_values: oldItem,
+        new_values: item,
+        description: `Updated non-food inventory item: ${oldItem?.name} (ID: ${id})`,
+      });
+
       return res.json(item); // Added return
     }
   } catch (error) {
@@ -164,6 +216,24 @@ export const addFoodItemWithMenuItem = async (req: Request, res: Response) => {
         reorder,
         storage,
       },
+    });
+
+    // Log audit entry for menu item creation
+    await createAuditLog(req, {
+      action_type: 'CREATE',
+      entity_type: 'menu_item',
+      entity_id: String(newMenuItemId),
+      new_values: menuItem,
+      description: `Created menu item with inventory: ${name} (Menu Item ID: ${newMenuItemId})`,
+    });
+
+    // Log audit entry for inventory creation
+    await createAuditLog(req, {
+      action_type: 'CREATE',
+      entity_type: 'inventory',
+      entity_id: String(newInventoryId),
+      new_values: inventoryItem,
+      description: `Created inventory item for menu item: ${name} (Inventory ID: ${newInventoryId})`,
     });
 
     res.json({ menuItem, inventoryItem });
