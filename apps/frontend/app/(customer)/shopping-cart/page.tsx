@@ -303,7 +303,14 @@ const ShoppingCart = () => {
       });
 
       if (response.ok) {
-        addToast({ message: t.successMessage, type: 'success' });
+        const data = await response.json();
+        const orderId = data.data.orderId;
+        const estimatedPrepTime = data.data.estimatedPrepTime;
+        
+        // Store order ID and estimated prep time for confirmation page
+        localStorage.setItem('lastOrderId', orderId);
+        localStorage.setItem('estimatedPrepTime', estimatedPrepTime);
+        
         setOrder([]);
         setDiscountCode('');
         setPromoDiscountAmount(0);
@@ -311,7 +318,9 @@ const ShoppingCart = () => {
         setUsePoints(false);
         setPointsApplied(0);
         localStorage.removeItem('order');
-        router.push('/meal-type-selection');
+        
+        // Redirect to order confirmation page
+        router.push('/order-confirmation');
       } else {
         addToast({ message: t.failMessage, type: 'error' });
       }

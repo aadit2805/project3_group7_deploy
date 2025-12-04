@@ -3,6 +3,7 @@ import pool from '../config/db';
 import prisma from '../config/prisma'; // Import centralized Prisma instance
 import { createAuditLog } from '../services/auditService';
 import { validateDiscount, calculateDiscountAmount } from '../services/discountService';
+import QRCode from 'qrcode';
 
 // Cache for rush orders and order notes (in-memory storage)
 const rushOrderCache = new Map<number, boolean>();
@@ -19,6 +20,18 @@ export const createOrder = async (req: Request, res: Response) => {
 
   try {
     await client.query('BEGIN'); // Start transaction
+
+    // Calculate estimated prep time based on number of meals and complexity
+    // Base time: 5 minutes, +2 minutes per meal, +1 minute per entree/side
+    const baseTime = 5;
+    const timePerMeal = 2;
+    let totalItems = 0;
+    order_items.forEach((item: any) => {
+      totalItems += (item.entrees?.length || 0) + (item.sides?.length || 0);
+    });
+    const estimatedPrepTime = baseTime + (order_items.length * timePerMeal) + Math.floor(totalItems / 2);
+    // Cap at reasonable max (e.g., 30 minutes)
+    const cappedPrepTime = Math.min(estimatedPrepTime, 30);
 
     let currentCustomerPoints = 0; // Initialize for point validation
     const POINTS_PER_DOLLAR = 25; // Must match frontend logic
@@ -57,10 +70,10 @@ export const createOrder = async (req: Request, res: Response) => {
     const maxId = maxIdResult.rows[0].max_id;
     const newOrderId = (maxId === null ? 0 : maxId) + 1;
 
-    // Insert order with a temporary price (0) and customerId
+    // Insert order with a temporary price (0), customerId, and estimated prep time
     const orderResult = await client.query(
-      'INSERT INTO "Order" (order_id, price, order_status, staff_id, datetime, customer_name, "customerId") VALUES ($1, $2, $3, $4, NOW(), $5, $6) RETURNING order_id',
-      [newOrderId, 0, 'pending', staff_id || 1, customer_name || null, customerId || null] // Added customer_name and customerId
+      'INSERT INTO "Order" (order_id, price, order_status, staff_id, datetime, customer_name, "customerId", estimated_prep_time) VALUES ($1, $2, $3, $4, NOW(), $5, $6, $7) RETURNING order_id',
+      [newOrderId, 0, 'pending', staff_id || 1, customer_name || null, customerId || null, cappedPrepTime] // Added estimated_prep_time
     );
     const orderId = orderResult.rows[0].order_id;
 
@@ -200,6 +213,7 @@ export const createOrder = async (req: Request, res: Response) => {
         orderId,
         totalPrice: finalPrice,
         discountAmount: discountAmount > 0 ? discountAmount : undefined,
+        estimatedPrepTime: cappedPrepTime,
       },
     });
   } catch (error) {
@@ -617,6 +631,188 @@ export const markOrderAddressed = async (req: Request, res: Response) => {
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Error marking order as addressed:', error);
+    return res.status(500).json({ success: false, error: (error as Error).message });
+  } finally {
+    client.release();
+  }
+};
+
+export const generateOrderQRCode = async (req: Request, res: Response) => {
+  const { orderId } = req.params;
+  const customer_id = req.customer?.id;
+
+  const client = await pool.connect();
+
+  try {
+    // Verify order exists and belongs to customer (if authenticated)
+    let query = 'SELECT * FROM "Order" WHERE order_id = $1';
+    const params: any[] = [orderId];
+
+    if (customer_id) {
+      query += ' AND "customerId" = $2';
+      params.push(customer_id);
+    }
+
+    const orderResult = await client.query(query, params);
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Order not found' 
+      });
+    }
+
+    const order = orderResult.rows[0];
+
+    // Create receipt data for QR code
+    const receiptData = {
+      orderId: order.order_id,
+      date: order.datetime,
+      total: order.price,
+      status: order.order_status,
+      customerName: order.customer_name || 'Guest',
+    };
+
+    // Generate QR code as data URL
+    const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(receiptData), {
+      errorCorrectionLevel: 'M',
+      type: 'image/png',
+      width: 300,
+      margin: 1,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        qrCode: qrCodeDataURL,
+        receiptData,
+      },
+    });
+  } catch (error) {
+    console.error('Error generating QR code:', error);
+    return res.status(500).json({ success: false, error: (error as Error).message });
+  } finally {
+    client.release();
+  }
+};
+
+export const getLastOrderForReorder = async (req: Request, res: Response) => {
+  const customer_id = req.customer?.id;
+
+  if (!customer_id) {
+    return res.status(401).json({ success: false, error: 'Customer not authenticated' });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    // Get the most recent order for this customer
+    const orderResult = await client.query(
+      `SELECT o.order_id
+       FROM "Order" o
+       WHERE o."customerId" = $1
+       ORDER BY o.datetime DESC
+       LIMIT 1`,
+      [customer_id]
+    );
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'No previous orders found' 
+      });
+    }
+
+    const orderId = orderResult.rows[0].order_id;
+
+    // Get all meals for this order
+    const mealsResult = await client.query(
+      `SELECT
+        m.meal_id,
+        mt.meal_type_name,
+        mt.meal_type_id,
+        mt.meal_type_price,
+        mt.entree_count,
+        mt.side_count,
+        mt.drink_size
+      FROM meal m
+      LEFT JOIN meal_types mt ON m.meal_type_id = mt.meal_type_id
+      WHERE m.order_id = $1
+      ORDER BY m.meal_id`,
+      [orderId]
+    );
+
+    const orderItems = [];
+
+    for (const mealRow of mealsResult.rows) {
+      const itemsResult = await client.query(
+        `SELECT
+          md.role,
+          mi.name,
+          mi.menu_item_id,
+          mi.upcharge,
+          mi.is_available,
+          mi.item_type
+        FROM meal_detail md
+        LEFT JOIN menu_items mi ON md.menu_item_id = mi.menu_item_id
+        WHERE md.meal_id = $1
+        ORDER BY md.role, mi.name`,
+        [mealRow.meal_id]
+      );
+
+      const entrees = itemsResult.rows
+        .filter(item => item.role === 'entree')
+        .map(item => ({ 
+          name: item.name, 
+          menu_item_id: item.menu_item_id, 
+          upcharge: item.upcharge, 
+          is_available: item.is_available,
+          item_type: item.item_type
+        }));
+      
+      const sides = itemsResult.rows
+        .filter(item => item.role === 'side')
+        .map(item => ({ 
+          name: item.name, 
+          menu_item_id: item.menu_item_id, 
+          upcharge: item.upcharge, 
+          is_available: item.is_available,
+          item_type: item.item_type
+        }));
+      
+      const drinkRow = itemsResult.rows.find(item => item.role === 'drink');
+      const drink = drinkRow ? { 
+        name: drinkRow.name, 
+        menu_item_id: drinkRow.menu_item_id, 
+        upcharge: drinkRow.upcharge, 
+        is_available: drinkRow.is_available,
+        item_type: drinkRow.item_type
+      } : undefined;
+
+      orderItems.push({
+        mealType: {
+          meal_type_name: mealRow.meal_type_name,
+          meal_type_id: mealRow.meal_type_id,
+          meal_type_price: mealRow.meal_type_price,
+          entree_count: mealRow.entree_count,
+          side_count: mealRow.side_count,
+          drink_size: mealRow.drink_size,
+        },
+        entrees,
+        sides,
+        drink,
+      });
+    }
+
+    return res.status(200).json({ 
+      success: true, 
+      data: {
+        orderId,
+        orderItems,
+      } 
+    });
+  } catch (error) {
+    console.error('Error fetching last order for reorder:', error);
     return res.status(500).json({ success: false, error: (error as Error).message });
   } finally {
     client.release();

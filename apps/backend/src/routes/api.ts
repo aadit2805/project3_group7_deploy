@@ -15,6 +15,8 @@ import {
   getPreparedOrders,
   markOrderAddressed,
   getCustomerOrders, // Import getCustomerOrders
+  generateOrderQRCode,
+  getLastOrderForReorder,
 } from '../controllers/orderController';
 import {
   getDailyRevenueReport,
@@ -51,6 +53,12 @@ import {
   deleteDiscountController,
   validateDiscountController,
 } from '../controllers/discountController';
+import {
+  submitFeedback,
+  getOrderFeedback,
+  getCustomerFeedbackHistory,
+  getAllFeedback,
+} from '../controllers/feedbackController';
 import { ApiResponse } from '../types';
 import pool from '../config/db';
 import translationRoutes from './translation.routes';
@@ -87,6 +95,12 @@ router.get('/orders/kitchen', isAuthenticated, isCashierOrManager, getKitchenOrd
 
 // GET /api/orders/customer/:customerId - Get orders for a specific customer
 router.get('/orders/customer/:customerId', authenticateCustomer, getCustomerOrders);
+
+// GET /api/orders/:orderId/qrcode - Generate QR code for order receipt
+router.get('/orders/:orderId/qrcode', generateOrderQRCode);
+
+// GET /api/orders/reorder/last - Get last order for reordering
+router.get('/orders/reorder/last', authenticateCustomer, getLastOrderForReorder);
 
 // PATCH /api/orders/:orderId/status - Update order status (cashier or manager - needed for kitchen monitor)
 router.patch('/orders/:orderId/status', isAuthenticated, isCashierOrManager, updateOrderStatus);
@@ -185,6 +199,12 @@ router.delete('/discounts/:id', isAuthenticated, isManager, deleteDiscountContro
 
 // Customer authentication routes
 router.use('/customer/auth', customerAuthRoutes); // Integrate new customer auth routes
+
+// Feedback routes
+router.post('/feedback', authenticateCustomer, submitFeedback); // Customer submits feedback
+router.get('/feedback/order/:orderId', authenticateCustomer, getOrderFeedback); // Get feedback for specific order
+router.get('/feedback/history', authenticateCustomer, getCustomerFeedbackHistory); // Customer's feedback history
+router.get('/feedback/all', isAuthenticated, isManager, getAllFeedback); // Manager views all feedback
 
 // External API routes
 router.use('/translation', translationRoutes);
