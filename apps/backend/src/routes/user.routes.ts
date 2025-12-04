@@ -1,6 +1,7 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { isManager } from '../middleware/auth';
+import { createAuditLog } from '../services/auditService';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -21,7 +22,7 @@ router.get('/', isManager, async (_req, res) => {
 });
 
 // PUT /api/users/:id/role - Update user role (Manager only)
-router.put('/:id/role', isManager, async (req, res): Promise<void> => {
+router.put('/:id/role', isManager, async (req: Request, res): Promise<void> => {
   const { id } = req.params;
   const { role } = req.body;
 
@@ -37,10 +38,31 @@ router.put('/:id/role', isManager, async (req, res): Promise<void> => {
   }
 
   try {
+    // Get old values for audit log
+    const oldUser = await prisma.user.findUnique({
+      where: { id: parseInt(id, 10) },
+    });
+
+    if (!oldUser) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: parseInt(id, 10) },
       data: { role },
     });
+
+    // Log audit entry
+    await createAuditLog(req, {
+      action_type: 'UPDATE_ROLE',
+      entity_type: 'user',
+      entity_id: String(id),
+      old_values: { role: oldUser.role },
+      new_values: { role: updatedUser.role },
+      description: `Updated user role from "${oldUser.role}" to "${role}" (User ID: ${id}, Email: ${oldUser.email || 'N/A'})`,
+    });
+
     res.json(updatedUser);
   } catch (error) {
     console.error(`Failed to update role for user ${id}:`, error);
