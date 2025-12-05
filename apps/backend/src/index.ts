@@ -15,7 +15,7 @@ import { authenticateStaff } from './services/staffService';
 dotenv.config();
 
 // Validate required environment variables
-const requiredEnvVars = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'AUTH_URL', 'AUTH_SECRET'];
+const requiredEnvVars = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'AUTH_SECRET'];
 const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
 if (missingEnvVars.length > 0) {
@@ -69,7 +69,10 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: `${process.env.AUTH_URL}/auth/google/callback`,
+        callbackURL: process.env.AUTH_URL 
+          ? `${process.env.AUTH_URL}/auth/google/callback`
+          : '/auth/google/callback', 
+        proxy: true,
       },
       async (
         _accessToken: string,
