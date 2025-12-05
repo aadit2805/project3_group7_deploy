@@ -66,7 +66,7 @@ export default function KitchenMonitor() {
   // Fetch orders from the API
   const fetchOrders = useCallback(async () => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const response = await fetch(`${backendUrl}/api/orders/kitchen`, {
         credentials: 'include',
       });
@@ -101,7 +101,7 @@ export default function KitchenMonitor() {
   // Mark order as done
   const markOrderDone = async (orderId: number) => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const response = await fetch(`${backendUrl}/api/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
@@ -127,7 +127,7 @@ export default function KitchenMonitor() {
   const fetchWeather = useCallback(async (city: string = 'College Station') => {
     try {
       setWeatherLoading(true);
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const response = await fetch(`${backendUrl}/api/weather/current?city=${encodeURIComponent(city)}`, {
         credentials: 'include',
       });

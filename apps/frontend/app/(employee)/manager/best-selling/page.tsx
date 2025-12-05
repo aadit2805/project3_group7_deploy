@@ -50,7 +50,7 @@ export default function BestSellingPage() {
   const fetchAllStats = useCallback(async (start?: string, end?: string, itemType?: string) => {
     setLoadingStats(true);
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const params = new URLSearchParams();
       if (start) params.append('start_date', start);
       if (end) params.append('end_date', end);
@@ -98,7 +98,7 @@ export default function BestSellingPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const backendUrl = '';
         const response = await fetch(`${backendUrl}/api/user`, {
           credentials: 'include',
         });

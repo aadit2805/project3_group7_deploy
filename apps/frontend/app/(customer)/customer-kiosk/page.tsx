@@ -63,7 +63,7 @@ const CustomerKioskContent = () => {
       }
 
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const backendUrl = '';
         const ordersRes = await apiClient(`${backendUrl}/api/orders/customer/${customerId}`);
 
         if (!ordersRes.ok) {
@@ -159,7 +159,7 @@ const CustomerKioskContent = () => {
     if (mealTypeId) {
       const fetchMealTypeAndMenuItems = async () => {
         try {
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+          const backendUrl = '';
           
           const mealTypeRes = await apiClient(`${backendUrl}/api/meal-types/${mealTypeId}`);
           const mealTypeData: MealType = await mealTypeRes.json();

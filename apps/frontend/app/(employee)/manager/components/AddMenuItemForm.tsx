@@ -40,7 +40,7 @@ export default function AddMenuItemForm({ onSuccess }: AddMenuItemFormProps) {
     setSuccess(false);
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const payload: any = {
         name: formData.name.trim(),
         upcharge: parseFloat(formData.upcharge) || 0,

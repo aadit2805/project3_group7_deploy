@@ -22,7 +22,7 @@ interface TranslationContextType {
 
 export const TranslationContext = createContext<TranslationContextType | undefined>(undefined);
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+const API_BASE_URL = '/api';
 
 // Language name mappings for common languages
 const LANGUAGE_NAMES: { [key: string]: string } = {
@@ -193,7 +193,7 @@ export const TranslationProvider = ({ children }: { children: ReactNode }) => {
     const fetchLanguages = async () => {
       try {
         console.log('[Translation] Fetching supported languages from:', `${API_BASE_URL}/api/translation/languages`);
-        const response = await fetch(`${API_BASE_URL}/api/translation/languages`);
+        const response = await fetch(`${API_BASE_URL}/translation/languages`);
         const data = await response.json();
         
         console.log('[Translation] Languages response:', data);
@@ -258,7 +258,7 @@ export const TranslationProvider = ({ children }: { children: ReactNode }) => {
       try {
         setIsLoading(true);
         console.log('[Translation] Translating:', text.substring(0, 30), 'to', target);
-        const response = await fetch(`${API_BASE_URL}/api/translation/translate`, {
+        const response = await fetch(`${API_BASE_URL}/translation/translate`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -330,8 +330,8 @@ export const TranslationProvider = ({ children }: { children: ReactNode }) => {
 
       try {
         setIsLoading(true);
-        console.log('[Translation] Sending batch request to:', `${API_BASE_URL}/api/translation/batch`);
-        const response = await fetch(`${API_BASE_URL}/api/translation/batch`, {
+        console.log('[Translation] Sending batch request to:', `${API_BASE_URL}/translation/batch`);
+        const response = await fetch(`${API_BASE_URL}/translation/batch`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
