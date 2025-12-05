@@ -42,7 +42,7 @@ export default function RevenueReportsPage() {
   const fetchReports = useCallback(async (start?: string, end?: string) => {
     setLoadingReports(true);
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       let url = `${backendUrl}/api/revenue/daily`;
       const params = new URLSearchParams();
       if (start) params.append('start_date', start);
@@ -73,7 +73,7 @@ export default function RevenueReportsPage() {
 
   const fetchSummary = useCallback(async (start?: string, end?: string) => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       let url = `${backendUrl}/api/revenue/summary`;
       const params = new URLSearchParams();
       if (start) params.append('start_date', start);
@@ -99,7 +99,7 @@ export default function RevenueReportsPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const backendUrl = '';
         const response = await fetch(`${backendUrl}/api/user`, {
           credentials: 'include',
         });
@@ -147,7 +147,7 @@ export default function RevenueReportsPage() {
   };
   const handleDownloadCSV = async () => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       let url = `${backendUrl}/api/revenue/export/csv`;
       const params = new URLSearchParams();
       if (startDate) params.append('start_date', startDate);

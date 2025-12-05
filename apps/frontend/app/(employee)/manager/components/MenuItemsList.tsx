@@ -32,7 +32,7 @@ export default function MenuItemsList({ filter }: MenuItemsListProps) {
 
   const fetchMenuItems = async () => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const response = await fetch(`${backendUrl}/api/menu-items`, {
         credentials: 'include',
       });
@@ -72,7 +72,7 @@ export default function MenuItemsList({ filter }: MenuItemsListProps) {
 
   const handleSaveEdit = async (id: number) => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const response = await fetch(`${backendUrl}/api/menu-items/${id}`, {
         method: 'PUT',
         headers: {
@@ -111,7 +111,7 @@ export default function MenuItemsList({ filter }: MenuItemsListProps) {
 
   const toggleAvailability = async (item: MenuItem) => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const response = await fetch(`${backendUrl}/api/menu-items/${item.menu_item_id}`, {
         method: 'PUT',
         headers: {

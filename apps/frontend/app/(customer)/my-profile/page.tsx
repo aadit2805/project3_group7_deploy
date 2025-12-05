@@ -108,7 +108,7 @@ const MyProfile = () => {
       try {
         setLoading(true);
         setError(null);
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const backendUrl = '';
 
         // Fetch meal types
         const mealTypesRes = await fetch(`${backendUrl}/api/meal-types`);

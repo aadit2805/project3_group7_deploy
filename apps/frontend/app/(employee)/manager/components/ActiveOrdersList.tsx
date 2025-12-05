@@ -20,7 +20,7 @@ export default function ActiveOrdersList() {
 
   const fetchActiveOrders = useCallback(async () => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const response = await fetch(`${backendUrl}/api/orders/active`, {
         credentials: 'include',
       });
@@ -49,7 +49,7 @@ export default function ActiveOrdersList() {
 
   const fetchKitchenOrderCount = useCallback(async () => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const response = await fetch(`${backendUrl}/api/orders/kitchen`, {
         credentials: 'include',
       });

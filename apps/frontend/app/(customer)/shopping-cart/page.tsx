@@ -117,7 +117,7 @@ const ShoppingCart = () => {
       }
 
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const backendUrl = '';
         const response = await fetch(`${backendUrl}/api/customer/auth/me`, {
           headers: {
             Authorization: `Bearer ${customerToken}`,
@@ -230,7 +230,7 @@ const ShoppingCart = () => {
 
     setValidatingDiscount(true);
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const response = await fetch(`${backendUrl}/api/discounts/validate`, {
         method: 'POST',
         headers: {
@@ -271,7 +271,7 @@ const ShoppingCart = () => {
 
   const handleSubmitOrder = async () => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const customerId = localStorage.getItem('customerId'); // Retrieve customerId
 
       const requestBody: {

@@ -22,7 +22,7 @@ interface TranslationContextType {
 
 export const TranslationContext = createContext<TranslationContextType | undefined>(undefined);
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+const API_BASE_URL = '/api';
 
 // Language name mappings for common languages
 const LANGUAGE_NAMES: { [key: string]: string } = {

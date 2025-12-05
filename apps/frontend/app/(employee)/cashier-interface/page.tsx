@@ -120,7 +120,7 @@ const CashierInterfaceContent = () => {
   useEffect(() => {
     const fetchMealTypes = async () => {
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const backendUrl = '';
         const res = await fetch(`${backendUrl}/api/meal-types`);
         const data = await res.json();
         setMealTypes(data);
@@ -184,7 +184,7 @@ const CashierInterfaceContent = () => {
 
       const fetchMealTypeAndMenuItems = async () => {
         try {
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+          const backendUrl = '';
           const mealTypeRes = await fetch(`${backendUrl}/api/meal-types/${mealTypeId}`);
           const mealTypeData: MealType = await mealTypeRes.json();
           setSelectedMealType(mealTypeData);
@@ -280,7 +280,7 @@ const CashierInterfaceContent = () => {
     setSelectedDrinkSize(size);
     // Fetch menu items if not already loaded
     if (menuItems.length === 0) {
-      fetch('http://localhost:3001/api/menu-items')
+      fetch('/api/menu-items')
         .then((res) => res.json())
         .then((data) => setMenuItems(data))
         .catch((error) => console.error('Error fetching menu items:', error));

@@ -46,7 +46,7 @@ export default function OrderAnalyticsPage() {
   const fetchAllStats = useCallback(async (start?: string, end?: string) => {
     setLoadingStats(true);
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       // Fetch all stats in parallel
       const params = new URLSearchParams();
       if (start) params.append('start_date', start);
@@ -109,7 +109,7 @@ export default function OrderAnalyticsPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const backendUrl = '';
         const response = await fetch(`${backendUrl}/api/user`, {
           credentials: 'include',
         });

@@ -66,7 +66,7 @@ const ALaCartePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const backendUrl = '';
         const menuItemsRes = await fetch(`${backendUrl}/api/menu-items`);
         const menuItemsData = await menuItemsRes.json();
         setMenuItems(menuItemsData);

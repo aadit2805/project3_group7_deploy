@@ -24,7 +24,7 @@ export default function PreparedOrdersPage() {
   // Fetch prepared orders
   const fetchPreparedOrders = useCallback(async () => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const response = await fetch(`${backendUrl}/api/orders/prepared`, {
         credentials: 'include',
       });
@@ -55,7 +55,7 @@ export default function PreparedOrdersPage() {
   // Mark order as addressed
   const markOrderAddressed = async (orderId: number) => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const response = await fetch(`${backendUrl}/api/orders/${orderId}/address`, {
         method: 'PATCH',
         headers: {

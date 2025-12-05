@@ -100,7 +100,7 @@ const OrderPane = ({ onOrderSubmitSuccess }: { onOrderSubmitSuccess?: () => void
 
     setValidatingDiscount(true);
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const response = await fetch(`${backendUrl}/api/discounts/validate`, {
         method: 'POST',
         headers: {
@@ -141,7 +141,7 @@ const OrderPane = ({ onOrderSubmitSuccess }: { onOrderSubmitSuccess?: () => void
 
   const handleSubmitOrder = async () => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = '';
       const response = await fetch(`${backendUrl}/api/orders`, {
         method: 'POST',
         headers: {

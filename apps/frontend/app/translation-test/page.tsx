@@ -12,6 +12,7 @@ export default function TranslationTestPage() {
   const [manualResult, setManualResult] = useState('');
   const [testing, setTesting] = useState(false);
   const { addToast } = useToast();
+  const apiUrl = '/api'; // Define apiUrl here, as it's used in JSX
 
   // Test automatic translation with the hook
   const textsToTranslate = [
@@ -37,7 +38,7 @@ export default function TranslationTestPage() {
   };
 
   const testApiDirectly = async () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+    const apiUrl = '/api';
     
     console.log('Testing API at:', apiUrl);
     
@@ -85,7 +86,7 @@ export default function TranslationTestPage() {
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-2">System Info</h2>
             <div className="bg-gray-100 p-4 rounded font-mono text-sm space-y-1">
-              <div>API URL: {process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}</div>
+              <div>API URL: {apiUrl}</div>
               <div>Supported Languages Loaded: {supportedLanguages.length}</div>
               <div>Current Language: {currentLanguage}</div>
               <div>Is Translating: {isTranslating ? 'Yes' : 'No'}</div>
