@@ -42,5 +42,25 @@ export const customerAuthController = {
         } catch (error: any) {
             return res.status(404).json({ message: error.message });
         }
+    },
+
+    async updateAllergenPreferences(req: Request, res: Response) {
+        const customerId = req.customer?.id;
+        const { allergen_preferences } = req.body;
+
+        if (!customerId) {
+            return res.status(401).json({ message: 'Not authenticated as a customer.' });
+        }
+
+        try {
+            const customer = await customerAuthService.updateAllergenPreferences(customerId, allergen_preferences);
+            return res.status(200).json({ 
+                success: true, 
+                message: 'Allergen preferences updated successfully',
+                customer 
+            });
+        } catch (error: any) {
+            return res.status(400).json({ message: error.message });
+        }
     }
 };

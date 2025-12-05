@@ -90,6 +90,7 @@ class CustomerAuthService {
         email: true,
         phone_number: true,
         rewards_points: true,
+        allergen_preferences: true,
         createdAt: true,
       },
     });
@@ -97,6 +98,34 @@ class CustomerAuthService {
       throw new Error('Customer not found.');
     }
     return customer;
+  }
+
+  async updateAllergenPreferences(customerId: string, allergen_preferences: string[]): Promise<any> {
+    const customer = await prisma.customer.findUnique({
+      where: { id: customerId },
+    });
+    
+    if (!customer) {
+      throw new Error('Customer not found.');
+    }
+
+    // Store allergen preferences as JSON string
+    const updatedCustomer = await prisma.customer.update({
+      where: { id: customerId },
+      data: {
+        allergen_preferences: JSON.stringify(allergen_preferences),
+      },
+      select: {
+        id: true,
+        email: true,
+        phone_number: true,
+        rewards_points: true,
+        allergen_preferences: true,
+        createdAt: true,
+      },
+    });
+
+    return updatedCustomer;
   }
 }
 

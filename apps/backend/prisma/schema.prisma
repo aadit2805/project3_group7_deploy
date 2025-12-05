@@ -85,6 +85,8 @@ model menu_items {
   item_type               String?       @db.VarChar(50)
   availability_start_time String?       @db.VarChar(10)
   availability_end_time   String?       @db.VarChar(10)
+  allergens               String?       @db.Text // JSON array of allergens
+  allergen_info           String?       @db.Text // Additional allergen details
   inventory               inventory[]
   meal_detail             meal_detail[]
 }
@@ -117,15 +119,16 @@ model staff {
 }
 
 model Customer {
-  id             String          @id @default(uuid())
-  email          String?         @unique
-  phone_number   String?         @unique
-  password_hash  String
-  rewards_points Int             @default(0)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  orders         Order[]
-  feedback       OrderFeedback[]
+  id                   String          @id @default(uuid())
+  email                String?         @unique
+  phone_number         String?         @unique
+  password_hash        String
+  rewards_points       Int             @default(0)
+  allergen_preferences String?         @db.Text // JSON array of allergens to avoid
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  orders               Order[]
+  feedback             OrderFeedback[]
 
   @@index([email])
   @@index([phone_number])

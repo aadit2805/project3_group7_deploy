@@ -43,6 +43,13 @@ const OrderConfirmation = () => {
     'Please select a rating.',
     'Loading...',
     'Reorder',
+    'Order Placed Successfully',
+    'Your order has been received and is being prepared.',
+    'What happens next?',
+    'Kitchen staff will prepare your order',
+    'You will be notified when ready',
+    'Pick up your order at the counter',
+    'Save this QR code for your records',
   ];
 
   const { translatedTexts } = useTranslatedTexts(textLabels);
@@ -65,6 +72,13 @@ const OrderConfirmation = () => {
     selectRating: translatedTexts[14] || 'Please select a rating.',
     loading: translatedTexts[15] || 'Loading...',
     reorder: translatedTexts[16] || 'Reorder',
+    successTitle: translatedTexts[17] || 'Order Placed Successfully',
+    successMessage: translatedTexts[18] || 'Your order has been received and is being prepared.',
+    whatNext: translatedTexts[19] || 'What happens next?',
+    step1: translatedTexts[20] || 'Kitchen staff will prepare your order',
+    step2: translatedTexts[21] || 'You will be notified when ready',
+    step3: translatedTexts[22] || 'Pick up your order at the counter',
+    saveQR: translatedTexts[23] || 'Save this QR code for your records',
   };
 
   useEffect(() => {
@@ -164,8 +178,16 @@ const OrderConfirmation = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <section className="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-4 text-center text-green-600">{t.title}</h1>
-        <p className="text-xl mb-6 text-center">{t.thankYou}</p>
+        {/* Success Header */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+            <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold mb-2 text-green-600">{t.successTitle}</h1>
+          <p className="text-lg text-gray-600">{t.successMessage}</p>
+        </div>
 
         {orderData && (
           <div className="mb-6 space-y-3">
@@ -186,16 +208,39 @@ const OrderConfirmation = () => {
           </div>
         )}
 
+        {/* What's Next Section */}
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h2 className="text-xl font-semibold mb-3 text-blue-900">{t.whatNext}</h2>
+          <ol className="space-y-3">
+            <li className="flex items-start">
+              <span className="flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded-full text-sm font-bold mr-3 mt-0.5">1</span>
+              <span className="text-gray-700">{t.step1}</span>
+            </li>
+            <li className="flex items-start">
+              <span className="flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded-full text-sm font-bold mr-3 mt-0.5">2</span>
+              <span className="text-gray-700">{t.step2}</span>
+            </li>
+            <li className="flex items-start">
+              <span className="flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded-full text-sm font-bold mr-3 mt-0.5">3</span>
+              <span className="text-gray-700">{t.step3}</span>
+            </li>
+          </ol>
+        </div>
+
         {qrCodeUrl && (
-          <div className="mb-6 text-center">
-            <h2 className="text-xl font-semibold mb-3">{t.qrCode}</h2>
+          <div className="mb-6 text-center p-4 bg-gray-50 rounded-lg">
+            <h2 className="text-xl font-semibold mb-2">{t.qrCode}</h2>
+            <p className="text-sm text-gray-600 mb-4">{t.saveQR}</p>
             <div className="flex justify-center mb-4">
-              <img src={qrCodeUrl} alt="Order Receipt QR Code" className="border-4 border-gray-200 rounded" />
+              <img src={qrCodeUrl} alt="Order Receipt QR Code" className="border-4 border-gray-200 rounded shadow-md" />
             </div>
             <button
               onClick={handleDownloadQRCode}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded inline-flex items-center"
             >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              </svg>
               {t.downloadQR}
             </button>
           </div>
