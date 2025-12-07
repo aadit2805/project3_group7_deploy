@@ -169,6 +169,7 @@ const CustomerKioskContent = () => {
   const [allergenFilter, setAllergenFilter] = useState<Set<string>>(new Set());
   const [showAllergenFilter, setShowAllergenFilter] = useState(false);
   const [allergenPreferencesLoaded, setAllergenPreferencesLoaded] = useState(false);
+  const [allergenPreferences, setAllergenPreferences] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!mealTypeId) {
@@ -225,16 +226,25 @@ const CustomerKioskContent = () => {
 
         if (response.ok) {
           const data = await response.json();
+          console.log('Loaded customer data:', data.customer);
           if (data.customer?.allergen_preferences) {
             try {
               const prefs = JSON.parse(data.customer.allergen_preferences);
+              console.log('Parsed allergen preferences:', prefs);
               if (Array.isArray(prefs) && prefs.length > 0) {
-                setAllergenFilter(new Set(prefs));
+                const prefsSet = new Set(prefs);
+                console.log('Setting allergen preferences set:', Array.from(prefsSet));
+                setAllergenPreferences(prefsSet); // Store for highlighting badges
+                setAllergenFilter(prefsSet); // Also use for filtering
                 setShowAllergenFilter(true); // Auto-show filter if preferences exist
+              } else {
+                console.log('No allergen preferences found or empty array');
               }
             } catch (e) {
               console.error('Error parsing allergen preferences:', e);
             }
+          } else {
+            console.log('No allergen_preferences field in customer data');
           }
           setAllergenPreferencesLoaded(true);
         }
@@ -323,6 +333,16 @@ const CustomerKioskContent = () => {
 
   const renderAllergenBadge = (item: MenuItem) => {
     const allergens = getAllergens(item);
+    
+    // Debug logging (can remove later)
+    if (item.menu_item_id === menuItems[0]?.menu_item_id) {
+      console.log('Debug - Item:', item.name);
+      console.log('Debug - Item allergens:', allergens);
+      console.log('Debug - User preferences:', Array.from(allergenPreferences));
+      console.log('Debug - Preferences size:', allergenPreferences.size);
+    }
+    
+    // If item has no allergens at all, show green badge
     if (allergens.length === 0) {
       return (
         <div className="mt-2 text-xs text-green-600 flex items-center">
@@ -333,6 +353,56 @@ const CustomerKioskContent = () => {
         </div>
       );
     }
+    
+    // If user has preferences set, filter to show only matching allergens
+    if (allergenPreferences.size > 0) {
+      // Normalize comparison - convert to lowercase for case-insensitive matching
+      const normalizedPreferences = new Set(Array.from(allergenPreferences).map(a => a.toLowerCase().trim()));
+      const matchingAllergens = allergens.filter(allergen => 
+        normalizedPreferences.has(allergen.toLowerCase().trim())
+      );
+      
+      // Debug for first item
+      if (item.menu_item_id === menuItems[0]?.menu_item_id) {
+        console.log('Debug - Matching allergens:', matchingAllergens);
+      }
+      
+      // If user is allergic to any allergens in this item, show warning badge with matching ones
+      if (matchingAllergens.length > 0) {
+        return (
+          <div className="mt-2">
+            <div className="text-xs font-semibold text-red-600 mb-1 flex items-center">
+              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              {t.allergens}:
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {matchingAllergens.map((allergen, idx) => (
+                <span
+                  key={idx}
+                  className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full border border-red-300 font-semibold"
+                >
+                  {allergen}
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      } else {
+        // Item has allergens but none match user's preferences, so it's safe - show green badge
+        return (
+          <div className="mt-2 text-xs text-green-600 flex items-center">
+            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            {t.noAllergens}
+          </div>
+        );
+      }
+    }
+    
+    // If user has no preferences set, show all allergens (original behavior)
     return (
       <div className="mt-2">
         <div className="text-xs font-semibold text-red-600 mb-1 flex items-center">
