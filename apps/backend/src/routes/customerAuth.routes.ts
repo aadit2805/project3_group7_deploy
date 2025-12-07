@@ -7,5 +7,6 @@ const router = Router();
 router.post('/register', customerAuthController.register);
 router.post('/login', customerAuthController.login);
 router.get('/me', authenticateCustomer, customerAuthController.getMe); // New route to get authenticated customer's details
+router.put('/allergen-preferences', authenticateCustomer, customerAuthController.updateAllergenPreferences); // Update allergen preferences
 
 export default router;

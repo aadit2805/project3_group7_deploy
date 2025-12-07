@@ -47,8 +47,17 @@ const MyProfile = () => {
   const [pastOrders, setPastOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [allergenPreferences, setAllergenPreferences] = useState<string[]>([]);
+  const [editingAllergens, setEditingAllergens] = useState(false);
+  const [savingAllergens, setSavingAllergens] = useState(false);
 
   const POINTS_PER_DOLLAR = 25; // Define conversion rate
+
+  // Common allergens list
+  const commonAllergens = [
+    'Peanuts', 'Tree Nuts', 'Dairy', 'Eggs', 'Soy', 
+    'Wheat', 'Shellfish', 'Fish', 'Sesame'
+  ];
 
   const textLabels = [
     'My Profile',
@@ -68,6 +77,14 @@ const MyProfile = () => {
     'Sides',
     'Drink',
     'Back to Home',
+    'My Allergen Preferences',
+    'Items containing these allergens will be highlighted when ordering',
+    'Edit Allergens',
+    'Save Preferences',
+    'Cancel',
+    'No allergen preferences set',
+    'Allergen preferences saved successfully!',
+    'Failed to save allergen preferences.',
   ];
 
   const { translatedTexts } = useTranslatedTexts(textLabels);
@@ -90,6 +107,14 @@ const MyProfile = () => {
     sides: translatedTexts[14] || 'Sides',
     drink: translatedTexts[15] || 'Drink',
     backToHome: translatedTexts[16] || 'Back to Home',
+    allergenPreferences: translatedTexts[17] || 'My Allergen Preferences',
+    allergenDescription: translatedTexts[18] || 'Items containing these allergens will be highlighted when ordering',
+    editAllergens: translatedTexts[19] || 'Edit Allergens',
+    savePreferences: translatedTexts[20] || 'Save Preferences',
+    cancel: translatedTexts[21] || 'Cancel',
+    noAllergenPreferences: translatedTexts[22] || 'No allergen preferences set',
+    allergensSaved: translatedTexts[23] || 'Allergen preferences saved successfully!',
+    allergensSaveFailed: translatedTexts[24] || 'Failed to save allergen preferences.',
   };
 
   const { setOrder } = useContext(OrderContext)!;
@@ -130,6 +155,16 @@ const MyProfile = () => {
         const customerData = await customerRes.json();
         setCustomerPoints(customerData.customer.rewards_points);
         setCashDiscountValue(customerData.customer.rewards_points / POINTS_PER_DOLLAR);
+        
+        // Load allergen preferences
+        if (customerData.customer.allergen_preferences) {
+          try {
+            const prefs = JSON.parse(customerData.customer.allergen_preferences);
+            setAllergenPreferences(Array.isArray(prefs) ? prefs : []);
+          } catch {
+            setAllergenPreferences([]);
+          }
+        }
 
         // Fetch past orders
         const ordersRes = await fetch(`${backendUrl}/api/orders/customer/${customerId}`, {
@@ -194,6 +229,53 @@ const MyProfile = () => {
     setOrder(newOrderItems);
     router.push('/shopping-cart');
   };
+
+  const toggleAllergen = (allergen: string) => {
+    setAllergenPreferences(prev => {
+      if (prev.includes(allergen)) {
+        return prev.filter(a => a !== allergen);
+      } else {
+        return [...prev, allergen];
+      }
+    });
+  };
+
+  const handleSaveAllergens = async () => {
+    setSavingAllergens(true);
+    const customerToken = localStorage.getItem('customerToken');
+    
+    if (!customerToken) {
+      alert('Please log in to save allergen preferences');
+      setSavingAllergens(false);
+      return;
+    }
+
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const response = await fetch(`${backendUrl}/api/customer/auth/allergen-preferences`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${customerToken}`,
+        },
+        body: JSON.stringify({
+          allergen_preferences: allergenPreferences,
+        }),
+      });
+
+      if (response.ok) {
+        alert(t.allergensSaved);
+        setEditingAllergens(false);
+      } else {
+        alert(t.allergensSaveFailed);
+      }
+    } catch (error) {
+      console.error('Error saving allergen preferences:', error);
+      alert(t.allergensSaveFailed);
+    } finally {
+      setSavingAllergens(false);
+    }
+  };
   
     if (loading) {
     return (
@@ -226,6 +308,93 @@ const MyProfile = () => {
         <p className="text-lg text-gray-700">
           ({t.cashDiscountValue}: ${cashDiscountValue !== null ? cashDiscountValue.toFixed(2) : 'N/A'})
         </p>
+      </section>
+
+      {/* Allergen Preferences Section */}
+      <section className="bg-white shadow-md rounded-lg p-4 sm:p-6 mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">{t.allergenPreferences}</h2>
+          {!editingAllergens && (
+            <button
+              onClick={() => setEditingAllergens(true)}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              {t.editAllergens}
+            </button>
+          )}
+        </div>
+
+        {!editingAllergens ? (
+          <div>
+            <p className="text-sm text-gray-600 mb-3">{t.allergenDescription}</p>
+            {allergenPreferences.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {allergenPreferences.map((allergen) => (
+                  <span
+                    key={allergen}
+                    className="bg-red-100 text-red-800 px-3 py-2 rounded-full border border-red-300 font-semibold"
+                  >
+                    {allergen}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 italic">{t.noAllergenPreferences}</p>
+            )}
+          </div>
+        ) : (
+          <div>
+            <p className="text-sm text-gray-600 mb-3">{t.allergenDescription}</p>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {commonAllergens.map((allergen) => (
+                <button
+                  key={allergen}
+                  onClick={() => toggleAllergen(allergen)}
+                  className={`px-3 py-2 rounded-full font-semibold transition-colors ${
+                    allergenPreferences.includes(allergen)
+                      ? 'bg-red-500 text-white border-2 border-red-600'
+                      : 'bg-gray-100 text-gray-700 border-2 border-gray-300 hover:border-red-300'
+                  }`}
+                >
+                  {allergen}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleSaveAllergens}
+                disabled={savingAllergens}
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded disabled:opacity-50"
+              >
+                {savingAllergens ? 'Saving...' : t.savePreferences}
+              </button>
+              <button
+                onClick={() => {
+                  setEditingAllergens(false);
+                  // Reload preferences from server to discard changes
+                  const fetchProfileData = async () => {
+                    const customerToken = localStorage.getItem('customerToken');
+                    if (customerToken) {
+                      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+                      const customerRes = await fetch(`${backendUrl}/api/customer/auth/me`, {
+                        headers: { 'Authorization': `Bearer ${customerToken}` },
+                      });
+                      const customerData = await customerRes.json();
+                      if (customerData.customer.allergen_preferences) {
+                        const prefs = JSON.parse(customerData.customer.allergen_preferences);
+                        setAllergenPreferences(Array.isArray(prefs) ? prefs : []);
+                      }
+                    }
+                  };
+                  fetchProfileData();
+                }}
+                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded"
+              >
+                {t.cancel}
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {pastOrders.length > 0 && (

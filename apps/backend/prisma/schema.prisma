@@ -8,19 +8,20 @@ datasource db {
 }
 
 model Order {
-  order_id      Int             @id @default(autoincrement())
-  staff_id      Int?
-  datetime      DateTime?       @db.Timestamp(6)
-  price         Float?
-  order_status  String?         @db.VarChar(50)
-  customer_name String?         @db.VarChar(255)
-  completed_at  DateTime?       @db.Timestamp(6)
-  customerId    String? // Link to Customer.id
-  customer      Customer?       @relation(fields: [customerId], references: [id])
-  staff         staff?          @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
-  meal          meal[]
-  payment       payment[]
-  discounts     OrderDiscount[]
+  order_id          Int             @id @default(autoincrement())
+  staff_id          Int?
+  datetime          DateTime?       @db.Timestamp(6)
+  price             Float?
+  order_status      String?         @db.VarChar(50)
+  customer_name     String?         @db.VarChar(255)
+  completed_at      DateTime?       @db.Timestamp(6)
+  estimated_prep_time Int?          // Estimated prep time in minutes
+  customerId        String?         // Link to Customer.id
+  customer          Customer?       @relation(fields: [customerId], references: [id])
+  staff             staff?          @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
+  meal              meal[]
+  payment           payment[]
+  discounts         OrderDiscount[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -84,6 +85,8 @@ model menu_items {
   item_type               String?       @db.VarChar(50)
   availability_start_time String?       @db.VarChar(10)
   availability_end_time   String?       @db.VarChar(10)
+  allergens               String?       @db.Text // JSON array of allergens
+  allergen_info           String?       @db.Text // Additional allergen details
   inventory               inventory[]
   meal_detail             meal_detail[]
 }
@@ -116,17 +119,34 @@ model staff {
 }
 
 model Customer {
-  id             String   @id @default(uuid())
-  email          String?  @unique
-  phone_number   String?  @unique
-  password_hash  String
-  rewards_points Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  orders         Order[]
+  id                   String          @id @default(uuid())
+  email                String?         @unique
+  phone_number         String?         @unique
+  password_hash        String
+  rewards_points       Int             @default(0)
+  allergen_preferences String?         @db.Text // JSON array of allergens to avoid
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  orders               Order[]
+  feedback             OrderFeedback[]
 
   @@index([email])
   @@index([phone_number])
+}
+
+model OrderFeedback {
+  id         Int      @id @default(autoincrement())
+  order_id   Int      @unique
+  customer_id String
+  customer   Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  rating     Int      // Rating from 1-5
+  comment    String?  @db.Text
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([customer_id])
+  @@index([order_id])
+  @@index([rating])
+  @@index([created_at])
 }
 
 model User {

@@ -66,7 +66,7 @@ function filterByTimeAvailability(items: MenuItem[]): MenuItem[] {
 export const getMenuItems = async (req: Request, res: Response): Promise<void> => {
   try {
     let query =
-      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time FROM menu_items';
+      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info FROM menu_items';
     const queryParams: (string | boolean)[] = [];
 
     if (req.query.is_available === 'true') {
@@ -98,7 +98,7 @@ export const getMenuItems = async (req: Request, res: Response): Promise<void> =
 export const getAvailableMenuItems = async (_req: Request, res: Response): Promise<void> => {
   try {
     const result = await pool.query<MenuItem>(
-      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time FROM menu_items WHERE is_available = true ORDER BY menu_item_id'
+      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info FROM menu_items WHERE is_available = true ORDER BY menu_item_id'
     );
     // Filter by time-based availability
     const filteredItems = filterByTimeAvailability(result.rows);
@@ -117,7 +117,7 @@ export const getMenuItemsByType = async (req: Request, res: Response): Promise<v
   try {
     const { type } = req.params;
     const result = await pool.query<MenuItem>(
-      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time FROM menu_items WHERE item_type = $1 ORDER BY menu_item_id',
+      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info FROM menu_items WHERE item_type = $1 ORDER BY menu_item_id',
       [type]
     );
     res.status(200).json(result.rows);
@@ -135,7 +135,7 @@ export const getMenuItemById = async (req: Request, res: Response): Promise<void
   try {
     const { id } = req.params;
     const result = await pool.query<MenuItem>(
-      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time FROM menu_items WHERE menu_item_id = $1',
+      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info FROM menu_items WHERE menu_item_id = $1',
       [id]
     );
 
@@ -166,6 +166,8 @@ export const getMenuItemsWithInventory = async (_req: Request, res: Response): P
         m.item_type,
         m.availability_start_time,
         m.availability_end_time,
+        m.allergens,
+        m.allergen_info,
         i.stock,
         i.reorder
       FROM menu_items m
@@ -313,7 +315,7 @@ export const updateMenuItem = async (req: Request, res: Response): Promise<void>
 
     // Get old values for audit log
     const oldItemResult = await pool.query<MenuItem>(
-      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time FROM menu_items WHERE menu_item_id = $1',
+      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info FROM menu_items WHERE menu_item_id = $1',
       [id]
     );
 
@@ -417,7 +419,7 @@ export const deactivateMenuItem = async (req: Request, res: Response): Promise<v
 
     // Get old values for audit log
     const oldItemResult = await pool.query<MenuItem>(
-      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time FROM menu_items WHERE menu_item_id = $1',
+      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info FROM menu_items WHERE menu_item_id = $1',
       [id]
     );
 
