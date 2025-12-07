@@ -30,6 +30,7 @@ const ALaCartePage = () => {
   const [mealTypes, setMealTypes] = useState<MealType[]>([]);
   const [translatedMenuItems, setTranslatedMenuItems] = useState<Record<number, string>>({});
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const context = useContext(OrderContext);
   const { translateBatch, currentLanguage } = useTranslation();
 
@@ -39,12 +40,15 @@ const ALaCartePage = () => {
     'Back to Meal Type Selection',
     'Entrees',
     'Sides',
+    'Drinks',
+    'All Items',
     'Small',
     'Medium',
     'Large',
     'Add',
     'Loading...',
     'Search menu items',
+    'Filter by category',
   ];
 
   const { translatedTexts } = useTranslatedTexts(textLabels);
@@ -55,12 +59,15 @@ const ALaCartePage = () => {
     backToSelection: translatedTexts[2] || 'Back to Meal Type Selection',
     entrees: translatedTexts[3] || 'Entrees',
     sides: translatedTexts[4] || 'Sides',
-    small: translatedTexts[5] || 'Small',
-    medium: translatedTexts[6] || 'Medium',
-    large: translatedTexts[7] || 'Large',
-    add: translatedTexts[8] || 'Add',
-    loading: translatedTexts[9] || 'Loading...',
-    searchMenuItems: translatedTexts[10] || 'Search menu items',
+    drinks: translatedTexts[5] || 'Drinks',
+    allItems: translatedTexts[6] || 'All Items',
+    small: translatedTexts[7] || 'Small',
+    medium: translatedTexts[8] || 'Medium',
+    large: translatedTexts[9] || 'Large',
+    add: translatedTexts[10] || 'Add',
+    loading: translatedTexts[11] || 'Loading...',
+    searchMenuItems: translatedTexts[12] || 'Search menu items',
+    filterByCategory: translatedTexts[13] || 'Filter by category',
   };
 
   useEffect(() => {
@@ -124,6 +131,30 @@ const ALaCartePage = () => {
 
   const entrees = menuItems.filter((item) => item.item_type === 'entree');
   const sides = menuItems.filter((item) => item.item_type === 'side');
+  const drinks = menuItems.filter((item) => item.item_type === 'drink');
+
+  const getFilteredItems = () => {
+    let items: MenuItem[] = [];
+    if (selectedCategory === 'entree') {
+      items = entrees;
+    } else if (selectedCategory === 'side') {
+      items = sides;
+    } else if (selectedCategory === 'drink') {
+      items = drinks;
+    } else {
+      items = [...entrees, ...sides, ...drinks];
+    }
+
+    if (searchQuery.trim()) {
+      const searchLower = searchQuery.toLowerCase();
+      items = items.filter((item) => {
+        const itemName = (translatedMenuItems[item.menu_item_id] || item.name).toLowerCase();
+        return itemName.includes(searchLower);
+      });
+    }
+
+    return items;
+  };
 
   const entreeSizes = [
     { name: 'Small', meal_type_id: 4 },
@@ -197,100 +228,186 @@ const ALaCartePage = () => {
           {t.backToSelection}
         </Link>
       </div>
+      {/* Category Filter */}
+      <div className="mb-6">
+        <label htmlFor="category-filter" className="block text-sm font-semibold text-gray-700 mb-2">
+          {t.filterByCategory}:
+        </label>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              selectedCategory === null
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+            aria-label={t.allItems}
+            aria-pressed={selectedCategory === null}
+          >
+            {t.allItems}
+          </button>
+          <button
+            onClick={() => setSelectedCategory('entree')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
+              selectedCategory === 'entree'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+            aria-label={t.entrees}
+            aria-pressed={selectedCategory === 'entree'}
+          >
+            {t.entrees}
+          </button>
+          <button
+            onClick={() => setSelectedCategory('side')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
+              selectedCategory === 'side'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+            aria-label={t.sides}
+            aria-pressed={selectedCategory === 'side'}
+          >
+            {t.sides}
+          </button>
+          <button
+            onClick={() => setSelectedCategory('drink')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
+              selectedCategory === 'drink'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+            aria-label={t.drinks}
+            aria-pressed={selectedCategory === 'drink'}
+          >
+            {t.drinks}
+          </button>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="mb-6">
+        <VoiceSearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder={t.searchMenuItems}
+          label={t.searchMenuItems}
+          id="menu-search"
+        />
+      </div>
+
+      {/* Items Display */}
       <div className="grid grid-cols-1 gap-8">
         <div className="col-span-1">
-          <section className="mb-10">
-            <h2 className="text-3xl font-semibold mb-4">{t.entrees}</h2>
-            <div className="mb-4">
-              <VoiceSearchInput
-                value={searchQuery}
-                onChange={setSearchQuery}
-                placeholder={t.searchMenuItems}
-                label={t.searchMenuItems}
-                id="entree-search"
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {entrees
-                .filter((item) => {
-                  if (!searchQuery.trim()) return true;
-                  const searchLower = searchQuery.toLowerCase();
-                  const itemName = (translatedMenuItems[item.menu_item_id] || item.name).toLowerCase();
-                  return itemName.includes(searchLower);
-                })
-                .map((item, index) => (
-                  <div key={item.menu_item_id} className={`bg-white rounded-lg shadow-md p-4 sm:p-6 hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)}`}>
-                    <h3 className="text-xl font-bold mb-2">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
-                    <div className="flex space-x-2 mt-4">
-                      <button
-                        onClick={() => handleAddItem(item, 4)}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
-                      >
-                        {t.add} {t.small}
-                      </button>
-                      <button
-                        onClick={() => handleAddItem(item, 5)}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
-                      >
-                        {t.add} {t.medium}
-                      </button>
-                      <button
-                        onClick={() => handleAddItem(item, 6)}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
-                      >
-                        {t.add} {t.large}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </section>
-
           <section>
-            <h2 className="text-3xl font-semibold mb-4">{t.sides}</h2>
-            <div className="mb-4">
-              <VoiceSearchInput
-                value={searchQuery}
-                onChange={setSearchQuery}
-                placeholder={t.searchMenuItems}
-                label={t.searchMenuItems}
-                id="side-search"
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {sides
-                .filter((item) => {
-                  if (!searchQuery.trim()) return true;
-                  const searchLower = searchQuery.toLowerCase();
-                  const itemName = (translatedMenuItems[item.menu_item_id] || item.name).toLowerCase();
-                  return itemName.includes(searchLower);
-                })
-                .map((item, index) => (
-                  <div key={item.menu_item_id} className={`bg-white rounded-lg shadow-md p-4 sm:p-6 hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)}`}>
-                    <h3 className="text-xl font-bold mb-2">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
-                    <div className="flex space-x-2 mt-4">
-                      <button
-                        onClick={() => handleAddItem(item, 7)}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
-                      >
-                        {t.add} {t.small}
-                      </button>
-                      <button
-                        onClick={() => handleAddItem(item, 8)}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
-                      >
-                        {t.add} {t.medium}
-                      </button>
-                      <button
-                        onClick={() => handleAddItem(item, 9)}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
-                      >
-                        {t.add} {t.large}
-                      </button>
+            <h2 className="text-3xl font-semibold mb-4">
+              {selectedCategory === 'entree' 
+                ? t.entrees 
+                : selectedCategory === 'side' 
+                ? t.sides 
+                : selectedCategory === 'drink' 
+                ? t.drinks 
+                : t.allItems}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {getFilteredItems().map((item, index) => {
+                const isEntree = item.item_type === 'entree';
+                const isSide = item.item_type === 'side';
+                const isDrink = item.item_type === 'drink';
+                
+                return (
+                  <div
+                    key={item.menu_item_id}
+                    className={`bg-white rounded-lg shadow-md p-4 sm:p-6 hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)}`}
+                  >
+                    <h3 className="text-xl font-bold mb-2">
+                      {translatedMenuItems[item.menu_item_id] || item.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4 capitalize">{item.item_type}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {isEntree && (
+                        <>
+                          <button
+                            onClick={() => handleAddItem(item, 4)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            aria-label={`${t.add} ${item.name} ${t.small}`}
+                          >
+                            {t.add} {t.small}
+                          </button>
+                          <button
+                            onClick={() => handleAddItem(item, 5)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            aria-label={`${t.add} ${item.name} ${t.medium}`}
+                          >
+                            {t.add} {t.medium}
+                          </button>
+                          <button
+                            onClick={() => handleAddItem(item, 6)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            aria-label={`${t.add} ${item.name} ${t.large}`}
+                          >
+                            {t.add} {t.large}
+                          </button>
+                        </>
+                      )}
+                      {isSide && (
+                        <>
+                          <button
+                            onClick={() => handleAddItem(item, 7)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            aria-label={`${t.add} ${item.name} ${t.small}`}
+                          >
+                            {t.add} {t.small}
+                          </button>
+                          <button
+                            onClick={() => handleAddItem(item, 8)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            aria-label={`${t.add} ${item.name} ${t.medium}`}
+                          >
+                            {t.add} {t.medium}
+                          </button>
+                          <button
+                            onClick={() => handleAddItem(item, 9)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            aria-label={`${t.add} ${item.name} ${t.large}`}
+                          >
+                            {t.add} {t.large}
+                          </button>
+                        </>
+                      )}
+                      {isDrink && (
+                        <>
+                          <button
+                            onClick={() => handleAddItem(item, 13)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            aria-label={`${t.add} ${item.name} ${t.small}`}
+                          >
+                            {t.add} {t.small}
+                          </button>
+                          <button
+                            onClick={() => handleAddItem(item, 14)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            aria-label={`${t.add} ${item.name} ${t.medium}`}
+                          >
+                            {t.add} {t.medium}
+                          </button>
+                          <button
+                            onClick={() => handleAddItem(item, 15)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            aria-label={`${t.add} ${item.name} ${t.large}`}
+                          >
+                            {t.add} {t.large}
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
-                ))}
+                );
+              })}
             </div>
+            {getFilteredItems().length === 0 && (
+              <p className="text-center text-gray-500 py-8">No items found matching your filters.</p>
+            )}
           </section>
         </div>
       </div>

@@ -24,6 +24,7 @@ import {
   getOrdersByDate,
   getRevenueSummary,
   exportRevenueReportCSV,
+  getCashierDailySales,
 } from '../controllers/revenueController';
 import {
   getAverageCompletionTime,
@@ -133,6 +134,9 @@ router.get('/revenue/daily', isAuthenticated, isManager, getDailyRevenueReport);
 router.get('/revenue/summary', isAuthenticated, isManager, getRevenueSummary);
 router.get('/revenue/orders/:date', isAuthenticated, isManager, getOrdersByDate);
 router.get('/revenue/export/csv', isAuthenticated, isManager, exportRevenueReportCSV);
+
+// Cashier Daily Sales Summary (cashier or manager)
+router.get('/sales/daily', isAuthenticated, getCashierDailySales);
 
 // Order Analytics routes (manager only)
 router.get('/analytics/completion-time', isAuthenticated, isManager, getAverageCompletionTime);

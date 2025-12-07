@@ -166,36 +166,36 @@ const PromotionsPage = () => {
       <h1 className="text-3xl font-bold mb-6 text-center">{t.title}</h1>
 
       {/* Weather Section */}
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <h2 className="text-2xl font-semibold mb-4">{t.currentWeather}</h2>
+      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-6">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-4">{t.currentWeather}</h2>
         {weatherLoading ? (
           <p className="text-gray-600">{t.loadingWeather}</p>
         ) : weather ? (
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-4">
               {weather.icon && (
                 <img
                   src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
                   alt={weather.description}
-                  className="w-20 h-20"
+                  className="w-16 h-16 sm:w-20 sm:h-20"
                 />
               )}
               <div>
-                <p className="text-3xl font-bold">{Math.round(weather.temperature)}°C</p>
+                <p className="text-2xl sm:text-3xl font-bold">{Math.round(weather.temperature)}°C</p>
                 <p className="text-gray-600 capitalize">{weather.description}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-500">
                   {weather.city}, {weather.country}
                 </p>
               </div>
             </div>
-            <div className="border-l pl-6">
-              <p className="text-sm text-gray-600">
+            <div className="border-l-0 sm:border-l pl-0 sm:pl-6 pt-4 sm:pt-0 border-t sm:border-t-0 w-full sm:w-auto">
+              <p className="text-xs sm:text-sm text-gray-600">
                 <span className="font-semibold">Feels like:</span> {Math.round(weather.feelsLike)}°C
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-xs sm:text-sm text-gray-600">
                 <span className="font-semibold">Humidity:</span> {weather.humidity}%
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-xs sm:text-sm text-gray-600">
                 <span className="font-semibold">Wind:</span> {weather.windSpeed} m/s
               </p>
             </div>
@@ -252,7 +252,8 @@ const PromotionsPage = () => {
                 </div>
                 <Link
                   href="/shopping-cart"
-                  className="mt-4 inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center w-full"
+                  className="mt-4 inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  aria-label={`${t.useCode} ${discount.name} - ${discount.code}`}
                 >
                   {t.useCode}
                 </Link>
@@ -268,7 +269,8 @@ const PromotionsPage = () => {
       <div className="mt-6 text-center">
         <Link
           href="/meal-type-selection"
-          className="inline-block bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg"
+          className="inline-block bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          aria-label="Back to menu selection"
         >
           Back to Menu
         </Link>
