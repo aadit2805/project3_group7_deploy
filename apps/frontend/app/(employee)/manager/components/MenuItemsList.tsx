@@ -142,7 +142,7 @@ export default function MenuItemsList({ filter }: MenuItemsListProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState<Partial<MenuItem>>({});
+  const [editForm, setEditForm] = useState<Omit<Partial<MenuItem>, 'allergens'> & { allergens?: string[] }>({});
   const { addToast } = useToast();
 
   useEffect(() => {
