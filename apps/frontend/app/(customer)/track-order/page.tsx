@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslatedTexts } from '@/app/hooks/useTranslation';
@@ -17,7 +17,7 @@ interface OrderStatus {
   remaining_minutes: number;
 }
 
-const TrackOrderPage = () => {
+const TrackOrderContent = () => { // Renamed for clarity
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addToast } = useToast();
@@ -146,7 +146,7 @@ const TrackOrderPage = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [orderId, orderStatus?.order_status, addToast, t.orderNotFound, t.error]);
+  }, [orderId, orderStatus, addToast, t.orderNotFound, t.error]); // Added orderStatus to dependencies
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -351,6 +351,19 @@ const TrackOrderPage = () => {
     </div>
   );
 };
+
+const Loading = () => (
+  <div className="container mx-auto px-4 py-8 text-center">
+    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+    <p className="text-xl text-gray-600">Loading order status...</p>
+  </div>
+);
+
+const TrackOrderPage = () => (
+  <Suspense fallback={<Loading />}>
+    <TrackOrderContent />
+  </Suspense>
+);
 
 export default TrackOrderPage;
 
