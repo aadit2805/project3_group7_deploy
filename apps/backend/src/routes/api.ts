@@ -193,33 +193,10 @@ router.use('/weather', weatherRoutes);
 // Test external APIs
 router.get('/test-apis', async (_req: Request, res: Response) => {
   const results = {
-    translation: { status: 'not tested', error: null as string | null },
     weather: { status: 'not tested', error: null as string | null },
   };
 
-  // Test translation
-  try {
-    await axios.post(
-      'https://translation.googleapis.com/language/translate/v2',
-      {},
-      {
-        params: {
-          q: 'Hello',
-          target: 'es',
-          key: process.env.GOOGLE_TRANSLATE_API_KEY,
-        },
-      }
-    );
-    results.translation.status = 'connected ✅';
-  } catch (error: unknown) {
-    const err = error as {
-      response?: { data?: { error?: { message?: string } } };
-      message?: string;
-    };
-    results.translation.status = 'failed ❌';
-    results.translation.error =
-      err.response?.data?.error?.message || err.message || 'Unknown error';
-  }
+
 
   // Test weather
   try {
