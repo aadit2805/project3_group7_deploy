@@ -154,7 +154,7 @@ const LoyaltyAnalyticsPage = () => {
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-xl font-bold mb-4">Total Revenue Comparison</h2>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={revenueChartData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                  <BarChart data={revenueChartData} margin={{ top: 5, right: 20, left: 60, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis tickFormatter={(value) => currencyFormatter.format(value)} />
@@ -167,7 +167,7 @@ const LoyaltyAnalyticsPage = () => {
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-xl font-bold mb-4">Avg. Order Value Comparison</h2>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={aovChartData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                  <BarChart data={aovChartData} margin={{ top: 5, right: 20, left: 60, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis tickFormatter={(value) => currencyFormatter.format(value)} />
