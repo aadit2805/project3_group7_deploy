@@ -2,6 +2,136 @@
 
 import { useState } from 'react';
 
+// Common allergens list
+const COMMON_ALLERGENS = [
+  'Peanuts',
+  'Tree Nuts',
+  'Milk',
+  'Dairy',
+  'Eggs',
+  'Fish',
+  'Shellfish',
+  'Soy',
+  'Wheat',
+  'Sesame',
+  'Gluten',
+];
+
+// Allergen Editor Component
+function AllergenEditor({
+  allergens,
+  allergenInfo,
+  onChange,
+}: {
+  allergens: string[];
+  allergenInfo: string;
+  onChange: (allergens: string[], allergenInfo: string) => void;
+}) {
+  const [customAllergen, setCustomAllergen] = useState('');
+
+  const handleToggleAllergen = (allergen: string) => {
+    const newAllergens = allergens.includes(allergen)
+      ? allergens.filter((a) => a !== allergen)
+      : [...allergens, allergen];
+    
+    // Auto-generate allergen_info
+    const newInfo = newAllergens.length > 0 
+      ? `Contains: ${newAllergens.join(', ')}` 
+      : '';
+    
+    onChange(newAllergens, newInfo);
+  };
+
+  const handleAddCustomAllergen = () => {
+    if (customAllergen.trim() && !allergens.includes(customAllergen.trim())) {
+      const newAllergens = [...allergens, customAllergen.trim()];
+      const newInfo = newAllergens.length > 0 
+        ? `Contains: ${newAllergens.join(', ')}` 
+        : '';
+      onChange(newAllergens, newInfo);
+      setCustomAllergen('');
+    }
+  };
+
+  const handleInfoChange = (info: string) => {
+    onChange(allergens, info);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Select Allergens:
+        </label>
+        <div className="flex flex-wrap gap-3">
+          {COMMON_ALLERGENS.map((allergen) => (
+            <label
+              key={allergen}
+              className="flex items-center space-x-2 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={allergens.includes(allergen)}
+                onChange={() => handleToggleAllergen(allergen)}
+                className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">{allergen}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Add Custom Allergen:
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={customAllergen}
+            onChange={(e) => setCustomAllergen(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddCustomAllergen();
+              }
+            }}
+            placeholder="Enter custom allergen name"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <button
+            type="button"
+            onClick={handleAddCustomAllergen}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+      {allergens.length > 0 && (
+        <div className="p-3 bg-blue-50 rounded-lg">
+          <div className="text-sm font-semibold text-gray-700 mb-1">Selected Allergens:</div>
+          <div className="text-sm text-gray-600">{allergens.join(', ')}</div>
+        </div>
+      )}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Allergen Information (optional):
+        </label>
+        <textarea
+          value={allergenInfo}
+          onChange={(e) => handleInfoChange(e.target.value)}
+          placeholder="Additional allergen information or notes..."
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          rows={3}
+        />
+        <p className="mt-1 text-sm text-gray-500">
+          This field is auto-generated from selected allergens, but you can customize it.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 interface MenuItem {
   menu_item_id: number;
   name: string;
@@ -10,6 +140,8 @@ interface MenuItem {
   item_type: string;
   availability_start_time?: string | null;
   availability_end_time?: string | null;
+  allergens?: string | null;
+  allergen_info?: string | null;
 }
 
 interface AddMenuItemFormProps {
@@ -28,6 +160,8 @@ export default function AddMenuItemForm({ onSuccess }: AddMenuItemFormProps) {
     storage: 'pantry',
     availability_start_time: '',
     availability_end_time: '',
+    allergens: [] as string[],
+    allergen_info: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +197,19 @@ export default function AddMenuItemForm({ onSuccess }: AddMenuItemFormProps) {
       if (formData.availability_end_time.trim()) {
         payload.availability_end_time = formData.availability_end_time;
       }
+      
+      // Include allergens if provided
+      if (formData.allergens.length > 0) {
+        payload.allergens = formData.allergens;
+        // Auto-generate allergen_info if not provided
+        if (!formData.allergen_info.trim()) {
+          payload.allergen_info = `Contains: ${formData.allergens.join(', ')}`;
+        } else {
+          payload.allergen_info = formData.allergen_info;
+        }
+      } else if (formData.allergen_info.trim()) {
+        payload.allergen_info = formData.allergen_info;
+      }
 
       const response = await fetch(`${backendUrl}/api/menu-items`, {
         method: 'POST',
@@ -92,6 +239,8 @@ export default function AddMenuItemForm({ onSuccess }: AddMenuItemFormProps) {
         storage: 'pantry',
         availability_start_time: '',
         availability_end_time: '',
+        allergens: [],
+        allergen_info: '',
       });
 
       // Call onSuccess callback after a short delay
@@ -302,6 +451,17 @@ export default function AddMenuItemForm({ onSuccess }: AddMenuItemFormProps) {
           </p>
         </div>
 
+        <div className="border-t pt-4">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Allergen Information</h3>
+          <AllergenEditor
+            allergens={formData.allergens}
+            allergenInfo={formData.allergen_info}
+            onChange={(allergens, allergenInfo) => {
+              setFormData({ ...formData, allergens, allergen_info: allergenInfo });
+            }}
+          />
+        </div>
+
         <div className="flex gap-4">
           <button
             type="submit"
@@ -324,6 +484,8 @@ export default function AddMenuItemForm({ onSuccess }: AddMenuItemFormProps) {
                 storage: 'pantry',
                 availability_start_time: '',
                 availability_end_time: '',
+                allergens: [],
+                allergen_info: '',
               });
               setError(null);
             }}
