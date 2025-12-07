@@ -37,8 +37,8 @@ export const customerAuthController = {
         }
 
         try {
-            const customer = await customerAuthService.getCustomerById(customerId);
-            return res.status(200).json({ success: true, customer });
+            const customerData = await customerAuthService.getCustomerById(customerId);
+            return res.status(200).json({ success: true, ...customerData });
         } catch (error: any) {
             return res.status(404).json({ message: error.message });
         }
