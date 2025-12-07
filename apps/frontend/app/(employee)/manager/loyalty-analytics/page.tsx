@@ -1,114 +1,202 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useEmployee } from '../../../context/EmployeeContext';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import apiClient from '../../../utils/apiClient';
+import ClientOnly from '../../../components/ClientOnly';
 
-interface LoyaltyAnalytics {
-  totalMembers: number;
-  totalPoints: number;
-  topMembers: { id: string; email: string; rewardPoints: number }[];
+// Define the types for the analytics data
+interface TopMember {
+  id: string;
+  email: string;
+  rewards_points: number;
+  createdAt: string;
 }
 
-const LoyaltyAnalyticsPage: React.FC = () => {
-  const { user } = useEmployee(); // Removed 'loading'
-  const router = useRouter();
-  const [analyticsData, setAnalyticsData] = useState<LoyaltyAnalytics | null>(null);
+interface SpendingStats {
+  totalRevenue: number;
+  orderCount: number;
+  averageOrderValue: number;
+}
+
+interface LoyaltyAnalyticsData {
+  totalMembers: number;
+  totalPoints: number;
+  topMembers: TopMember[];
+  newMembersLast30Days: number;
+  spendingComparison: {
+    loyalty: SpendingStats;
+    nonLoyalty: SpendingStats;
+  };
+}
+
+// A simple card component to display a stat
+const StatCard = ({ title, value }: { title: string; value: string | number }) => (
+  <div className="bg-white p-6 rounded-lg shadow-md">
+    <h3 className="text-gray-500 text-sm font-medium">{title}</h3>
+    <p className="text-3xl font-bold mt-2">{value}</p>
+  </div>
+);
+
+// Formatter for currency
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+});
+
+const LoyaltyAnalyticsPage = () => {
+  const [data, setData] = useState<LoyaltyAnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState<boolean>(true); // New loading state for analytics data
 
   useEffect(() => {
-    // Redirect if not authenticated or not a manager
-    // The previous 'loading' check is removed as useEmployee doesn't provide it
-    if (!user || user.role !== 'manager') {
-      router.push('/login'); // Redirect to login page
-    }
-  }, [user, router]); // Depend only on user and router
-
-  useEffect(() => {
-    const getAnalytics = async () => {
-      setIsLoadingAnalytics(true); // Start loading
+    const fetchData = async () => {
       try {
-        const response = await apiClient('/api/loyalty-analytics');
+        setLoading(true);
+        // apiClient is a fetch wrapper, not an axios-like object.
+        const response = await apiClient('/api/analytics/loyalty');
+        
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
-        setAnalyticsData(data);
-      } catch (err) {
-        setError('Failed to fetch loyalty analytics.');
-        console.error('Error fetching loyalty analytics:', err);
+
+        const result = await response.json();
+
+        if (result.success) {
+          setData(result.data);
+        } else {
+          setError(result.error || 'Failed to fetch analytics data.');
+        }
+      } catch (err: any) {
+        setError(err.message || 'An unexpected error occurred.');
       } finally {
-        setIsLoadingAnalytics(false); // End loading
+        setLoading(false);
       }
     };
 
-    if (user && user.role === 'manager') {
-      getAnalytics();
-    } else {
-      // If user is not manager or not available, stop loading analytics
-      setIsLoadingAnalytics(false);
-    }
-  }, [user]);
+    fetchData();
+  }, []);
 
-  // Removed if (loading) { return <p>Loading authentication...</p>; }
-
-  if (!user || user.role !== 'manager') {
-    return <p>Access Denied</p>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <p>Loading analytics...</p>
+      </div>
+    );
   }
 
   if (error) {
-    return <p className="text-red-500">{error}</p>;
+    return (
+      <div className="flex justify-center items-center h-full text-red-500">
+        <p>Error: {error}</p>
+      </div>
+    );
   }
 
-  if (isLoadingAnalytics || !analyticsData) { // Use new loading state
-    return <p>Loading loyalty analytics...</p>;
+  if (!data) {
+    return <p>No data available.</p>;
   }
+
+  const spendingChartData = [
+    {
+      name: 'Total Revenue',
+      Loyalty: data.spendingComparison.loyalty.totalRevenue,
+      'Non-Loyalty': data.spendingComparison.nonLoyalty.totalRevenue,
+    },
+    {
+      name: 'Avg. Order Value',
+      Loyalty: data.spendingComparison.loyalty.averageOrderValue,
+      'Non-Loyalty': data.spendingComparison.nonLoyalty.averageOrderValue,
+    },
+  ];
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Loyalty Analytics Dashboard</h1>
+    <ClientOnly>
+      {() => (
+        <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
+          <h1 className="text-3xl font-bold mb-6">Loyalty Program Analytics</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold text-gray-700">Total Loyalty Members</h2>
-          <p className="text-3xl font-bold text-indigo-600">{analyticsData.totalMembers}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold text-gray-700">Total Reward Points in Circulation</h2>
-          <p className="text-3xl font-bold text-green-600">{analyticsData.totalPoints}</p>
-        </div>
-      </div>
+          {/* Stat Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <StatCard title="Total Loyalty Members" value={data.totalMembers} />
+            <StatCard title="New Members (Last 30d)" value={data.newMembersLast30Days} />
+            <StatCard
+              title="Total Points in Circulation"
+              value={data.totalPoints.toLocaleString()}
+            />
+            <StatCard
+              title="Avg. Loyalty Order Value"
+              value={currencyFormatter.format(data.spendingComparison.loyalty.averageOrderValue)}
+            />
+          </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4 incomprehensibletext-gray-800">Top Loyalty Members</h2>
-        {analyticsData.topMembers.length > 0 ? (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Reward Points
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {analyticsData.topMembers.map((member) => (
-                <tr key={member.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{member.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.rewardPoints}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p className="text-gray-600">No top loyalty members to display yet.</p>
-        )}
-      </div>
-    </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Spending Comparison Chart */}
+            <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+              <h2 className="text-xl font-bold mb-4">Customer Spending Comparison</h2>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart
+                  data={spendingChartData}
+                  margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis
+                    tickFormatter={(value) =>
+                      typeof value === 'number' ? currencyFormatter.format(value) : value
+                    }
+                  />
+                  <Tooltip formatter={(value) => currencyFormatter.format(Number(value))} />
+                  <Legend />
+                  <Bar dataKey="Loyalty" fill="#8884d8" />
+                  <Bar dataKey="Non-Loyalty" fill="#82ca9d" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Top 10 Members List */}
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h2 className="text-xl font-bold mb-4">Top 10 Loyalty Members</h2>
+              <div className="overflow-y-auto">
+                <ul className="divide-y divide-gray-200">
+                  {data.topMembers.map((member, index) => (
+                    <li key={member.id} className="py-3">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-shrink-0">
+                          <span className="text-gray-500">{index + 1}.</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {member.email}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Joined: {new Date(member.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-bold text-indigo-600">
+                            {member.rewards_points.toLocaleString()} pts
+                          </span>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </ClientOnly>
   );
 };
 
