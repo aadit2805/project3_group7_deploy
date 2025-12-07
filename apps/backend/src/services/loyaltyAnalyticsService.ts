@@ -47,20 +47,16 @@ async function getTotalRewardPoints() {
  * @param limit The number of top members to retrieve.
  * @returns A list of the top loyalty members.
  */
-async function getTopLoyaltyMembers(limit: number = 10) {
-  const topMembers = await db.customer.findMany({
+async function getAllLoyaltyMembers() {
+  const allMembers = await db.customer.findMany({
     orderBy: {
       rewards_points: 'desc',
     },
-    take: limit,
-    select: {
-      id: true,
-      email: true,
-      rewards_points: true,
-      createdAt: true,
+    include: {
+      loyalty_tiers: true, // Include the full tier object
     },
   });
-  return topMembers;
+  return allMembers;
 }
 
 /**
@@ -121,11 +117,11 @@ async function getSpendingComparison() {
  * @returns An object containing all loyalty analytics data.
  */
 export async function getLoyaltyAnalytics() {
-  const [totalMembers, totalPoints, topMembers, newMembers, spendingComparison] =
+  const [totalMembers, totalPoints, allMembers, newMembers, spendingComparison] =
     await Promise.all([
       getTotalLoyaltyMembers(),
       getTotalRewardPoints(),
-      getTopLoyaltyMembers(),
+      getAllLoyaltyMembers(),
       getNewMembersLastXDays(),
       getSpendingComparison(),
     ]);
@@ -133,7 +129,7 @@ export async function getLoyaltyAnalytics() {
   return {
     totalMembers,
     totalPoints,
-    topMembers,
+    allMembers,
     newMembersLast30Days: newMembers,
     spendingComparison,
   };
