@@ -50,13 +50,15 @@ const MyProfile = () => {
   const [allergenPreferences, setAllergenPreferences] = useState<string[]>([]);
   const [editingAllergens, setEditingAllergens] = useState(false);
   const [savingAllergens, setSavingAllergens] = useState(false);
+  const [currentTierName, setCurrentTierName] = useState<string | null>(null);
 
   const POINTS_PER_DOLLAR = 25; // Define conversion rate
 
   // Common allergens list
   const commonAllergens = [
     'Peanuts', 'Tree Nuts', 'Dairy', 'Eggs', 'Soy', 
-    'Wheat', 'Shellfish', 'Fish', 'Sesame'
+    'Wheat', 'Shellfish', 'Fish', 'Sesame',
+    'Current Tier'
   ];
 
   const textLabels = [
@@ -85,6 +87,7 @@ const MyProfile = () => {
     'No allergen preferences set',
     'Allergen preferences saved successfully!',
     'Failed to save allergen preferences.',
+    'Current Tier',
   ];
 
   const { translatedTexts } = useTranslatedTexts(textLabels);
@@ -115,6 +118,7 @@ const MyProfile = () => {
     noAllergenPreferences: translatedTexts[22] || 'No allergen preferences set',
     allergensSaved: translatedTexts[23] || 'Allergen preferences saved successfully!',
     allergensSaveFailed: translatedTexts[24] || 'Failed to save allergen preferences.',
+    currentTier: translatedTexts[25] || 'Current Tier',
   };
 
   const { setOrder } = useContext(OrderContext)!;
@@ -155,6 +159,7 @@ const MyProfile = () => {
         const customerData = await customerRes.json();
         setCustomerPoints(customerData.customer.rewards_points);
         setCashDiscountValue(customerData.customer.rewards_points / POINTS_PER_DOLLAR);
+        setCurrentTierName(customerData.customer.loyalty_tiers?.name || null);
         
         // Load allergen preferences
         if (customerData.customer.allergen_preferences) {
@@ -308,6 +313,11 @@ const MyProfile = () => {
         <p className="text-lg text-gray-700">
           ({t.cashDiscountValue}: ${cashDiscountValue !== null ? cashDiscountValue.toFixed(2) : 'N/A'})
         </p>
+        {currentTierName && (
+            <p className="text-lg text-gray-700 mt-2">
+                {t.currentTier}: <span className="font-bold">{currentTierName}</span>
+            </p>
+        )}
       </section>
 
       {/* Allergen Preferences Section */}

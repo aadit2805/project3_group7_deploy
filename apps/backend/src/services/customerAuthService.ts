@@ -92,6 +92,12 @@ class CustomerAuthService {
         rewards_points: true,
         allergen_preferences: true,
         createdAt: true,
+        current_tier_id: true,
+        loyalty_tiers: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
     if (!customer) {
