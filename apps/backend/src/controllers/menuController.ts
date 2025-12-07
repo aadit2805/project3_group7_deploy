@@ -198,6 +198,8 @@ export const createMenuItem = async (req: Request, res: Response): Promise<void>
       storage,
       availability_start_time,
       availability_end_time,
+      allergens,
+      allergen_info,
     } = req.body;
 
     // Validation
@@ -241,11 +243,29 @@ export const createMenuItem = async (req: Request, res: Response): Promise<void>
       }
     }
 
+    // Process allergens - convert array to JSON string if provided
+    const allergensJson = allergens ? JSON.stringify(Array.isArray(allergens) ? allergens : [allergens]) : null;
+    
+    // Generate allergen_info if not provided but allergens are
+    let finalAllergenInfo = allergen_info;
+    if (!finalAllergenInfo && allergensJson) {
+      try {
+        const allergenArray = JSON.parse(allergensJson);
+        if (allergenArray.length > 0) {
+          finalAllergenInfo = `Contains: ${allergenArray.join(', ')}`;
+        } else {
+          finalAllergenInfo = 'No major allergens';
+        }
+      } catch {
+        finalAllergenInfo = allergen_info || null;
+      }
+    }
+
     // Insert new menu item
     const result = await pool.query<MenuItem>(
-      `INSERT INTO menu_items (menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time`,
+      `INSERT INTO menu_items (menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info`,
       [
         itemId,
         name,
@@ -254,6 +274,8 @@ export const createMenuItem = async (req: Request, res: Response): Promise<void>
         item_type.toLowerCase(),
         availability_start_time || null,
         availability_end_time || null,
+        allergensJson,
+        finalAllergenInfo,
       ]
     );
 
@@ -311,6 +333,8 @@ export const updateMenuItem = async (req: Request, res: Response): Promise<void>
       item_type,
       availability_start_time,
       availability_end_time,
+      allergens,
+      allergen_info,
     } = req.body;
 
     // Get old values for audit log
@@ -363,6 +387,31 @@ export const updateMenuItem = async (req: Request, res: Response): Promise<void>
       updates.push(`availability_end_time = $${paramCount++}`);
       values.push(availability_end_time || null);
     }
+    if (allergens !== undefined) {
+      const allergensJson = allergens ? JSON.stringify(Array.isArray(allergens) ? allergens : [allergens]) : null;
+      updates.push(`allergens = $${paramCount++}`);
+      values.push(allergensJson);
+      
+      // Auto-generate allergen_info if not provided but allergens are
+      if (allergen_info === undefined && allergensJson) {
+        try {
+          const allergenArray = JSON.parse(allergensJson);
+          if (allergenArray.length > 0) {
+            updates.push(`allergen_info = $${paramCount++}`);
+            values.push(`Contains: ${allergenArray.join(', ')}`);
+          } else {
+            updates.push(`allergen_info = $${paramCount++}`);
+            values.push('No major allergens');
+          }
+        } catch {
+          // If parsing fails, don't update allergen_info
+        }
+      }
+    }
+    if (allergen_info !== undefined) {
+      updates.push(`allergen_info = $${paramCount++}`);
+      values.push(allergen_info || null);
+    }
 
     if (updates.length === 0) {
       res.status(400).json({
@@ -377,7 +426,7 @@ export const updateMenuItem = async (req: Request, res: Response): Promise<void>
       `UPDATE menu_items 
        SET ${updates.join(', ')}
        WHERE menu_item_id = $${paramCount}
-       RETURNING menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time`,
+       RETURNING menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info`,
       values
     );
 

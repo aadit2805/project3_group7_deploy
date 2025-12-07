@@ -4,6 +4,123 @@ import { useEffect, useState } from 'react';
 
 import { useToast } from '@/app/hooks/useToast';
 
+// Common allergens list
+const COMMON_ALLERGENS = [
+  'Peanuts',
+  'Tree Nuts',
+  'Milk',
+  'Dairy',
+  'Eggs',
+  'Fish',
+  'Shellfish',
+  'Soy',
+  'Wheat',
+  'Sesame',
+  'Gluten',
+];
+
+// Allergen Editor Component
+function AllergenEditor({
+  allergens,
+  allergenInfo,
+  onChange,
+}: {
+  allergens: string[];
+  allergenInfo: string;
+  onChange: (allergens: string[], allergenInfo: string) => void;
+}) {
+  const [customAllergen, setCustomAllergen] = useState('');
+
+  const handleToggleAllergen = (allergen: string) => {
+    const newAllergens = allergens.includes(allergen)
+      ? allergens.filter((a) => a !== allergen)
+      : [...allergens, allergen];
+    
+    // Auto-generate allergen_info
+    const newInfo = newAllergens.length > 0 
+      ? `Contains: ${newAllergens.join(', ')}` 
+      : '';
+    
+    onChange(newAllergens, newInfo);
+  };
+
+  const handleAddCustomAllergen = () => {
+    if (customAllergen.trim() && !allergens.includes(customAllergen.trim())) {
+      const newAllergens = [...allergens, customAllergen.trim()];
+      const newInfo = newAllergens.length > 0 
+        ? `Contains: ${newAllergens.join(', ')}` 
+        : '';
+      onChange(newAllergens, newInfo);
+      setCustomAllergen('');
+    }
+  };
+
+  const handleInfoChange = (info: string) => {
+    onChange(allergens, info);
+  };
+
+  return (
+    <div className="space-y-2 max-w-md">
+      <div className="text-xs font-semibold text-gray-700 mb-2">Select Allergens:</div>
+      <div className="flex flex-wrap gap-2 mb-2">
+        {COMMON_ALLERGENS.map((allergen) => (
+          <label
+            key={allergen}
+            className="flex items-center space-x-1 text-xs cursor-pointer"
+          >
+            <input
+              type="checkbox"
+              checked={allergens.includes(allergen)}
+              onChange={() => handleToggleAllergen(allergen)}
+              className="h-3 w-3 text-blue-600 rounded"
+            />
+            <span className="text-gray-700">{allergen}</span>
+          </label>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={customAllergen}
+          onChange={(e) => setCustomAllergen(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleAddCustomAllergen();
+            }
+          }}
+          placeholder="Add custom allergen"
+          className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded"
+        />
+        <button
+          type="button"
+          onClick={handleAddCustomAllergen}
+          className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Add
+        </button>
+      </div>
+      {allergens.length > 0 && (
+        <div className="text-xs text-gray-600">
+          Selected: {allergens.join(', ')}
+        </div>
+      )}
+      <div className="mt-2">
+        <label className="block text-xs font-semibold text-gray-700 mb-1">
+          Allergen Info (optional):
+        </label>
+        <textarea
+          value={allergenInfo}
+          onChange={(e) => handleInfoChange(e.target.value)}
+          placeholder="Additional allergen information..."
+          className="w-full px-2 py-1 text-xs border border-gray-300 rounded resize-none"
+          rows={2}
+        />
+      </div>
+    </div>
+  );
+}
+
 interface MenuItem {
   menu_item_id: number;
   name: string;
@@ -12,6 +129,8 @@ interface MenuItem {
   item_type: string;
   availability_start_time?: string | null;
   availability_end_time?: string | null;
+  allergens?: string | null;
+  allergen_info?: string | null;
 }
 
 interface MenuItemsListProps {
@@ -60,6 +179,17 @@ export default function MenuItemsList({ filter }: MenuItemsListProps) {
       // If time is in HH:mm:ss format, convert to HH:mm
       return time.substring(0, 5);
     };
+    
+    // Parse allergens JSON string to array
+    let allergensArray: string[] = [];
+    try {
+      if (item.allergens) {
+        allergensArray = JSON.parse(item.allergens);
+      }
+    } catch {
+      allergensArray = [];
+    }
+    
     setEditForm({
       name: item.name,
       upcharge: item.upcharge,
@@ -67,6 +197,8 @@ export default function MenuItemsList({ filter }: MenuItemsListProps) {
       item_type: item.item_type,
       availability_start_time: formatTimeForInput(item.availability_start_time),
       availability_end_time: formatTimeForInput(item.availability_end_time),
+      allergens: allergensArray,
+      allergen_info: item.allergen_info || '',
     });
   };
 
@@ -195,6 +327,9 @@ export default function MenuItemsList({ filter }: MenuItemsListProps) {
                   Availability Window
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Allergens
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -317,6 +452,28 @@ export default function MenuItemsList({ filter }: MenuItemsListProps) {
                           </span>
                         ) : (
                           <span className="text-gray-400 italic">No time restriction</span>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {editingId === item.menu_item_id ? (
+                      <AllergenEditor
+                        allergens={editForm.allergens as string[] || []}
+                        allergenInfo={editForm.allergen_info as string || ''}
+                        onChange={(allergens, allergenInfo) => {
+                          setEditForm({ ...editForm, allergens, allergen_info: allergenInfo });
+                        }}
+                      />
+                    ) : (
+                      <div className="max-w-xs">
+                        {item.allergen_info ? (
+                          <div className="text-xs">
+                            <div className="font-semibold text-gray-700 mb-1">Allergens:</div>
+                            <div className="text-gray-600">{item.allergen_info}</div>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 italic text-xs">No allergen info</span>
                         )}
                       </div>
                     )}
