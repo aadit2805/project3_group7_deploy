@@ -1,13 +1,17 @@
 'use client';
 
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, forwardRef, useImperativeHandle } from 'react';
 import { OrderContext, OrderItem } from '@/app/context/OrderContext';
 import { EmployeeContext } from '@/app/context/EmployeeContext'; // Import EmployeeContext
 import { useRouter } from 'next/navigation';
 import { useTranslatedTexts } from '@/app/hooks/useTranslation';
 import { useToast } from '@/app/hooks/useToast';
 
-const OrderPane = ({ onOrderSubmitSuccess }: { onOrderSubmitSuccess?: () => void }) => {
+export interface OrderPaneRef {
+  submitOrder: () => void;
+}
+
+const OrderPane = forwardRef<OrderPaneRef, { onOrderSubmitSuccess?: () => void }>(({ onOrderSubmitSuccess }, ref) => {
   const context = useContext(OrderContext);
   const employeeContext = useContext(EmployeeContext); // Access EmployeeContext
   const router = useRouter();
@@ -191,6 +195,10 @@ Error: ${errorData.error}` : ''}`, type: 'error' });
     }
   };
 
+  useImperativeHandle(ref, () => ({
+    submitOrder: handleSubmitOrder,
+  }));
+
   return (
     <aside 
       className="w-1/3 bg-gray-100 p-6" 
@@ -371,6 +379,8 @@ Error: ${errorData.error}` : ''}`, type: 'error' });
       )}
     </aside>
   );
-};
+});
+
+OrderPane.displayName = 'OrderPane';
 
 export default OrderPane;
