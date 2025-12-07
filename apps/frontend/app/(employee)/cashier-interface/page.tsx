@@ -352,31 +352,96 @@ const CashierInterfaceContent = () => {
             </Link>
           </div>
           <h1 className="text-4xl font-bold text-center mb-8 animate-slide-in-down">{t.selectMealType}</h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {nonDrinkMealTypes.map((mealType, index) => (
+          {viewMode === 'card' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {nonDrinkMealTypes.map((mealType, index) => (
+                <div
+                  key={mealType.meal_type_id}
+                  onClick={() => handleSelectMealType(mealType)}
+                  className="bg-[#D61927] rounded-lg shadow-md p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300"
+                >
+                  <h2 className="text-2xl font-bold mb-2 text-white">
+                    {translatedMealTypes[mealType.meal_type_id] || mealType.meal_type_name}
+                  </h2>
+                  <p className="text-white">{t.price}: ${mealType.meal_type_price.toFixed(2)}</p>
+                  <p className="text-white">{t.entrees}: {mealType.entree_count}</p>
+                  <p className="text-white">{t.sides}: {mealType.side_count}</p>
+                  {mealType.drink_size && <p className="text-white">{t.drink}: {mealType.drink_size}</p>}
+                </div>
+              ))}
+              {/* Drinks option */}
               <div
-                key={mealType.meal_type_id}
-                onClick={() => handleSelectMealType(mealType)}
+                onClick={handleSelectDrinks}
                 className="bg-[#D61927] rounded-lg shadow-md p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300"
               >
-                <h2 className="text-2xl font-bold mb-2 text-white">
-                  {translatedMealTypes[mealType.meal_type_id] || mealType.meal_type_name}
-                </h2>
-                <p className="text-white">{t.price}: ${mealType.meal_type_price.toFixed(2)}</p>
-                <p className="text-white">{t.entrees}: {mealType.entree_count}</p>
-                <p className="text-white">{t.sides}: {mealType.side_count}</p>
-                {mealType.drink_size && <p className="text-white">{t.drink}: {mealType.drink_size}</p>}
+                <h2 className="text-2xl font-bold mb-2 text-white">{t.drinks}</h2>
+                <p className="text-white">{t.selectDrinkSize}</p>
               </div>
-            ))}
-            {/* Drinks option */}
-            <div
-              onClick={handleSelectDrinks}
-              className="bg-[#D61927] rounded-lg shadow-md p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300"
-            >
-              <h2 className="text-2xl font-bold mb-2 text-white">{t.drinks}</h2>
-              <p className="text-white">{t.selectDrinkSize}</p>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-2 max-w-2xl mx-auto">
+              {nonDrinkMealTypes.map((mealType, index) => (
+                <div
+                  key={mealType.meal_type_id}
+                  onClick={() => handleSelectMealType(mealType)}
+                  className="bg-[#D61927] rounded-lg shadow-md p-4 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-lg hover:bg-[#B81520] transition-all duration-300"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h2 className="text-xl font-bold mb-1 text-white">
+                        {translatedMealTypes[mealType.meal_type_id] || mealType.meal_type_name}
+                      </h2>
+                      <div className="text-white text-sm space-y-0.5">
+                        <p>{t.price}: ${mealType.meal_type_price.toFixed(2)}</p>
+                        <p>{t.entrees}: {mealType.entree_count} | {t.sides}: {mealType.side_count}</p>
+                        {mealType.drink_size && <p>{t.drink}: {mealType.drink_size}</p>}
+                      </div>
+                    </div>
+                    <svg
+                      className="w-6 h-6 text-white ml-4 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              ))}
+              {/* Drinks option */}
+              <div
+                onClick={handleSelectDrinks}
+                className="bg-[#D61927] rounded-lg shadow-md p-4 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-lg hover:bg-[#B81520] transition-all duration-300"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h2 className="text-xl font-bold mb-1 text-white">{t.drinks}</h2>
+                    <p className="text-white text-sm">{t.selectDrinkSize}</p>
+                  </div>
+                  <svg
+                    className="w-6 h-6 text-white ml-4 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       ) : isDrinkSelection ? (
         <>
