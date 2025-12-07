@@ -18,6 +18,15 @@ interface OrderBreakdown {
   customer_name: string | null;
 }
 
+interface CashierDailySales {
+  total_sales: number;
+  order_count: number;
+  average_order_value: number;
+  total_tax: number;
+  net_sales: number;
+  orders: OrderBreakdown[];
+}
+
 // Get daily revenue report for a specific date or date range
 export const getDailyRevenueReport = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -113,6 +122,123 @@ export const getDailyRevenueReport = async (req: Request, res: Response): Promis
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve revenue report',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+// Get cashier's daily sales summary (for today or specific date)
+export const getCashierDailySales = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { date, staff_id } = req.query;
+    const targetDate = date ? (date as string) : new Date().toISOString().split('T')[0];
+
+    let query = '';
+    let queryParams: (string | number)[] = [];
+
+    // Get summary stats
+    if (staff_id) {
+      query = `
+        SELECT 
+          COALESCE(SUM(o.price), 0) as total_sales,
+          COUNT(DISTINCT o.order_id) as order_count,
+          CASE 
+            WHEN COUNT(DISTINCT o.order_id) > 0 
+            THEN COALESCE(SUM(o.price), 0) / COUNT(DISTINCT o.order_id)
+            ELSE 0 
+          END as average_order_value,
+          COALESCE(SUM(o.price * 0.0825), 0) as total_tax,
+          COALESCE(SUM(o.price * 0.9175), 0) as net_sales
+        FROM "Order" o
+        WHERE DATE(o.datetime) = $1
+          AND o.order_status != 'cancelled'
+          AND o.staff_id = $2
+      `;
+      queryParams = [targetDate, staff_id as string];
+    } else {
+      query = `
+        SELECT 
+          COALESCE(SUM(o.price), 0) as total_sales,
+          COUNT(DISTINCT o.order_id) as order_count,
+          CASE 
+            WHEN COUNT(DISTINCT o.order_id) > 0 
+            THEN COALESCE(SUM(o.price), 0) / COUNT(DISTINCT o.order_id)
+            ELSE 0 
+          END as average_order_value,
+          COALESCE(SUM(o.price * 0.0825), 0) as total_tax,
+          COALESCE(SUM(o.price * 0.9175), 0) as net_sales
+        FROM "Order" o
+        WHERE DATE(o.datetime) = $1
+          AND o.order_status != 'cancelled'
+      `;
+      queryParams = [targetDate];
+    }
+
+    const summaryResult = await pool.query(query, queryParams);
+    const summary = summaryResult.rows[0];
+
+    // Get order details
+    let ordersQuery = '';
+    let ordersParams: (string | number)[] = [];
+
+    if (staff_id) {
+      ordersQuery = `
+        SELECT 
+          o.order_id,
+          o.datetime,
+          o.price,
+          o.order_status,
+          o.customer_name
+        FROM "Order" o
+        WHERE DATE(o.datetime) = $1
+          AND o.order_status != 'cancelled'
+          AND o.staff_id = $2
+        ORDER BY o.datetime DESC
+      `;
+      ordersParams = [targetDate, staff_id as string];
+    } else {
+      ordersQuery = `
+        SELECT 
+          o.order_id,
+          o.datetime,
+          o.price,
+          o.order_status,
+          o.customer_name
+        FROM "Order" o
+        WHERE DATE(o.datetime) = $1
+          AND o.order_status != 'cancelled'
+        ORDER BY o.datetime DESC
+      `;
+      ordersParams = [targetDate];
+    }
+
+    const ordersResult = await pool.query(ordersQuery, ordersParams);
+    const orders: OrderBreakdown[] = ordersResult.rows.map((row) => ({
+      order_id: row.order_id,
+      datetime: row.datetime,
+      price: parseFloat(row.price) || 0,
+      order_status: row.order_status || 'pending',
+      customer_name: row.customer_name,
+    }));
+
+    const salesData: CashierDailySales = {
+      total_sales: parseFloat(summary.total_sales) || 0,
+      order_count: parseInt(summary.order_count) || 0,
+      average_order_value: parseFloat(summary.average_order_value) || 0,
+      total_tax: parseFloat(summary.total_tax) || 0,
+      net_sales: parseFloat(summary.net_sales) || 0,
+      orders,
+    };
+
+    res.status(200).json({
+      success: true,
+      data: salesData,
+    });
+  } catch (error) {
+    console.error('Error fetching cashier daily sales:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve daily sales summary',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
   }

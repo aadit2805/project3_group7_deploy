@@ -50,6 +50,7 @@ const EmployeeLayout = ({ children }: { children: ReactNode }) => {
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/cashier-interface', label: 'Cashier', icon: ClipboardList },
     { href: '/kitchen-monitor', label: 'Kitchen', icon: Monitor },
+    { href: '/daily-sales', label: 'Daily Sales', icon: BarChart2 },
   ];
 
   const managerLinks = [

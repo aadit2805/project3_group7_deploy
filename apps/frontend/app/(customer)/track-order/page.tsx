@@ -221,7 +221,8 @@ const TrackOrderPage = () => {
         <p className="text-xl text-red-600 mb-4">{t.orderNotFound}</p>
         <Link
           href="/meal-type-selection"
-          className="inline-block bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg"
+          className="inline-block bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          aria-label={t.backToMenu}
         >
           {t.backToMenu}
         </Link>
@@ -230,17 +231,17 @@ const TrackOrderPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-center">{t.title}</h1>
+    <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-center">{t.title}</h1>
 
       <div className="max-w-2xl mx-auto">
         {/* Order Status Card */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="text-center mb-6">
-            <div className={`inline-block px-6 py-3 rounded-full border-2 font-semibold text-lg ${getStatusColor(orderStatus.order_status)}`}>
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="text-center mb-4 sm:mb-6">
+            <div className={`inline-block px-4 sm:px-6 py-2 sm:py-3 rounded-full border-2 font-semibold text-base sm:text-lg ${getStatusColor(orderStatus.order_status)}`}>
               {getStatusText(orderStatus.order_status)}
             </div>
-            <p className="mt-4 text-lg text-gray-700">{getStatusMessage(orderStatus.order_status)}</p>
+            <p className="mt-3 sm:mt-4 text-base sm:text-lg text-gray-700">{getStatusMessage(orderStatus.order_status)}</p>
           </div>
 
           {/* Progress Indicator */}
@@ -330,16 +331,18 @@ const TrackOrderPage = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
           <Link
             href="/order-confirmation"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 sm:px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-center"
+            aria-label={t.viewDetails}
           >
             {t.viewDetails}
           </Link>
           <Link
             href="/meal-type-selection"
-            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg"
+            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 sm:px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-center"
+            aria-label={t.backToMenu}
           >
             {t.backToMenu}
           </Link>
