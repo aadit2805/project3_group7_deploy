@@ -33,6 +33,7 @@ import {
   getSalesTrends,
   getSalesSummary,
 } from '../controllers/salesAnalyticsController';
+import { getLoyaltyAnalytics } from '../controllers/loyaltyAnalyticsController';
 import {
   getLocalStaffController,
   updateLocalStaffController,
@@ -53,7 +54,6 @@ import {
 } from '../controllers/discountController';
 import { ApiResponse } from '../types';
 import pool from '../config/db';
-import translationRoutes from './translation.routes';
 import weatherRoutes from './weather.routes';
 import inventoryRoutes from './inventory.routes';
 import { isAuthenticated, isManager, isCashierOrManager } from '../middleware/auth';
@@ -137,6 +137,9 @@ router.get('/analytics/sales-by-category', isAuthenticated, isManager, getSalesB
 router.get('/analytics/sales-trends', isAuthenticated, isManager, getSalesTrends);
 router.get('/analytics/sales-summary', isAuthenticated, isManager, getSalesSummary);
 
+// Loyalty Analytics routes (manager only)
+router.get('/analytics/loyalty', isAuthenticated, isManager, getLoyaltyAnalytics);
+
 // Meal Type routes
 router.get('/meal-types', getMealTypes);
 router.get('/meal-types/:id', getMealTypeById);
@@ -187,39 +190,13 @@ router.delete('/discounts/:id', isAuthenticated, isManager, deleteDiscountContro
 router.use('/customer/auth', customerAuthRoutes); // Integrate new customer auth routes
 
 // External API routes
-router.use('/translation', translationRoutes);
 router.use('/weather', weatherRoutes);
 
 // Test external APIs
 router.get('/test-apis', async (_req: Request, res: Response) => {
   const results = {
-    translation: { status: 'not tested', error: null as string | null },
     weather: { status: 'not tested', error: null as string | null },
   };
-
-  // Test translation
-  try {
-    await axios.post(
-      'https://translation.googleapis.com/language/translate/v2',
-      {},
-      {
-        params: {
-          q: 'Hello',
-          target: 'es',
-          key: process.env.GOOGLE_TRANSLATE_API_KEY,
-        },
-      }
-    );
-    results.translation.status = 'connected ✅';
-  } catch (error: unknown) {
-    const err = error as {
-      response?: { data?: { error?: { message?: string } } };
-      message?: string;
-    };
-    results.translation.status = 'failed ❌';
-    results.translation.error =
-      err.response?.data?.error?.message || err.message || 'Unknown error';
-  }
 
   // Test weather
   try {
