@@ -214,16 +214,17 @@ Error: ${errorData.error}` : ''}`, type: 'error' });
 
   return (
     <aside 
-      className="w-1/3 bg-gray-100 p-6" 
+      className="w-1/3 bg-gray-100 flex flex-col overflow-hidden min-h-0" 
       role="complementary" 
       aria-label="Order summary"
     >
-      <h2 className="text-3xl font-semibold mb-4">{t.title}</h2>
-      {order.length === 0 ? (
-        <p role="status" aria-live="polite">{t.empty}</p>
-      ) : (
-        <>
-          <ul role="list" aria-label="Order items">
+      <div className="p-6 flex flex-col h-full overflow-y-auto min-h-0">
+        <h2 className="text-3xl font-semibold mb-4">{t.title}</h2>
+        {order.length === 0 ? (
+          <p role="status" aria-live="polite">{t.empty}</p>
+        ) : (
+          <>
+            <ul role="list" aria-label="Order items">
             {order.map((orderItem, index) => {
               const isDrinkOnly =
                 orderItem.entrees.length === 0 && orderItem.sides.length === 0 && orderItem.drink;
@@ -400,6 +401,7 @@ Error: ${errorData.error}` : ''}`, type: 'error' });
           </div>
         </>
       )}
+      </div>
     </aside>
   );
 });
