@@ -17,6 +17,7 @@ import {
   getCustomerOrders, // Import getCustomerOrders
   generateOrderQRCode,
   getLastOrderForReorder,
+  getOrderStatus,
 } from '../controllers/orderController';
 import {
   getDailyRevenueReport,
@@ -98,6 +99,9 @@ router.get('/orders/customer/:customerId', authenticateCustomer, getCustomerOrde
 
 // GET /api/orders/:orderId/qrcode - Generate QR code for order receipt
 router.get('/orders/:orderId/qrcode', generateOrderQRCode);
+
+// GET /api/orders/:orderId/status - Get order status for tracking
+router.get('/orders/:orderId/status', getOrderStatus);
 
 // GET /api/orders/reorder/last - Get last order for reordering
 router.get('/orders/reorder/last', authenticateCustomer, getLastOrderForReorder);

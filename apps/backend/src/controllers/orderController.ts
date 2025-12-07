@@ -696,6 +696,61 @@ export const generateOrderQRCode = async (req: Request, res: Response) => {
   }
 };
 
+export const getOrderStatus = async (req: Request, res: Response) => {
+  const { orderId } = req.params;
+  const customer_id = req.customer?.id;
+
+  const client = await pool.connect();
+
+  try {
+    // Build query to check if order exists and belongs to customer (if authenticated)
+    let query = 'SELECT order_id, order_status, datetime, price, estimated_prep_time, completed_at FROM "Order" WHERE order_id = $1';
+    const params: any[] = [orderId];
+
+    if (customer_id) {
+      query += ' AND "customerId" = $2';
+      params.push(customer_id);
+    }
+
+    const orderResult = await client.query(query, params);
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Order not found' 
+      });
+    }
+
+    const order = orderResult.rows[0];
+    
+    // Calculate time elapsed and remaining
+    const orderDate = new Date(order.datetime);
+    const now = new Date();
+    const elapsedMinutes = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60));
+    const estimatedPrepTime = order.estimated_prep_time || 15;
+    const remainingMinutes = Math.max(0, estimatedPrepTime - elapsedMinutes);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        order_id: order.order_id,
+        order_status: order.order_status || 'pending',
+        datetime: order.datetime,
+        price: parseFloat(order.price),
+        estimated_prep_time: order.estimated_prep_time,
+        completed_at: order.completed_at,
+        elapsed_minutes: elapsedMinutes,
+        remaining_minutes: remainingMinutes,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching order status:', error);
+    return res.status(500).json({ success: false, error: (error as Error).message });
+  } finally {
+    client.release();
+  }
+};
+
 export const getLastOrderForReorder = async (req: Request, res: Response) => {
   const customer_id = req.customer?.id;
 

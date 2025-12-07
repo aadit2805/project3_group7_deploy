@@ -9,10 +9,12 @@ import Tooltip from '@/app/components/Tooltip';
 import ClientOnly from '@/app/components/ClientOnly';
 
 export default function CustomerLayout({ children }: { children: React.ReactNode }) {
-  const { translatedTexts } = useTranslatedTexts(['Home', 'Customer Kiosk', 'My Profile']);
+  const { translatedTexts } = useTranslatedTexts(['Home', 'Customer Kiosk', 'My Profile', 'Promotions', 'Track Order']);
   const homeText = translatedTexts[0] || 'Home';
   const kioskText = translatedTexts[1] || 'Customer Kiosk';
   const myProfileText = translatedTexts[2] || 'My Profile';
+  const promotionsText = translatedTexts[3] || 'Promotions';
+  const trackOrderText = translatedTexts[4] || 'Track Order';
 
   const router = useRouter();
   const pathname = usePathname();
@@ -29,7 +31,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
     const customerToken = localStorage.getItem('customerToken');
 
     // If no token and not already on the rewards-login page, and not on a guest-accessible page, redirect to rewards-login
-    if (!customerToken && pathname !== '/rewards-login' && pathname !== '/customer-kiosk' && pathname !== '/meal-type-selection' && pathname !== '/shopping-cart' && pathname !== '/a-la-carte' && pathname !== '/drinks') {
+    if (!customerToken && pathname !== '/rewards-login' && pathname !== '/customer-kiosk' && pathname !== '/meal-type-selection' && pathname !== '/shopping-cart' && pathname !== '/a-la-carte' && pathname !== '/drinks' && pathname !== '/promotions' && pathname !== '/track-order' && pathname !== '/order-confirmation') {
       router.push('/rewards-login');
     }
   }, [pathname, router]); // Re-run effect if pathname or router changes
@@ -65,11 +67,26 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{kioskText}</h1>
         </div>
         <div className="flex items-center gap-4">
+          <Link
+            href="/promotions"
+            className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg text-sm inline-flex items-center"
+          >
+            {promotionsText}
+          </Link>
           <ClientOnly>
             {() => {
               const customerToken = localStorage.getItem('customerToken');
+              const lastOrderId = localStorage.getItem('lastOrderId');
               return customerToken ? (
                 <>
+                  {lastOrderId && (
+                    <Link
+                      href={`/track-order?orderId=${lastOrderId}`}
+                      className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg text-sm inline-flex items-center"
+                    >
+                      {trackOrderText}
+                    </Link>
+                  )}
                   <Link
                     href="/my-profile"
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-sm inline-flex items-center"
