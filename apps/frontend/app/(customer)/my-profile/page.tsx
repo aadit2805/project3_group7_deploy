@@ -39,6 +39,14 @@ interface Order {
   points_earned: number;
 }
 
+interface LoyaltyTier {
+  id: number;
+  name: string;
+  min_points: number;
+  max_points: number | null;
+  benefits: string | null;
+}
+
 const MyProfile = () => {
   const router = useRouter();
   const { translateBatch } = useTranslation();
@@ -50,7 +58,8 @@ const MyProfile = () => {
   const [allergenPreferences, setAllergenPreferences] = useState<string[]>([]);
   const [editingAllergens, setEditingAllergens] = useState(false);
   const [savingAllergens, setSavingAllergens] = useState(false);
-  const [currentTierName, setCurrentTierName] = useState<string | null>(null);
+  const [currentTier, setCurrentTier] = useState<LoyaltyTier | null>(null);
+  const [nextTier, setNextTier] = useState<LoyaltyTier | null>(null);
 
   const POINTS_PER_DOLLAR = 25; // Define conversion rate
 
@@ -88,6 +97,9 @@ const MyProfile = () => {
     'Allergen preferences saved successfully!',
     'Failed to save allergen preferences.',
     'Current Tier',
+    'Tier Progress',
+    'Next Tier',
+    'points to next tier'
   ];
 
   const { translatedTexts } = useTranslatedTexts(textLabels);
@@ -119,6 +131,9 @@ const MyProfile = () => {
     allergensSaved: translatedTexts[23] || 'Allergen preferences saved successfully!',
     allergensSaveFailed: translatedTexts[24] || 'Failed to save allergen preferences.',
     currentTier: translatedTexts[25] || 'Current Tier',
+    tierProgress: translatedTexts[26] || 'Tier Progress',
+    nextTier: translatedTexts[27] || 'Next Tier',
+    pointsToNextTier: translatedTexts[28] || 'points to next tier',
   };
 
   const { setOrder } = useContext(OrderContext)!;
@@ -156,15 +171,16 @@ const MyProfile = () => {
         if (!customerRes.ok) {
           throw new Error('Failed to fetch customer data.');
         }
-        const customerData = await customerRes.json();
-        setCustomerPoints(customerData.customer.rewards_points);
-        setCashDiscountValue(customerData.customer.rewards_points / POINTS_PER_DOLLAR);
-        setCurrentTierName(customerData.customer.loyalty_tiers?.name || null);
+        const data = await customerRes.json();
+        setCustomerPoints(data.customer.rewards_points);
+        setCashDiscountValue(data.customer.rewards_points / POINTS_PER_DOLLAR);
+        setCurrentTier(data.currentTier);
+        setNextTier(data.nextTier);
         
         // Load allergen preferences
-        if (customerData.customer.allergen_preferences) {
+        if (data.customer.allergen_preferences) {
           try {
-            const prefs = JSON.parse(customerData.customer.allergen_preferences);
+            const prefs = JSON.parse(data.customer.allergen_preferences);
             setAllergenPreferences(Array.isArray(prefs) ? prefs : []);
           } catch {
             setAllergenPreferences([]);
@@ -313,10 +329,41 @@ const MyProfile = () => {
         <p className="text-lg text-gray-700">
           ({t.cashDiscountValue}: ${cashDiscountValue !== null ? cashDiscountValue.toFixed(2) : 'N/A'})
         </p>
-        {currentTierName && (
+        {currentTier && (
             <p className="text-lg text-gray-700 mt-2">
-                {t.currentTier}: <span className="font-bold">{currentTierName}</span>
+                {t.currentTier}: <span className="font-bold">{currentTier.name}</span>
             </p>
+        )}
+      </section>
+
+      {/* Tier Progress Section */}
+      <section className="bg-white shadow-md rounded-lg p-4 sm:p-6 mb-8">
+        <h2 className="text-2xl font-semibold mb-4">{t.tierProgress}</h2>
+        {currentTier && nextTier && customerPoints !== null ? (
+          <div>
+            <div className="flex justify-between items-center mb-2 text-lg">
+              <span className="font-bold text-blue-600">{currentTier.name}</span>
+              <span className="font-bold text-gray-500">{t.nextTier}: {nextTier.name}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+              <div
+                className="bg-blue-600 h-4 rounded-full"
+                style={{
+                  width: `${Math.min(
+                    ((customerPoints - currentTier.min_points) / (nextTier.min_points - currentTier.min_points)) * 100,
+                    100
+                  )}%`,
+                }}
+              ></div>
+            </div>
+            <p className="text-center text-gray-700">
+              {Math.max(0, nextTier.min_points - customerPoints)} {t.pointsToNextTier}
+            </p>
+          </div>
+        ) : currentTier ? (
+            <p className="text-lg text-green-600 font-bold">Congratulations! You have reached the highest tier!</p>
+        ) : (
+          <p className="text-lg text-gray-700">Earn more points to get to the first tier!</p>
         )}
       </section>
 
