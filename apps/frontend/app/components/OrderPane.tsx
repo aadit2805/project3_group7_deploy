@@ -45,6 +45,7 @@ const OrderPane = forwardRef<OrderPaneRef, { onOrderSubmitSuccess?: () => void }
     'Remove Discount',
     'Validating...',
     'Discount Applied',
+    'Cancel Order',
   ];
 
   const { translatedTexts, isTranslating } = useTranslatedTexts(textLabels);
@@ -71,6 +72,7 @@ const OrderPane = forwardRef<OrderPaneRef, { onOrderSubmitSuccess?: () => void }
     removeDiscount: translatedTexts[17] || 'Remove Discount',
     validating: translatedTexts[18] || 'Validating...',
     discountApplied: translatedTexts[19] || 'Discount Applied',
+    cancelOrder: translatedTexts[20] || 'Cancel Order',
   };
 
   if (!context || !employeeContext) {
@@ -141,6 +143,17 @@ const OrderPane = forwardRef<OrderPaneRef, { onOrderSubmitSuccess?: () => void }
     setDiscountCode('');
     setDiscountAmount(0);
     setDiscountName('');
+  };
+
+  const handleCancelOrder = () => {
+    setOrder([]);
+    setIsRushOrder(false);
+    setOrderNotes('');
+    setDiscountCode('');
+    setDiscountAmount(0);
+    setDiscountName('');
+    localStorage.removeItem('order');
+    router.push('/cashier-interface');
   };
 
   const handleSubmitOrder = async () => {
@@ -366,14 +379,24 @@ Error: ${errorData.error}` : ''}`, type: 'error' });
                 {t.markAsRushOrder}
               </label>
             </div>
-            <button
-              onClick={handleSubmitOrder}
-              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-xl mt-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isTranslating || order.length === 0}
-              aria-label={`Submit order with ${order.length} item${order.length !== 1 ? 's' : ''}, total ${finalPrice.toFixed(2)} dollars`}
-            >
-              {t.submitOrder}
-            </button>
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={handleCancelOrder}
+                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+                disabled={isTranslating}
+                aria-label="Cancel order and return to meal type selection"
+              >
+                {t.cancelOrder}
+              </button>
+              <button
+                onClick={handleSubmitOrder}
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+                disabled={isTranslating || order.length === 0}
+                aria-label={`Submit order with ${order.length} item${order.length !== 1 ? 's' : ''}, total ${finalPrice.toFixed(2)} dollars`}
+              >
+                {t.submitOrder}
+              </button>
+            </div>
           </div>
         </>
       )}
