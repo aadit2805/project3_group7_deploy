@@ -85,19 +85,36 @@ class CustomerAuthService {
   async getCustomerById(customerId: string): Promise<any> {
     const customer = await prisma.customer.findUnique({
       where: { id: customerId },
-      select: {
-        id: true,
-        email: true,
-        phone_number: true,
-        rewards_points: true,
-        allergen_preferences: true,
-        createdAt: true,
+      include: {
+        loyalty_tiers: true, // Include the full current tier object
       },
     });
+
     if (!customer) {
       throw new Error('Customer not found.');
     }
-    return customer;
+
+    const allTiers = await prisma.loyalty_tiers.findMany({
+      orderBy: { min_points: 'asc' },
+    });
+
+    let nextTier = null;
+    if (customer.loyalty_tiers) {
+      const currentTierIndex = allTiers.findIndex(tier => tier.id === customer.loyalty_tiers!.id);
+      if (currentTierIndex !== -1 && currentTierIndex < allTiers.length - 1) {
+        nextTier = allTiers[currentTierIndex + 1];
+      }
+    } else {
+      // If customer has no tier, the next tier is the first one
+      if (allTiers.length > 0) {
+        nextTier = allTiers[0];
+      }
+    }
+    
+    // Rename loyalty_tiers to currentTier to avoid confusion in the frontend
+    const { loyalty_tiers: currentTier, ...customerData } = customer;
+
+    return { customer: customerData, currentTier, nextTier };
   }
 
   async updateAllergenPreferences(customerId: string, allergen_preferences: string[]): Promise<any> {

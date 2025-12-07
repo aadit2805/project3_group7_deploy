@@ -15,11 +15,14 @@ import apiClient from '../../../utils/apiClient';
 import ClientOnly from '../../../components/ClientOnly';
 
 // Define the types for the analytics data
-interface TopMember {
+interface LoyaltyMember {
   id: string;
   email: string;
   rewards_points: number;
   createdAt: string;
+  loyalty_tiers: {
+    name: string;
+  } | null;
 }
 
 interface SpendingStats {
@@ -31,7 +34,7 @@ interface SpendingStats {
 interface LoyaltyAnalyticsData {
   totalMembers: number;
   totalPoints: number;
-  topMembers: TopMember[];
+  allMembers: LoyaltyMember[];
   newMembersLast30Days: number;
   spendingComparison: {
     loyalty: SpendingStats;
@@ -179,34 +182,48 @@ const LoyaltyAnalyticsPage = () => {
               </div>
             </div>
 
-            {/* Top 10 Members List */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-bold mb-4">Top 10 Loyalty Members</h2>
-              <div className="overflow-y-auto">
-                <ul className="divide-y divide-gray-200">
-                  {data.topMembers.map((member, index) => (
-                    <li key={member.id} className="py-3">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex-shrink-0">
-                          <span className="text-gray-500">{index + 1}.</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {member.email}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Joined: {new Date(member.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <span className="font-bold text-indigo-600">
-                            {member.rewards_points.toLocaleString()} pts
+            {/* All Members Table */}
+            <div className="bg-white p-6 rounded-lg shadow-md lg:col-span-3">
+              <h2 className="text-xl font-bold mb-4">All Loyalty Members</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Points
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tier
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {data.allMembers.map((member) => (
+                      <tr key={member.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{member.email}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{member.rewards_points.toLocaleString()}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              member.loyalty_tiers
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}
+                          >
+                            {member.loyalty_tiers?.name || 'No Tier'}
                           </span>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

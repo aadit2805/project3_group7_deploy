@@ -4,6 +4,7 @@ import prisma from '../config/prisma'; // Import centralized Prisma instance
 import { createAuditLog } from '../services/auditService';
 import { validateDiscount, calculateDiscountAmount } from '../services/discountService';
 import QRCode from 'qrcode';
+import { loyaltyService } from '../services/loyaltyService';
 
 // Cache for rush orders and order notes (in-memory storage)
 const rushOrderCache = new Map<number, boolean>();
@@ -203,6 +204,9 @@ export const createOrder = async (req: Request, res: Response) => {
             where: { id: customerId },
             data: { rewards_points: { increment: pointsEarned } },
         });
+
+        // Update customer tier after points change
+        await loyaltyService.updateCustomerTier(customerId);
     }
 
     await client.query('COMMIT'); // Commit transaction
