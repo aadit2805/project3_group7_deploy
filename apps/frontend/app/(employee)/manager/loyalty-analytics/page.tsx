@@ -106,16 +106,25 @@ const LoyaltyAnalyticsPage = () => {
     return <p>No data available.</p>;
   }
 
-  const spendingChartData = [
+  const revenueChartData = [
     {
-      name: 'Total Revenue',
-      Loyalty: data.spendingComparison.loyalty.totalRevenue,
-      'Non-Loyalty': data.spendingComparison.nonLoyalty.totalRevenue,
+      name: 'Loyalty',
+      Revenue: data.spendingComparison.loyalty.totalRevenue,
     },
     {
-      name: 'Avg. Order Value',
-      Loyalty: data.spendingComparison.loyalty.averageOrderValue,
-      'Non-Loyalty': data.spendingComparison.nonLoyalty.averageOrderValue,
+      name: 'Non-Loyalty',
+      Revenue: data.spendingComparison.nonLoyalty.totalRevenue,
+    },
+  ];
+
+  const aovChartData = [
+    {
+      name: 'Loyalty',
+      'Avg. Order Value': data.spendingComparison.loyalty.averageOrderValue,
+    },
+    {
+      name: 'Non-Loyalty',
+      'Avg. Order Value': data.spendingComparison.nonLoyalty.averageOrderValue,
     },
   ];
 
@@ -140,27 +149,34 @@ const LoyaltyAnalyticsPage = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Spending Comparison Chart */}
-            <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-bold mb-4">Customer Spending Comparison</h2>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart
-                  data={spendingChartData}
-                  margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis
-                    tickFormatter={(value) =>
-                      typeof value === 'number' ? currencyFormatter.format(value) : value
-                    }
-                  />
-                  <Tooltip formatter={(value) => currencyFormatter.format(Number(value))} />
-                  <Legend />
-                  <Bar dataKey="Loyalty" fill="#8884d8" />
-                  <Bar dataKey="Non-Loyalty" fill="#82ca9d" />
-                </BarChart>
-              </ResponsiveContainer>
+            {/* Spending Comparison Charts */}
+            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h2 className="text-xl font-bold mb-4">Total Revenue Comparison</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={revenueChartData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis tickFormatter={(value) => currencyFormatter.format(value)} />
+                    <Tooltip formatter={(value) => currencyFormatter.format(Number(value))} />
+                    <Legend />
+                    <Bar dataKey="Revenue" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h2 className="text-xl font-bold mb-4">Avg. Order Value Comparison</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={aovChartData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis tickFormatter={(value) => currencyFormatter.format(value)} />
+                    <Tooltip formatter={(value) => currencyFormatter.format(Number(value))} />
+                    <Legend />
+                    <Bar dataKey="Avg. Order Value" fill="#82ca9d" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             {/* Top 10 Members List */}
