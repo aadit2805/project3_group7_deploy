@@ -33,8 +33,13 @@ interface AuditLogsResponse {
   };
 }
 
+/**
+ * Audit Logs page - displays system audit logs for tracking changes
+ * Allows managers to filter logs by staff, entity type, action type, and date range
+ */
 export default function AuditLogsPage() {
   const { user } = useEmployee();
+  // State for audit logs and pagination
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +50,7 @@ export default function AuditLogsPage() {
     hasMore: false,
   });
 
-  // Filter states
+  // Filter states for searching audit logs
   const [filters, setFilters] = useState({
     staff_id: '',
     entity_type: '',
@@ -54,6 +59,7 @@ export default function AuditLogsPage() {
     end_date: '',
   });
 
+  // Fetch audit logs with current filters and pagination
   const fetchAuditLogs = async () => {
     setLoading(true);
     setError(null);

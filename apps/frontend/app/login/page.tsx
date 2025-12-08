@@ -5,10 +5,14 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import Tooltip from '@/app/components/Tooltip';
 
-// Separate component that uses useSearchParams
+/**
+ * Staff Login page - allows employees to login via username/password or Google OAuth
+ * Supports both local staff authentication and Google OAuth
+ */
 function LoginContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  // State for login form
   const [error, setError] = useState<string | null>(null);
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -21,6 +25,7 @@ function LoginContent() {
     }
   }, [searchParams]);
 
+  // Handle Google OAuth login redirect
   const handleGoogleLogin = () => {
     try {
       // Use relative path - Next.js will rewrite to backend URL
@@ -33,6 +38,7 @@ function LoginContent() {
     }
   };
 
+  // Handle local staff username/password login
   const handleStaffLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);

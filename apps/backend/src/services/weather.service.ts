@@ -3,13 +3,18 @@ import axios from 'axios';
 const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY || '';
 const OPENWEATHER_BASE_URL = 'https://api.openweathermap.org/data/2.5';
 
+/**
+ * Get current weather data for a city using OpenWeatherMap API
+ * @param city - City name (e.g., 'College Station')
+ * @returns Object with success status and weather data (temperature, humidity, description, etc.)
+ */
 export const getCurrentWeather = async (city: string) => {
   try {
     const response = await axios.get(`${OPENWEATHER_BASE_URL}/weather`, {
       params: {
         q: city,
         appid: OPENWEATHER_API_KEY,
-        units: 'metric', // Use Celsius
+        units: 'metric', // Return temperature in Celsius
       },
     });
 
@@ -36,6 +41,12 @@ export const getCurrentWeather = async (city: string) => {
   }
 };
 
+/**
+ * Get current weather data using latitude and longitude coordinates
+ * @param lat - Latitude coordinate
+ * @param lon - Longitude coordinate
+ * @returns Object with success status and weather data
+ */
 export const getWeatherByCoordinates = async (lat: number, lon: number) => {
   try {
     const response = await axios.get(`${OPENWEATHER_BASE_URL}/weather`, {
@@ -70,6 +81,12 @@ export const getWeatherByCoordinates = async (lat: number, lon: number) => {
   }
 };
 
+/**
+ * Get weather forecast for a city
+ * @param city - City name
+ * @param days - Number of days to forecast (default: 5)
+ * @returns Object with success status, city info, and forecast array
+ */
 export const getForecast = async (city: string, days: number = 5) => {
   try {
     const response = await axios.get(`${OPENWEATHER_BASE_URL}/forecast`, {
@@ -77,7 +94,7 @@ export const getForecast = async (city: string, days: number = 5) => {
         q: city,
         appid: OPENWEATHER_API_KEY,
         units: 'metric',
-        cnt: days * 8, // 8 data points per day (every 3 hours)
+        cnt: days * 8, // 8 data points per day (API provides data every 3 hours)
       },
     });
 

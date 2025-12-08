@@ -47,21 +47,28 @@ interface LoyaltyTier {
   benefits: string | null;
 }
 
+/**
+ * My Profile page - displays customer profile information
+ * Shows loyalty points, past orders, allergen preferences, and loyalty tier status
+ */
 const MyProfile = () => {
   const router = useRouter();
   const { translateBatch } = useTranslation();
+  // State for customer data
   const [customerPoints, setCustomerPoints] = useState<number | null>(null);
   const [cashDiscountValue, setCashDiscountValue] = useState<number | null>(null);
   const [pastOrders, setPastOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // State for allergen preferences
   const [allergenPreferences, setAllergenPreferences] = useState<string[]>([]);
   const [editingAllergens, setEditingAllergens] = useState(false);
   const [savingAllergens, setSavingAllergens] = useState(false);
+  // State for loyalty tier information
   const [currentTier, setCurrentTier] = useState<LoyaltyTier | null>(null);
   const [nextTier, setNextTier] = useState<LoyaltyTier | null>(null);
 
-  const POINTS_PER_DOLLAR = 25; // Define conversion rate
+  const POINTS_PER_DOLLAR = 25; // Points conversion rate: 25 points = $1 discount
 
   // Common allergens list
   const commonAllergens = [

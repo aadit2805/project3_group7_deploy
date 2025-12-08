@@ -3,6 +3,9 @@
 import { useEmployee } from '@/app/context/EmployeeContext';
 import Link from 'next/link';
 
+/**
+ * Dashboard card component - displays a clickable card linking to a feature
+ */
 const DashboardCard = ({ href, title, description, index }: { href: string, title: string, description: string, index: number }) => (
   <Link 
     href={href} 
@@ -17,12 +20,17 @@ const DashboardCard = ({ href, title, description, index }: { href: string, titl
   </Link>
 );
 
+/**
+ * Employee Dashboard page - displays available features based on user role
+ * Shows different cards for MANAGER vs CASHIER roles
+ */
 export default function DashboardPage() {
   const { user } = useEmployee();
 
   // Collect all cards to render with proper indexing for stagger animations
   const allCards: Array<{ href: string, title: string, description: string }> = [];
   
+  // Cards available to both managers and cashiers
   if (user?.role === 'MANAGER' || user?.role === 'CASHIER') {
     allCards.push(
       { href: "/cashier-interface", title: "Cashier Interface", description: "Process customer orders." },

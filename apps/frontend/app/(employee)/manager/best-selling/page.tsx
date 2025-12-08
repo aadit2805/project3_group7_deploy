@@ -34,8 +34,13 @@ interface User {
   name: string | null;
   role: string | null;
 }
+/**
+ * Best Selling page - displays best-selling menu items and sales by category
+ * Shows top-selling items, category breakdowns, and sales summaries with filtering
+ */
 export default function BestSellingPage() {
   const router = useRouter();
+  // State for user and sales analytics data
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +52,8 @@ export default function BestSellingPage() {
   const [endDate, setEndDate] = useState<string>('');
   const [itemTypeFilter, setItemTypeFilter] = useState<string>('');
   const { addToast } = useToast();
+  
+  // Fetch all sales statistics (best-selling, category, and summary) in parallel
   const fetchAllStats = useCallback(async (start?: string, end?: string, itemType?: string) => {
     setLoadingStats(true);
     try {
