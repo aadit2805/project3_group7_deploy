@@ -52,7 +52,7 @@ const InventoryManager = () => {
       setFoodInventory(inventoryData.food);
       setNonFoodInventory(inventoryData.non_food);
 
-                  const menuItemsRes = await fetch('/api/inventory/menu-items');
+      const menuItemsRes = await fetch('/api/inventory/menu-items');
       const menuItemsData = await menuItemsRes.json();
       setMenuItems(menuItemsData);
     } catch (error) {
@@ -197,7 +197,7 @@ const InventoryManager = () => {
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-xl font-semibold">Food Inventory</h2>
             <div className="flex space-x-2">
-              <Link href="/restock-report">
+              <Link href="/manager/restock-report">
                 <button className="bg-green-500 text-white px-4 py-2 rounded">
                   Generate Restock Report
                 </button>
@@ -336,3 +336,4 @@ const InventoryManager = () => {
 };
 
 export default InventoryManager;
+
