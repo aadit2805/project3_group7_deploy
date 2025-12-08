@@ -7,6 +7,7 @@ import { OrderContext, OrderItem } from '@/app/context/OrderContext';
 import { EmployeeContext } from '@/app/context/EmployeeContext'; // Import EmployeeContext
 import { useTranslatedTexts, useTranslation } from '@/app/hooks/useTranslation';
 import Tooltip from '@/app/components/Tooltip';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
 interface MenuItem {
   menu_item_id: number;
@@ -27,6 +28,10 @@ interface MealType {
   drink_size: string;
 }
 
+/**
+ * Cashier Interface page - allows employees to process customer orders
+ * Supports meal type selection, entree/side/drink selection, and order submission
+ */
 const CashierInterfaceContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -105,6 +110,7 @@ const CashierInterfaceContent = () => {
   const { user } = employeeContext; // Get user from EmployeeContext
   const { order, setOrder } = context;
 
+  // State for meal customization
   const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [selectedEntrees, setSelectedEntrees] = useState<MenuItem[]>([]);
@@ -117,12 +123,16 @@ const CashierInterfaceContent = () => {
   const [translatedMenuItems, setTranslatedMenuItems] = useState<Record<number, string>>({});
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Fetch all meal types on component mount
   useEffect(() => {
     const fetchMealTypes = async () => {
       try {
         const backendUrl = '';
         const res = await fetch(`${backendUrl}/api/meal-types`);
-        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(`Failed to fetch meal types: ${res.status}`);
+        }
+        const data = await safeJsonParse(res);
         setMealTypes(data);
       } catch (error) {
         console.error('Error fetching meal types:', error);
@@ -186,12 +196,18 @@ const CashierInterfaceContent = () => {
         try {
           const backendUrl = '';
           const mealTypeRes = await fetch(`${backendUrl}/api/meal-types/${mealTypeId}`);
-          const mealTypeData: MealType = await mealTypeRes.json();
+          if (!mealTypeRes.ok) {
+            throw new Error(`Failed to fetch meal type: ${mealTypeRes.status}`);
+          }
+          const mealTypeData: MealType = await safeJsonParse(mealTypeRes);
           setSelectedMealType(mealTypeData);
 
           // Fetch menu items with time-based availability filtering (same as customer kiosk)
           const menuItemsRes = await fetch(`${backendUrl}/api/menu-items?is_available=true`);
-          const menuItemsData: MenuItem[] = await menuItemsRes.json();
+          if (!menuItemsRes.ok) {
+            throw new Error(`Failed to fetch menu items: ${menuItemsRes.status}`);
+          }
+          const menuItemsData: MenuItem[] = await safeJsonParse(menuItemsRes);
           setMenuItems(menuItemsData);
 
           if (editIndex !== null) {
@@ -214,6 +230,7 @@ const CashierInterfaceContent = () => {
     }
   }, [mealTypeId, editIndex, order]);
 
+  // Handle selection of entrees or sides (toggle selection)
   const handleSelectItem = (item: MenuItem, type: 'entree' | 'side') => {
     if (type === 'entree') {
       if (selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id)) {
@@ -230,6 +247,7 @@ const CashierInterfaceContent = () => {
     }
   };
 
+  // Add or update order item in the order context
   const handleAddOrUpdateOrder = (mealTypeOverride?: MealType) => {
     const mealTypeToUse = mealTypeOverride || selectedMealType;
     if (mealTypeToUse) {

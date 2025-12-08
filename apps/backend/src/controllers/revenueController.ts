@@ -27,7 +27,13 @@ interface CashierDailySales {
   orders: OrderBreakdown[];
 }
 
-// Get daily revenue report for a specific date or date range
+/**
+ * GET /api/revenue/daily (Manager only)
+ * Get daily revenue report for a specific date or date range
+ * @param req - Express request object (supports query params: date, start_date, end_date)
+ * @param res - Express response object
+ * @returns JSON array of daily revenue reports with sales, order count, average order value, tax, and net sales
+ */
 export const getDailyRevenueReport = async (req: Request, res: Response): Promise<void> => {
   try {
     const { start_date, end_date, date } = req.query;

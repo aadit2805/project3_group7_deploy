@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Tooltip from '@/app/components/Tooltip';
 import { useToast } from '@/app/hooks/useToast';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
 interface OrderItem {
   name: string;
@@ -78,7 +79,7 @@ export default function KitchenMonitor() {
       if (!response.ok) {
         throw new Error('Failed to fetch orders');
       }
-      const data = await response.json();
+      const data = await safeJsonParse(response);
       if (data.success) {
         const newOrders = data.data as KitchenOrder[];
         const currentOrderIds = new Set(newOrders.map(order => order.order_id));
@@ -132,7 +133,7 @@ export default function KitchenMonitor() {
         credentials: 'include',
       });
       if (response.ok) {
-        const data = await response.json();
+        const data = await safeJsonParse(response);
         if (data.success && data.weather) {
           setWeather({
             temperature: data.weather.temperature,

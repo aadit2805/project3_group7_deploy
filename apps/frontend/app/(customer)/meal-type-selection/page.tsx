@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // Import useRouter
 import { OrderContext } from '@/app/context/OrderContext';
 import { useTranslatedTexts, useTranslation } from '@/app/hooks/useTranslation';
 import Tooltip from '@/app/components/Tooltip';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
 interface MealType {
   meal_type_id: number;
@@ -18,12 +18,15 @@ interface MealType {
 
 
 
+/**
+ * Meal Type Selection page - allows customers to select a meal type
+ * Displays available meal types and links to customization page
+ */
 const MealTypeSelection = () => {
   const [mealTypes, setMealTypes] = useState<MealType[]>([]);
   const context = useContext(OrderContext);
   const { translateBatch, currentLanguage } = useTranslation();
   const [translatedMealTypeNames, setTranslatedMealTypeNames] = useState<string[]>([]);
-  const navRouter = useRouter();
 
 
 
@@ -55,15 +58,29 @@ const MealTypeSelection = () => {
     selectBeverage: translatedTexts[9] || 'Select a beverage',
   };
 
+  // Fetch available meal types on component mount
   useEffect(() => {
     const fetchMealTypes = async () => {
       try {
-        const backendUrl = '';
-        const res = await fetch(`${backendUrl}/api/meal-types`);
-        const data = await res.json();
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+        const url = backendUrl ? `${backendUrl}/api/meal-types` : '/api/meal-types';
+        
+        const res = await fetch(url, {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
+        
+        if (!res.ok) {
+          throw new Error(`Failed to fetch meal types: ${res.status}`);
+        }
+        
+        const data = await safeJsonParse(res);
         setMealTypes(data);
-      } catch (error) {
-        console.error('Error fetching meal types:', error);
+      } catch (error: any) {
+        console.error('Error fetching meal types:', error?.message || error);
+        setMealTypes([]);
       }
     };
 

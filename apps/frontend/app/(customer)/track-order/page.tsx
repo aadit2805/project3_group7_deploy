@@ -17,10 +17,15 @@ interface OrderStatus {
   remaining_minutes: number;
 }
 
-const TrackOrderContent = () => { // Renamed for clarity
+/**
+ * Track Order page - allows customers to track their order status
+ * Displays real-time order status, estimated prep time, and time remaining
+ */
+const TrackOrderContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addToast } = useToast();
+  // State for order tracking
   const [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -77,8 +82,8 @@ const TrackOrderContent = () => { // Renamed for clarity
     completedMessage: translatedTexts[21] || 'Order completed',
   };
 
+  // Get order ID from URL params or localStorage
   useEffect(() => {
-    // Get order ID from URL params or localStorage
     const urlOrderId = searchParams.get('orderId');
     const storedOrderId = localStorage.getItem('lastOrderId');
     const id = urlOrderId || storedOrderId;
@@ -92,6 +97,7 @@ const TrackOrderContent = () => { // Renamed for clarity
     setOrderId(id);
   }, [searchParams, router, addToast, t.orderNotFound]);
 
+  // Poll for order status updates every 5 seconds
   useEffect(() => {
     if (!orderId) return;
 

@@ -4,11 +4,16 @@ import passport from 'passport';
 import prisma from '../config/prisma'; // Import centralized Prisma instance
 import { createAuditLog } from '../services/auditService';
 
+/**
+ * Get the currently authenticated user
+ * For Google OAuth users with staff roles, ensures a staff table entry exists
+ * Updates username if it's currently an email address
+ */
 export const getAuthenticatedUserController = async (req: Request, res: Response) => {
   if (req.user) {
     const user = req.user as any;
 
-    // If Google OAuth user with staff role, ensure staff table entry
+    // If Google OAuth user with staff role, ensure staff table entry exists
     if (user.type === 'google' && (user.role === 'CASHIER' || user.role === 'MANAGER')) {
       try {
         const staffExists = await prisma.staff.findUnique({
@@ -16,21 +21,40 @@ export const getAuthenticatedUserController = async (req: Request, res: Response
         });
 
         if (!staffExists) {
-          // Create staff entry for Google user
+          // Create staff entry for Google OAuth user
+          // Ensure username is unique by checking if it already exists
+          let username = user.name || user.email;
+          let usernameExists = await prisma.staff.findUnique({
+            where: { username },
+          });
+
+          // If username exists, make it unique by appending staff_id
+          if (usernameExists) {
+            username = `${username}_${user.id}`;
+            // Check again in case the appended version also exists (unlikely but possible)
+            usernameExists = await prisma.staff.findUnique({
+              where: { username },
+            });
+            // If still exists, append timestamp to ensure uniqueness
+            if (usernameExists) {
+              username = `${user.name || user.email}_${Date.now()}`;
+            }
+          }
+
           await prisma.staff.create({
             data: {
               staff_id: user.id,
-              username: user.name || user.email, // Prefer name over email
+              username: username,
               role: user.role,
               password_hash: "GOOGLE_AUTH_USER", // Placeholder for Google authenticated users
             },
           });
-          console.log(`Created staff entry for Google user: ${user.name}`);
+          console.log(`Created staff entry for Google user: ${username}`);
         } else {
-          // Always update username to use name if available and different from current
+          // Update username to use name if available and different from current
           // This ensures the username is always the name, not the email
           if (user.name && staffExists.username !== user.name) {
-            // Check if current username is an email (contains @)
+            // Check if current username is an email address
             const isEmail = staffExists.username.includes('@');
             if (isEmail || staffExists.username === user.email) {
               await prisma.staff.update({
@@ -54,6 +78,10 @@ export const getAuthenticatedUserController = async (req: Request, res: Response
   }
 };
 
+/**
+ * Handle local staff login using Passport authentication
+ * Uses local strategy to authenticate username/password
+ */
 export const staffLoginController = (req: Request, res: Response, next: NextFunction): void => {
   passport.authenticate('local', (err: any, user: any, info: any) => {
     if (err) {
@@ -71,9 +99,9 @@ export const staffLoginController = (req: Request, res: Response, next: NextFunc
         res.status(500).json({ message: 'Could not log in user' });
         return;
       }
-      // Attach a 'type' property to distinguish local staff when logging in
+      // Attach a 'type' property to distinguish local staff from Google OAuth users
       (user as any).type = 'local';
-      // If login is successful, send user data
+      // Return user data on successful login
       res.status(200).json({ message: 'Login successful', user: { id: user.staff_id, username: user.username, role: user.role, type: user.type } });
     });
   })(req, res, next);
@@ -89,6 +117,10 @@ export const getLocalStaffController = async (_req: Request, res: Response): Pro
   }
 };
 
+/**
+ * Update a local staff member's username and role
+ * Creates audit log entry for the update
+ */
 export const updateLocalStaffController = async (req: Request, res: Response): Promise<void> => {
   try {
     const staff_id = parseInt(req.params.id, 10);
@@ -133,6 +165,11 @@ export const updateLocalStaffController = async (req: Request, res: Response): P
   }
 };
 
+/**
+ * Update a local staff member's password
+ * Hashes the new password before storing
+ * Creates audit log entry (does not log the password itself)
+ */
 export const updateLocalStaffPasswordController = async (req: Request, res: Response): Promise<void> => {
   try {
     const staff_id = parseInt(req.params.id, 10);
@@ -160,7 +197,7 @@ export const updateLocalStaffPasswordController = async (req: Request, res: Resp
 
     const updatedStaff = await updateLocalStaffPassword(staff_id, newPassword);
 
-    // Log audit entry (don't log password, just indicate it was changed)
+    // Log audit entry - note that password is not logged for security
     await createAuditLog(req, {
       action_type: 'UPDATE_PASSWORD',
       entity_type: 'staff',
@@ -177,6 +214,11 @@ export const updateLocalStaffPasswordController = async (req: Request, res: Resp
   }
 };
 
+/**
+ * Create a new local staff member
+ * Hashes the password before storing
+ * Creates audit log entry for the new staff member
+ */
 export const createLocalStaffController = async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, role, password } = req.body;

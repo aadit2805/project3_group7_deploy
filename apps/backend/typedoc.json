@@ -1,0 +1,44 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "./src/index.ts",
+    "./src/controllers/**/*.ts",
+    "./src/services/**/*.ts",
+    "./src/routes/**/*.ts",
+    "./src/middleware/**/*.ts",
+    "./src/types/**/*.ts"
+  ],
+  "out": "./docs",
+  "theme": "default",
+  "name": "Backend API Documentation",
+  "includeVersion": true,
+  "excludePrivate": false,
+  "excludeProtected": false,
+  "excludeInternal": false,
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Controllers",
+    "Services",
+    "Routes",
+    "Middleware",
+    "Types",
+    "*"
+  ],
+  "sort": ["source-order"],
+  "kindSortOrder": [
+    "Project",
+    "Module",
+    "Namespace",
+    "Enum",
+    "Class",
+    "Interface",
+    "TypeAlias",
+    "Constructor",
+    "Property",
+    "Method",
+    "Function",
+    "Accessor",
+    "Variable"
+  ]
+}
+

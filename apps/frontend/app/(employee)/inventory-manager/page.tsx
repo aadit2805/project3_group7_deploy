@@ -5,25 +5,35 @@ import Link from 'next/link';
 import Tooltip from '@/app/components/Tooltip';
 
 import { useToast } from '@/app/hooks/useToast';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
+/**
+ * Inventory Manager page - allows employees to view and manage inventory
+ * Supports both food and non-food inventory with editing capabilities
+ */
 const InventoryManager = () => {
+  // State for inventory data
   const [foodInventory, setFoodInventory] = useState([]);
   const [nonFoodInventory, setNonFoodInventory] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  // State for modal and editing
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [currentItem, setCurrentItem] = useState<any>(null);
   const [isFood, setIsFood] = useState(true);
+  // State for sorting and tabs
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [activeTab, setActiveTab] = useState<'food' | 'non-food'>('food');
   const { addToast } = useToast();
 
+  // Fetch inventory data on component mount
   useEffect(() => {
     fetchData();
   }, []);
 
+  // Handle sorting of inventory tables
   const handleSort = (column: string) => {
     const isAsc = sortColumn === column && sortDirection === 'asc';
     setSortDirection(isAsc ? 'desc' : 'asc');
@@ -44,16 +54,23 @@ const InventoryManager = () => {
     setNonFoodInventory(sortedNonFood);
   };
 
+  // Fetch inventory data from API
   const fetchData = async () => {
     setLoading(true);
     try {
       const inventoryRes = await fetch('/api/inventory');
-      const inventoryData = await inventoryRes.json();
+      if (!inventoryRes.ok) {
+        throw new Error(`Failed to fetch inventory: ${inventoryRes.status}`);
+      }
+      const inventoryData = await safeJsonParse(inventoryRes);
       setFoodInventory(inventoryData.food);
       setNonFoodInventory(inventoryData.non_food);
 
-                  const menuItemsRes = await fetch('/api/inventory/menu-items');
-      const menuItemsData = await menuItemsRes.json();
+      const menuItemsRes = await fetch('/api/inventory/menu-items');
+      if (!menuItemsRes.ok) {
+        throw new Error(`Failed to fetch menu items: ${menuItemsRes.status}`);
+      }
+      const menuItemsData = await safeJsonParse(menuItemsRes);
       setMenuItems(menuItemsData);
     } catch (error) {
       console.error('Failed to fetch data', error);
@@ -61,6 +78,7 @@ const InventoryManager = () => {
     setLoading(false);
   };
 
+  // Open modal for adding or editing inventory items
   const openModal = (item: any, isFoodItem: boolean, isEditMode: boolean) => {
     console.log('Item passed to openModal:', item);
     setIsFood(isFoodItem);
@@ -75,6 +93,7 @@ const InventoryManager = () => {
     setCurrentItem(null);
   };
 
+  // Handle form submission for adding or updating inventory items
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -173,6 +192,7 @@ const InventoryManager = () => {
         </Link>
       </div>
 
+      {/* Tab navigation for Food vs Non-Food inventory */}
       <div className="flex border-b border-gray-200 mb-4">
         <button
           className={`py-2 px-4 text-lg font-medium ${
@@ -192,6 +212,7 @@ const InventoryManager = () => {
         </button>
       </div>
 
+      {/* Food Inventory Tab */}
       {activeTab === 'food' && (
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
@@ -235,6 +256,7 @@ const InventoryManager = () => {
         </div>
       )}
 
+      {/* Non-Food Inventory Tab */}
       {activeTab === 'non-food' && (
         <div>
           <div className="flex justify-between items-center mb-2">
@@ -276,6 +298,7 @@ const InventoryManager = () => {
         </div>
       )}
 
+      {/* Modal for adding/editing inventory items */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">

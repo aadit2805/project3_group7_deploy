@@ -25,7 +25,12 @@ interface MealType {
   drink_size: string;
 }
 
+/**
+ * Drinks page - allows customers to order drinks by size
+ * Supports drink size selection (Small, Medium, Large) and search functionality
+ */
 const DrinksPage = () => {
+  // State for menu items and drink selection
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [mealTypes, setMealTypes] = useState<MealType[]>([]);
   const [translatedMenuItems, setTranslatedMenuItems] = useState<Record<number, string>>({});
@@ -59,6 +64,7 @@ const DrinksPage = () => {
     searchMenuItems: translatedTexts[8] || 'Search menu items',
   };
 
+  // Fetch menu items and meal types on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {

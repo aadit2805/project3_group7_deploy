@@ -28,8 +28,13 @@ interface User {
   name: string | null;
   role: string | null;
 }
+/**
+ * Revenue Reports page - displays daily revenue reports and summaries
+ * Allows managers to view revenue data filtered by date range
+ */
 export default function RevenueReportsPage() {
   const router = useRouter();
+  // State for user and reports data
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +44,8 @@ export default function RevenueReportsPage() {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const { addToast } = useToast();
+  
+  // Fetch daily revenue reports
   const fetchReports = useCallback(async (start?: string, end?: string) => {
     setLoadingReports(true);
     try {
@@ -71,6 +78,7 @@ export default function RevenueReportsPage() {
     }
   }, [addToast]);
 
+  // Fetch revenue summary statistics
   const fetchSummary = useCallback(async (start?: string, end?: string) => {
     try {
       const backendUrl = '';

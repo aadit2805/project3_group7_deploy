@@ -14,8 +14,13 @@ interface PreparedOrder {
   order_status: string;
 }
 
+/**
+ * Prepared Orders page - displays orders that have been marked as done in Kitchen Monitor
+ * Allows employees to mark orders as addressed when customers pick them up
+ */
 export default function PreparedOrdersPage() {
   const router = useRouter();
+  // State for prepared orders
   const [preparedOrders, setPreparedOrders] = useState<PreparedOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -6,6 +6,7 @@ import { EmployeeContext } from '@/app/context/EmployeeContext'; // Import Emplo
 import { useRouter } from 'next/navigation';
 import { useTranslatedTexts } from '@/app/hooks/useTranslation';
 import { useToast } from '@/app/hooks/useToast';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
 const OrderPane = ({ onOrderSubmitSuccess }: { onOrderSubmitSuccess?: () => void }) => {
   const context = useContext(OrderContext);
@@ -112,7 +113,10 @@ const OrderPane = ({ onOrderSubmitSuccess }: { onOrderSubmitSuccess?: () => void
         }),
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`Failed to validate discount: ${response.status}`);
+      }
+      const data = await safeJsonParse(response);
 
       if (data.valid && data.discount) {
         setDiscountAmount(data.discount_amount);
@@ -180,7 +184,12 @@ const OrderPane = ({ onOrderSubmitSuccess }: { onOrderSubmitSuccess?: () => void
                 }
 
               } else {
-        const errorData = await response.json().catch(() => ({}));
+        let errorData: any = {};
+        try {
+          errorData = await safeJsonParse(response);
+        } catch {
+          // If response is not JSON, use empty object
+        }
         console.error('Order submission failed:', errorData);
         addToast({ message: `${t.failMessage} ${errorData.error ? `
 Error: ${errorData.error}` : ''}`, type: 'error' });

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useEmployee } from '@/app/context/EmployeeContext';
 import { useToast } from '@/app/hooks/useToast';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
 interface DailySalesData {
   total_sales: number;
@@ -20,14 +21,20 @@ interface DailySalesData {
   }>;
 }
 
+/**
+ * Daily Sales page - displays daily sales summary for employees
+ * Shows total sales, order count, average order value, and individual orders
+ */
 export default function DailySalesPage() {
   const router = useRouter();
   const { user } = useEmployee();
   const { addToast } = useToast();
+  // State for sales data
   const [salesData, setSalesData] = useState<DailySalesData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
+  // Fetch sales data when date or user changes
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
@@ -52,7 +59,7 @@ export default function DailySalesPage() {
           throw new Error('Failed to fetch sales data');
         }
 
-        const result = await response.json();
+        const result = await safeJsonParse(response);
         if (result.success) {
           setSalesData(result.data);
         } else {
@@ -69,6 +76,7 @@ export default function DailySalesPage() {
     fetchSalesData();
   }, [selectedDate, user, router, addToast]);
 
+  // Format currency values for display
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -76,6 +84,7 @@ export default function DailySalesPage() {
     }).format(amount);
   };
 
+  // Format date and time for display
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString('en-US', {

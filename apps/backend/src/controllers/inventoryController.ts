@@ -2,6 +2,10 @@ import { Request, Response } from 'express';
 import { db } from '../db';
 import { createAuditLog } from '../services/auditService';
 
+/**
+ * Get all inventory items (both food and non-food)
+ * Returns food inventory with associated menu items and non-food inventory
+ */
 export const getInventory = async (_req: Request, res: Response) => {
   try {
     const inventory = await db.inventory.findMany({
@@ -17,6 +21,10 @@ export const getInventory = async (_req: Request, res: Response) => {
   }
 };
 
+/**
+ * Get inventory items that are marked for reorder
+ * Returns both food and non-food items that need restocking
+ */
 export const getLowStock = async (_req: Request, res: Response) => {
   try {
     const food_inventory = await db.inventory.findMany({
@@ -39,6 +47,11 @@ export const getLowStock = async (_req: Request, res: Response) => {
   }
 };
 
+/**
+ * Generate a restock report for items below threshold
+ * Food items: stock < 20
+ * Non-food items: stock < 80
+ */
 export const getRestockReport = async (_req: Request, res: Response) => {
   try {
     const lowFoodStock = await db.inventory.findMany({
@@ -67,11 +80,16 @@ export const getRestockReport = async (_req: Request, res: Response) => {
   }
 };
 
+/**
+ * Add a new inventory item (food or non-food)
+ * Creates audit log entry for the new item
+ */
 export const addInventoryItem = async (req: Request, res: Response) => {
   try {
     const { is_food, ...data } = req.body;
     if (is_food) {
       const { menu_item_id, stock, reorder, storage } = data;
+      // Generate new inventory ID by finding max and incrementing
       const maxId = await db.inventory.aggregate({ _max: { inventory_id: true } });
       const newId = (maxId._max.inventory_id || 0) + 1;
       const item = await db.inventory.create({
@@ -90,6 +108,7 @@ export const addInventoryItem = async (req: Request, res: Response) => {
       res.json(item);
     } else {
       const { name, stock, reorder } = data;
+      // Generate new non-food inventory ID by finding max and incrementing
       const maxId = await db.non_food_inventory.aggregate({ _max: { supply_id: true } });
       const newId = (maxId._max.supply_id || 0) + 1;
       const item = await db.non_food_inventory.create({
@@ -112,6 +131,10 @@ export const addInventoryItem = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * Update an existing inventory item (food or non-food)
+ * Tracks old and new values for audit logging
+ */
 export const updateInventoryItem = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -125,8 +148,9 @@ export const updateInventoryItem = async (req: Request, res: Response) => {
         where: { inventory_id: Number(id) },
       });
 
+      // Parse stock as number and handle reorder flag (can be boolean or string 'on')
       const parsedStock = Number(stock);
-      const parsedReorder = reorder === 'true' || reorder === 'on'; // Handle both boolean and string 'on'
+      const parsedReorder = reorder === 'true' || reorder === 'on';
 
       // Update the inventory item
       const inventoryItem = await db.inventory.update({
@@ -179,6 +203,10 @@ export const updateInventoryItem = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * Get all menu items
+ * Returns list of all menu items in the database
+ */
 export const getMenuItems = async (_req: Request, res: Response) => {
   try {
     const menuItems = await db.menu_items.findMany();
@@ -188,13 +216,20 @@ export const getMenuItems = async (_req: Request, res: Response) => {
   }
 };
 
+/**
+ * Create a new menu item and its associated inventory entry
+ * Creates both the menu item and inventory record in a single operation
+ * Logs audit entries for both creations
+ */
 export const addFoodItemWithMenuItem = async (req: Request, res: Response) => {
   try {
     const { name, stock, reorder, storage, upcharge, is_available, item_type } = req.body;
 
+    // Generate new menu item ID
     const maxMenuItemId = await db.menu_items.aggregate({ _max: { menu_item_id: true } });
     const newMenuItemId = (maxMenuItemId._max.menu_item_id || 0) + 1;
 
+    // Create the menu item first
     const menuItem = await db.menu_items.create({
       data: {
         menu_item_id: newMenuItemId,
@@ -205,6 +240,7 @@ export const addFoodItemWithMenuItem = async (req: Request, res: Response) => {
       },
     });
 
+    // Generate new inventory ID and create inventory entry
     const maxInventoryId = await db.inventory.aggregate({ _max: { inventory_id: true } });
     const newInventoryId = (maxInventoryId._max.inventory_id || 0) + 1;
 

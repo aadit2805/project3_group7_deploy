@@ -26,7 +26,12 @@ interface MealType {
   drink_size: string;
 }
 
+/**
+ * A La Carte page - allows customers to order individual items without a meal type
+ * Supports category filtering and search functionality
+ */
 const ALaCartePage = () => {
+  // State for menu items and filtering
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [mealTypes, setMealTypes] = useState<MealType[]>([]);
   const [translatedMenuItems, setTranslatedMenuItems] = useState<Record<number, string>>({});
@@ -71,6 +76,7 @@ const ALaCartePage = () => {
     filterByCategory: translatedTexts[13] || 'Filter by category',
   };
 
+  // Fetch menu items and meal types on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {

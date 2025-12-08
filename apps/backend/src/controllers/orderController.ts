@@ -10,6 +10,14 @@ import { loyaltyService } from '../services/loyaltyService';
 const rushOrderCache = new Map<number, boolean>();
 const orderNotesCache = new Map<number, string>();
 
+/**
+ * POST /api/orders
+ * Create a new order with menu items, meals, and optional customer information
+ * Supports discount codes, loyalty points, rush orders, and order notes
+ * @param req - Express request object with order data in body
+ * @param res - Express response object
+ * @returns JSON object with success status, order ID, total price, discount amount, and estimated prep time
+ */
 export const createOrder = async (req: Request, res: Response) => {
   const { order_items, customer_name, rush_order, order_notes, customerId, pointsApplied, staff_id, discount_code } = req.body; // Added discount_code
 
@@ -229,6 +237,13 @@ export const createOrder = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * GET /api/orders/active (Manager only)
+ * Get all active orders (not addressed or cancelled)
+ * @param _req - Express request object
+ * @param res - Express response object
+ * @returns JSON object with success status and array of active orders
+ */
 export const getActiveOrders = async (_req: Request, res: Response) => {
   const client = await pool.connect();
 
@@ -271,6 +286,14 @@ export const getActiveOrders = async (_req: Request, res: Response) => {
   }
 };
 
+/**
+ * GET /api/orders/kitchen (Cashier or Manager)
+ * Get detailed orders for kitchen monitor display
+ * Returns orders that are not completed, addressed, or cancelled with full meal details
+ * @param _req - Express request object
+ * @param res - Express response object
+ * @returns JSON object with success status and array of kitchen orders with meal details
+ */
 export const getKitchenOrders = async (_req: Request, res: Response) => {
   const client = await pool.connect();
 

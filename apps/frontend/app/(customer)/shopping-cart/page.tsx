@@ -9,6 +9,10 @@ import Tooltip from '@/app/components/Tooltip';
 
 import { useToast } from '@/app/hooks/useToast';
 
+/**
+ * Shopping Cart page - displays customer's order items and allows order submission
+ * Supports points redemption, discount codes, and order editing
+ */
 const ShoppingCart = () => {
   const context = useContext(OrderContext);
   const router = useRouter();
@@ -82,8 +86,9 @@ const ShoppingCart = () => {
 
   const order = context?.order || [];
   const setOrder = context?.setOrder || (() => {});
-  const baseTotalPrice = context?.totalPrice || 0; // Renamed to baseTotalPrice
+  const baseTotalPrice = context?.totalPrice || 0; // Base price before discounts
 
+  // State for points and discounts
   const [customerPoints, setCustomerPoints] = useState<number | null>(null);
   const [usePoints, setUsePoints] = useState(false);
   const [pointsApplied, setPointsApplied] = useState(0);
@@ -95,7 +100,7 @@ const ShoppingCart = () => {
   const [fetchingPoints, setFetchingPoints] = useState(true);
   const [pointsError, setPointsError] = useState<string | null>(null);
 
-  const POINTS_PER_DOLLAR = 25; // Define conversion rate
+  const POINTS_PER_DOLLAR = 25; // Points conversion rate: 25 points = $1 discount
 
   // Calculate total price including both promotional discount and points discount
   // Apply promotional discount first, then points discount
