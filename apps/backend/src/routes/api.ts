@@ -29,6 +29,7 @@ import {
 import {
   getXReport,
   createZReport,
+  getTodaysZReport,
   getZReportHistory,
 } from '../controllers/xzReportController';
 import {
@@ -144,6 +145,7 @@ router.get('/revenue/export/csv', isAuthenticated, isManager, exportRevenueRepor
 // X and Z Report routes (manager only)
 router.get('/reports/x-report', isAuthenticated, isManager, getXReport);
 router.post('/reports/z-report', isAuthenticated, isManager, createZReport);
+router.get('/reports/z-report/today', isAuthenticated, isManager, getTodaysZReport);
 router.get('/reports/z-report/history', isAuthenticated, isManager, getZReportHistory);
 
 // Cashier Daily Sales Summary (cashier or manager)

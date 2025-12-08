@@ -354,6 +354,147 @@ export const createZReport = async (req: Request, res: Response): Promise<void> 
 };
 
 /**
+ * GET /api/reports/z-report/today (Manager only)
+ * Get today's Z Report if it exists
+ * @param req - Express request object
+ * @param res - Express response object
+ * @returns JSON object with today's Z Report or null if not generated yet
+ */
+export const getTodaysZReport = async (_req: Request, res: Response): Promise<void> => {
+  const client = await pool.connect();
+  
+  try {
+    // Get today's date from the database to avoid timezone issues
+    const dateResult = await client.query('SELECT CURRENT_DATE as today');
+    const today = dateResult.rows[0].today;
+
+    // Check if Z Report exists for today
+    const existingReport = await client.query(
+      'SELECT * FROM dailysummaries WHERE business_date = $1 AND (closed_at IS NOT NULL OR status = \'CLOSED\')',
+      [today]
+    );
+
+    if (existingReport.rows.length === 0) {
+      res.status(200).json({
+        success: true,
+        data: null,
+        message: 'No Z Report generated for today yet',
+      });
+      return;
+    }
+
+    // Get detailed report data for today
+    const summaryQuery = `
+      SELECT 
+        COALESCE(SUM(o.price), 0) as total_sales,
+        COUNT(DISTINCT o.order_id) as order_count,
+        CASE 
+          WHEN COUNT(DISTINCT o.order_id) > 0 
+          THEN COALESCE(SUM(o.price), 0) / COUNT(DISTINCT o.order_id)
+          ELSE 0 
+        END as average_order_value,
+        COALESCE(SUM(o.price * 0.0825), 0) as total_tax,
+        COALESCE(SUM(o.price * 0.9175), 0) as net_sales,
+        MIN(o.datetime) as first_transaction,
+        MAX(o.datetime) as last_transaction
+      FROM "Order" o
+      WHERE DATE(o.datetime) = $1
+        AND o.order_status != 'cancelled'
+    `;
+
+    const statusQuery = `
+      SELECT 
+        o.order_status,
+        COUNT(*) as count,
+        COALESCE(SUM(o.price), 0) as total
+      FROM "Order" o
+      WHERE DATE(o.datetime) = $1
+      GROUP BY o.order_status
+      ORDER BY o.order_status
+    `;
+
+    const staffQuery = `
+      SELECT 
+        s.staff_id,
+        s.username,
+        COUNT(DISTINCT o.order_id) as order_count,
+        COALESCE(SUM(o.price), 0) as total_sales
+      FROM "Order" o
+      LEFT JOIN staff s ON o.staff_id = s.staff_id
+      WHERE DATE(o.datetime) = $1
+        AND o.order_status != 'cancelled'
+      GROUP BY s.staff_id, s.username
+      ORDER BY total_sales DESC
+    `;
+
+    const paymentQuery = `
+      SELECT 
+        COALESCE(p.method, 'Cash') as payment_method,
+        COUNT(DISTINCT o.order_id) as count,
+        COALESCE(SUM(o.price), 0) as total
+      FROM "Order" o
+      LEFT JOIN payment p ON o.order_id = p.order_id
+      WHERE DATE(o.datetime) = $1
+        AND o.order_status != 'cancelled'
+      GROUP BY p.method
+      ORDER BY total DESC
+    `;
+
+    const [summaryResult, statusResult, staffResult, paymentResult] = await Promise.all([
+      client.query(summaryQuery, [today]),
+      client.query(statusQuery, [today]),
+      client.query(staffQuery, [today]),
+      client.query(paymentQuery, [today]),
+    ]);
+
+    const summary = summaryResult.rows[0];
+
+    const reportData = {
+      report_type: 'Z Report',
+      report_date: today,
+      report_time: existingReport.rows[0].closed_at || existingReport.rows[0].opened_at,
+      is_closing_report: true,
+      status: 'CLOSED',
+      summary: {
+        total_sales: parseFloat(summary.total_sales),
+        order_count: parseInt(summary.order_count),
+        average_order_value: parseFloat(summary.average_order_value),
+        total_tax: parseFloat(summary.total_tax),
+        net_sales: parseFloat(summary.net_sales),
+        first_transaction: summary.first_transaction,
+        last_transaction: summary.last_transaction,
+      },
+      order_status_breakdown: statusResult.rows.map((row) => ({
+        status: row.order_status || 'pending',
+        count: parseInt(row.count),
+        total: parseFloat(row.total),
+      })),
+      staff_breakdown: staffResult.rows.map((row) => ({
+        staff_id: row.staff_id,
+        username: row.username || 'Unknown',
+        order_count: parseInt(row.order_count),
+        total_sales: parseFloat(row.total_sales),
+      })),
+      payment_breakdown: paymentResult.rows.map((row) => ({
+        payment_method: row.payment_method,
+        count: parseInt(row.count),
+        total: parseFloat(row.total),
+      })),
+    };
+
+    res.status(200).json({
+      success: true,
+      data: reportData,
+    });
+  } catch (error) {
+    console.error('Error fetching today\'s Z Report:', error);
+    res.status(500).json({ success: false, error: (error as Error).message });
+  } finally {
+    client.release();
+  }
+};
+
+/**
  * GET /api/reports/z-report/history (Manager only)
  * Get historical Z Reports
  * @param req - Express request object (supports query params: start_date, end_date, limit)

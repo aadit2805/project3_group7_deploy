@@ -87,24 +87,21 @@ export default function ZReportPage() {
     const checkExistingReport = async () => {
       try {
         setLoading(true);
-        const today = new Date().toISOString().split('T')[0];
         
         // Check if Z Report already exists for today
-        const response = await fetch('/api/reports/z-report/history?limit=1', {
+        const response = await fetch('/api/reports/z-report/today', {
           credentials: 'include',
         });
 
         if (response.ok) {
           const result = await safeJsonParse(response);
-          if (result.success && result.data.length > 0) {
-            const latestReport = result.data[0];
-            if (latestReport.business_date === today && latestReport.status === 'closed') {
-              // Z Report already generated for today
-              addToast({ 
-                message: 'Z Report already generated for today. Day is closed.', 
-                type: 'success' 
-              });
-            }
+          if (result.success && result.data) {
+            // Z Report already generated for today, display it
+            setReportData(result.data);
+            addToast({ 
+              message: 'Displaying today\'s Z Report', 
+              type: 'success' 
+            });
           }
         }
 
