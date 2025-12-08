@@ -52,6 +52,10 @@ const EmployeeLayout = ({ children }: { children: ReactNode }) => {
     );
   }
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <EmployeeContext.Provider value={{ user }}>
       <ToastProvider>

@@ -34,3 +34,7 @@ yarn-error.log*
 *.tsbuildinfo
 
 reference.md
+
+pa11y.sh
+pa11y_results.txt
+run-pa11y.js
