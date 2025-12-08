@@ -4,6 +4,7 @@ import { useEmployee } from '@/app/context/EmployeeContext';
 import ConfirmationModal from '@/app/components/ConfirmationModal';
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/app/hooks/useToast';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
 interface User {
   id: number | string; // Can be number for Google users, or string for local staff (staff_id)
@@ -63,7 +64,7 @@ const EmployeeManagementPage = () => {
         if (!googleUsersResponse.ok) {
           throw new Error('Failed to fetch Google users.');
         }
-        const googleUsersData: User[] = (await googleUsersResponse.json()).map((u: any) => ({
+        const googleUsersData: User[] = (await safeJsonParse(googleUsersResponse)).map((u: any) => ({
           id: u.id,
           name: u.name,
           email: u.email,
@@ -77,7 +78,7 @@ const EmployeeManagementPage = () => {
         if (!localStaffResponse.ok) {
           throw new Error('Failed to fetch local staff.');
         }
-        const localStaffData: User[] = (await localStaffResponse.json()).map((s: any) => ({
+        const localStaffData: User[] = (await safeJsonParse(localStaffResponse)).map((s: any) => ({
           id: `local-${s.staff_id}`, // Prefix local staff IDs to ensure uniqueness
           name: s.username,
           username: s.username, // Store username separately
@@ -254,7 +255,12 @@ const EmployeeManagementPage = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData: any = {};
+        try {
+          errorData = await safeJsonParse(response);
+        } catch {
+          // If response is not JSON, use empty object
+        }
         throw new Error(errorData.message || 'Failed to update password.');
       }
 
@@ -299,11 +305,16 @@ const EmployeeManagementPage = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData: any = {};
+        try {
+          errorData = await safeJsonParse(response);
+        } catch {
+          // If response is not JSON, use empty object
+        }
         throw new Error(errorData.message || 'Failed to create staff member.');
       }
 
-      const createdStaff: { staff_id: number; username: string; role: string; createdAt: string; } = await response.json();
+      const createdStaff: { staff_id: number; username: string; role: string; createdAt: string; } = await safeJsonParse(response);
       addToast({ message: `Staff member '${createdStaff.username}' created successfully!`, type: 'success' });
       // Add a small delay before closing the modal and clearing messages
       setTimeout(() => {
