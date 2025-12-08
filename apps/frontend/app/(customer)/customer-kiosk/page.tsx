@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useContext, Suspense } from 'react';
+import React, { useState, useEffect, useContext, Suspense, useRef } from 'react';
 import apiClient from '@/app/utils/apiClient';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -93,16 +93,21 @@ const CustomerKioskContent = () => {
 
   useEffect(() => {
     if (pastOrders.length > 0) {
-      const allEntrees = pastOrders.flatMap(order => order.order_items.flatMap(item => item.entrees));
-      const entreeCounts = allEntrees.reduce((acc, entree) => {
-        acc[entree.menu_item_id] = (acc[entree.menu_item_id] || 0) + 1;
-        return acc;
-      }, {} as Record<number, number>);
+      const allEntrees = pastOrders.flatMap((order) =>
+        order.order_items.flatMap((item) => item.entrees)
+      );
+      const entreeCounts = allEntrees.reduce(
+        (acc, entree) => {
+          acc[entree.menu_item_id] = (acc[entree.menu_item_id] || 0) + 1;
+          return acc;
+        },
+        {} as Record<number, number>
+      );
 
       const sortedEntrees = Object.keys(entreeCounts)
         .sort((a, b) => entreeCounts[parseInt(b)] - entreeCounts[parseInt(a)])
         .slice(0, 3)
-        .map(id => allEntrees.find(e => e.menu_item_id === parseInt(id)))
+        .map((id) => allEntrees.find((e) => e.menu_item_id === parseInt(id)))
         .filter((e): e is MenuItem => e !== undefined);
 
       setRecommendedItems(sortedEntrees);
@@ -172,6 +177,10 @@ const CustomerKioskContent = () => {
   const [allergenPreferencesLoaded, setAllergenPreferencesLoaded] = useState(false);
   const [allergenPreferences, setAllergenPreferences] = useState<Set<string>>(new Set());
 
+  // Track cycle direction for each item: true = ascending (0->1->2), false = descending (2->1->0)
+  const entreeCycleDirection = useRef<Map<number, boolean>>(new Map());
+  const sideCycleDirection = useRef<Map<number, boolean>>(new Map());
+
   useEffect(() => {
     if (!mealTypeId) {
       router.push('/meal-type-selection');
@@ -180,10 +189,14 @@ const CustomerKioskContent = () => {
 
   useEffect(() => {
     if (mealTypeId) {
+      // Reset cycle direction when meal type changes
+      entreeCycleDirection.current.clear();
+      sideCycleDirection.current.clear();
+
       const fetchMealTypeAndMenuItems = async () => {
         try {
           const backendUrl = '';
-          
+
           const mealTypeRes = await apiClient(`${backendUrl}/api/meal-types/${mealTypeId}`);
           const mealTypeData: MealType = await mealTypeRes.json();
           setSelectedMealType(mealTypeData);
@@ -213,7 +226,7 @@ const CustomerKioskContent = () => {
   useEffect(() => {
     const loadAllergenPreferences = async () => {
       if (allergenPreferencesLoaded) return; // Only load once
-      
+
       const customerToken = localStorage.getItem('customerToken');
       if (!customerToken) return;
 
@@ -221,7 +234,7 @@ const CustomerKioskContent = () => {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
         const response = await fetch(`${backendUrl}/api/customer/auth/me`, {
           headers: {
-            'Authorization': `Bearer ${customerToken}`,
+            Authorization: `Bearer ${customerToken}`,
           },
         });
 
@@ -288,16 +301,97 @@ const CustomerKioskContent = () => {
 
     if (type === 'entree') {
       if (!selectedMealType) return; // Ensure meal type is selected
-      if (selectedEntrees.length < selectedMealType.entree_count) {
-        setSelectedEntrees([...selectedEntrees, item]);
+      // Count how many times this specific item is selected
+      const itemCount = selectedEntrees.filter((e) => e.menu_item_id === item.menu_item_id).length;
+      const totalCount = selectedEntrees.length;
+      const maxCount = selectedMealType.entree_count;
+      const isAscending = entreeCycleDirection.current.get(item.menu_item_id) ?? true;
+
+      // Dynamic cycle: 0 -> 1 -> 2 -> ... -> maxCount -> (maxCount-1) -> ... -> 1 -> 0
+      if (itemCount === 0) {
+        // Item not selected: add one if there's room, mark as ascending
+        if (totalCount < maxCount) {
+          entreeCycleDirection.current.set(item.menu_item_id, true);
+          setSelectedEntrees([...selectedEntrees, item]);
+        }
+      } else if (itemCount < maxCount && isAscending) {
+        // Ascending phase: add another one (if we haven't reached max)
+        if (totalCount < maxCount) {
+          setSelectedEntrees([...selectedEntrees, item]);
+        } else {
+          // Can't add more (total at max), switch to descending and remove one
+          entreeCycleDirection.current.set(item.menu_item_id, false);
+          const itemIndex = selectedEntrees.findIndex((e) => e.menu_item_id === item.menu_item_id);
+          if (itemIndex !== -1) {
+            setSelectedEntrees(selectedEntrees.filter((_, index) => index !== itemIndex));
+          }
+        }
+      } else {
+        // Descending phase or at max: remove one
+        const itemIndex = selectedEntrees.findIndex((e) => e.menu_item_id === item.menu_item_id);
+        if (itemIndex !== -1) {
+          const newEntrees = selectedEntrees.filter((_, index) => index !== itemIndex);
+          setSelectedEntrees(newEntrees);
+          // If after removal we have 0 of this item, delete from map; otherwise mark as descending
+          const newItemCount = newEntrees.filter(
+            (e) => e.menu_item_id === item.menu_item_id
+          ).length;
+          if (newItemCount === 0) {
+            entreeCycleDirection.current.delete(item.menu_item_id);
+          } else {
+            entreeCycleDirection.current.set(item.menu_item_id, false);
+          }
+        }
       }
     } else if (type === 'side') {
       if (!selectedMealType) return; // Ensure meal type is selected
-      if (selectedSides.length < selectedMealType.side_count) {
-        setSelectedSides([...selectedSides, item]);
+      // Count how many times this specific item is selected
+      const itemCount = selectedSides.filter((s) => s.menu_item_id === item.menu_item_id).length;
+      const totalCount = selectedSides.length;
+      const maxCount = selectedMealType.side_count;
+      const isAscending = sideCycleDirection.current.get(item.menu_item_id) ?? true;
+
+      // Dynamic cycle: 0 -> 1 -> 2 -> ... -> maxCount -> (maxCount-1) -> ... -> 1 -> 0
+      if (itemCount === 0) {
+        // Item not selected: add one if there's room, mark as ascending
+        if (totalCount < maxCount) {
+          sideCycleDirection.current.set(item.menu_item_id, true);
+          setSelectedSides([...selectedSides, item]);
+        }
+      } else if (itemCount < maxCount && isAscending) {
+        // Ascending phase: add another one (if we haven't reached max)
+        if (totalCount < maxCount) {
+          setSelectedSides([...selectedSides, item]);
+        } else {
+          // Can't add more (total at max), switch to descending and remove one
+          sideCycleDirection.current.set(item.menu_item_id, false);
+          const itemIndex = selectedSides.findIndex((s) => s.menu_item_id === item.menu_item_id);
+          if (itemIndex !== -1) {
+            setSelectedSides(selectedSides.filter((_, index) => index !== itemIndex));
+          }
+        }
+      } else {
+        // Descending phase or at max: remove one
+        const itemIndex = selectedSides.findIndex((s) => s.menu_item_id === item.menu_item_id);
+        if (itemIndex !== -1) {
+          const newSides = selectedSides.filter((_, index) => index !== itemIndex);
+          setSelectedSides(newSides);
+          // If after removal we have 0 of this item, delete from map; otherwise mark as descending
+          const newItemCount = newSides.filter((s) => s.menu_item_id === item.menu_item_id).length;
+          if (newItemCount === 0) {
+            sideCycleDirection.current.delete(item.menu_item_id);
+          } else {
+            sideCycleDirection.current.set(item.menu_item_id, false);
+          }
+        }
       }
     } else if (type === 'drink') {
-      setSelectedDrink(item);
+      // Toggle drink selection: if already selected, deselect; otherwise select
+      if (selectedDrink?.menu_item_id === item.menu_item_id) {
+        setSelectedDrink(undefined);
+      } else {
+        setSelectedDrink(item);
+      }
     }
   };
 
@@ -321,6 +415,9 @@ const CustomerKioskContent = () => {
       setSelectedEntrees([]);
       setSelectedSides([]);
       setSelectedDrink(undefined);
+      // Reset cycle direction when clearing selections
+      entreeCycleDirection.current.clear();
+      sideCycleDirection.current.clear();
       router.push('/meal-type-selection');
     }
   };
@@ -337,7 +434,7 @@ const CustomerKioskContent = () => {
 
   const renderAllergenBadge = (item: MenuItem) => {
     const allergens = getAllergens(item);
-    
+
     // Debug logging (can remove later)
     if (item.menu_item_id === menuItems[0]?.menu_item_id) {
       console.log('Debug - Item:', item.name);
@@ -345,39 +442,49 @@ const CustomerKioskContent = () => {
       console.log('Debug - User preferences:', Array.from(allergenPreferences));
       console.log('Debug - Preferences size:', allergenPreferences.size);
     }
-    
+
     // If item has no allergens at all, show green badge
     if (allergens.length === 0) {
       return (
         <div className="mt-2 text-xs text-green-600 flex items-center">
           <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clipRule="evenodd"
+            />
           </svg>
           {t.noAllergens}
         </div>
       );
     }
-    
+
     // If user has preferences set, filter to show only matching allergens
     if (allergenPreferences.size > 0) {
       // Normalize comparison - convert to lowercase for case-insensitive matching
-      const normalizedPreferences = new Set(Array.from(allergenPreferences).map(a => a.toLowerCase().trim()));
-      const matchingAllergens = allergens.filter(allergen => 
+      const normalizedPreferences = new Set(
+        Array.from(allergenPreferences).map((a) => a.toLowerCase().trim())
+      );
+      const matchingAllergens = allergens.filter((allergen) =>
         normalizedPreferences.has(allergen.toLowerCase().trim())
       );
-      
+
       // Debug for first item
       if (item.menu_item_id === menuItems[0]?.menu_item_id) {
         console.log('Debug - Matching allergens:', matchingAllergens);
       }
-      
+
       // If user is allergic to any allergens in this item, show warning badge with matching ones
       if (matchingAllergens.length > 0) {
         return (
           <div className="mt-2">
             <div className="text-xs font-semibold text-red-600 mb-1 flex items-center">
               <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
               </svg>
               {t.allergens}:
             </div>
@@ -398,20 +505,28 @@ const CustomerKioskContent = () => {
         return (
           <div className="mt-2 text-xs text-green-600 flex items-center">
             <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
             </svg>
             {t.noAllergens}
           </div>
         );
       }
     }
-    
+
     // If user has no preferences set, show all allergens (original behavior)
     return (
       <div className="mt-2">
         <div className="text-xs font-semibold text-red-600 mb-1 flex items-center">
           <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+              clipRule="evenodd"
+            />
           </svg>
           {t.allergens}:
         </div>
@@ -432,9 +547,9 @@ const CustomerKioskContent = () => {
   // Get all unique allergens from menu items
   const allAllergens = React.useMemo(() => {
     const allergensSet = new Set<string>();
-    menuItems.forEach(item => {
+    menuItems.forEach((item) => {
       const itemAllergens = getAllergens(item);
-      itemAllergens.forEach(allergen => allergensSet.add(allergen));
+      itemAllergens.forEach((allergen) => allergensSet.add(allergen));
     });
     return Array.from(allergensSet).sort();
   }, [menuItems]);
@@ -457,7 +572,7 @@ const CustomerKioskContent = () => {
     if (allergenFilter.size === 0) return true;
     const itemAllergens = getAllergens(item);
     // Return false if item contains any filtered allergen
-    return !itemAllergens.some(allergen => allergenFilter.has(allergen));
+    return !itemAllergens.some((allergen) => allergenFilter.has(allergen));
   };
 
   const itemCount = order.length;
@@ -527,14 +642,22 @@ const CustomerKioskContent = () => {
               )}
             </Link>
           </div>
-          
+
           {/* Allergen Filter Section */}
           {allAllergens.length > 0 && (
             <div className="mb-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
               <div className="flex justify-between items-center mb-3">
                 <h2 className="text-lg font-semibold text-gray-800 flex items-center">
-                  <svg className="w-5 h-5 mr-2 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  <svg
+                    className="w-5 h-5 mr-2 text-yellow-600"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   {t.filterByAllergens}
                 </h2>
@@ -545,7 +668,7 @@ const CustomerKioskContent = () => {
                   {showAllergenFilter ? 'Hide' : 'Show'}
                 </button>
               </div>
-              
+
               {showAllergenFilter && (
                 <div>
                   <div className="flex justify-between items-center mb-3">
@@ -553,14 +676,18 @@ const CustomerKioskContent = () => {
                     {allergenPreferencesLoaded && allergenFilter.size > 0 && (
                       <p className="text-xs text-blue-600 italic flex items-center">
                         <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                         {t.loadedFromProfile}
                       </p>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {allAllergens.map(allergen => (
+                    {allAllergens.map((allergen) => (
                       <button
                         key={allergen}
                         onClick={() => toggleAllergenFilter(allergen)}
@@ -577,7 +704,8 @@ const CustomerKioskContent = () => {
                   {allergenFilter.size > 0 && (
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">
-                        Filtering {allergenFilter.size} allergen{allergenFilter.size !== 1 ? 's' : ''}
+                        Filtering {allergenFilter.size} allergen
+                        {allergenFilter.size !== 1 ? 's' : ''}
                       </span>
                       <button
                         onClick={clearAllergenFilter}
@@ -594,7 +722,9 @@ const CustomerKioskContent = () => {
 
           {recommendedItems.length > 0 && (
             <section className="mb-10 animate-fade-in">
-              <h2 className="text-3xl font-semibold mb-4 animate-slide-in-down">Recommended for you</h2>
+              <h2 className="text-3xl font-semibold mb-4 animate-slide-in-down">
+                Recommended for you
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recommendedItems.map((item, index) => (
                   <div
@@ -654,8 +784,8 @@ const CustomerKioskContent = () => {
                         isOutOfStock
                           ? 'border-red-300 bg-gray-100 opacity-60 cursor-not-allowed'
                           : selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id)
-                          ? 'border-blue-500 ring-2 ring-blue-300 cursor-pointer hover-scale'
-                          : 'border-gray-200 cursor-pointer hover-scale'
+                            ? 'border-blue-500 ring-2 ring-blue-300 cursor-pointer hover-scale'
+                            : 'border-gray-200 cursor-pointer hover-scale'
                       }`}
                       onClick={() => !isOutOfStock && handleSelectItem(item, 'entree')}
                     >
@@ -711,8 +841,8 @@ const CustomerKioskContent = () => {
                         isOutOfStock
                           ? 'border-red-300 bg-gray-100 opacity-60 cursor-not-allowed'
                           : selectedSides.some((s) => s.menu_item_id === item.menu_item_id)
-                          ? 'border-blue-500 ring-2 ring-blue-300 cursor-pointer hover-scale'
-                          : 'border-gray-200 cursor-pointer hover-scale'
+                            ? 'border-blue-500 ring-2 ring-blue-300 cursor-pointer hover-scale'
+                            : 'border-gray-200 cursor-pointer hover-scale'
                       }`}
                       onClick={() => !isOutOfStock && handleSelectItem(item, 'side')}
                     >
@@ -760,35 +890,35 @@ const CustomerKioskContent = () => {
                     ).toLowerCase();
                     return itemName.includes(searchLower);
                   })
-                .map((item, index) => {
-                  const isOutOfStock = (item.stock ?? 0) <= 0;
-                  return (
-                    <div
-                      key={item.menu_item_id}
-                      className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${
-                        isOutOfStock
-                          ? 'border-red-300 bg-gray-100 opacity-60 cursor-not-allowed'
-                          : selectedDrink?.menu_item_id === item.menu_item_id
-                          ? 'border-blue-500 ring-2 ring-blue-300 cursor-pointer hover-scale'
-                          : 'border-gray-200 cursor-pointer hover-scale'
-                      }`}
-                      onClick={() => !isOutOfStock && handleSelectItem(item, 'drink')}
-                    >
-                      <h3 className="text-xl font-bold mb-2">
-                        {translatedMenuItems[item.menu_item_id] || item.name}
-                      </h3>
-                      <p className="text-gray-700">
-                        {t.upcharge}: ${item.upcharge.toFixed(2)}
-                      </p>
-                      {isOutOfStock && (
-                        <div className="mt-2 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full inline-block">
-                          Out of Stock
-                        </div>
-                      )}
-                      {renderAllergenBadge(item)}
-                    </div>
-                  );
-                })}
+                  .map((item, index) => {
+                    const isOutOfStock = (item.stock ?? 0) <= 0;
+                    return (
+                      <div
+                        key={item.menu_item_id}
+                        className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${
+                          isOutOfStock
+                            ? 'border-red-300 bg-gray-100 opacity-60 cursor-not-allowed'
+                            : selectedDrink?.menu_item_id === item.menu_item_id
+                              ? 'border-blue-500 ring-2 ring-blue-300 cursor-pointer hover-scale'
+                              : 'border-gray-200 cursor-pointer hover-scale'
+                        }`}
+                        onClick={() => !isOutOfStock && handleSelectItem(item, 'drink')}
+                      >
+                        <h3 className="text-xl font-bold mb-2">
+                          {translatedMenuItems[item.menu_item_id] || item.name}
+                        </h3>
+                        <p className="text-gray-700">
+                          {t.upcharge}: ${item.upcharge.toFixed(2)}
+                        </p>
+                        {isOutOfStock && (
+                          <div className="mt-2 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full inline-block">
+                            Out of Stock
+                          </div>
+                        )}
+                        {renderAllergenBadge(item)}
+                      </div>
+                    );
+                  })}
               </div>
             </section>
           )}

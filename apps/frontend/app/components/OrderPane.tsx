@@ -156,34 +156,35 @@ const OrderPane = ({ onOrderSubmitSuccess }: { onOrderSubmitSuccess?: () => void
         }),
       });
 
-              if (response.ok) {
+      if (response.ok) {
+        addToast({ message: t.successMessage, type: 'success' });
 
-                addToast({ message: t.successMessage, type: 'success' });
+        setOrder([]);
+        setIsRushOrder(false);
+        setOrderNotes('');
+        setDiscountCode('');
+        setDiscountAmount(0);
+        setDiscountName('');
 
-                setOrder([]);
-                setIsRushOrder(false);
-                setOrderNotes('');
-                setDiscountCode('');
-                setDiscountAmount(0);
-                setDiscountName('');
+        localStorage.removeItem('order');
 
-                localStorage.removeItem('order');
-
-                if (onOrderSubmitSuccess) {
-
-                  onOrderSubmitSuccess();
-
-                } else {
-
-                  router.push('/meal-type-selection');
-
-                }
-
-              } else {
+        if (onOrderSubmitSuccess) {
+          onOrderSubmitSuccess();
+        } else {
+          router.push('/meal-type-selection');
+        }
+      } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Order submission failed:', errorData);
-        addToast({ message: `${t.failMessage} ${errorData.error ? `
-Error: ${errorData.error}` : ''}`, type: 'error' });
+        addToast({
+          message: `${t.failMessage} ${
+            errorData.error
+              ? `
+Error: ${errorData.error}`
+              : ''
+          }`,
+          type: 'error',
+        });
       }
     } catch (error) {
       console.error('Error submitting order:', error);
@@ -192,14 +193,12 @@ Error: ${errorData.error}` : ''}`, type: 'error' });
   };
 
   return (
-    <aside 
-      className="w-1/3 bg-gray-100 p-6" 
-      role="complementary" 
-      aria-label="Order summary"
-    >
+    <aside className="w-1/3 bg-gray-100 p-6" role="complementary" aria-label="Order summary">
       <h2 className="text-3xl font-semibold mb-4">{t.title}</h2>
       {order.length === 0 ? (
-        <p role="status" aria-live="polite">{t.empty}</p>
+        <p role="status" aria-live="polite">
+          {t.empty}
+        </p>
       ) : (
         <>
           <ul role="list" aria-label="Order items">
@@ -216,7 +215,10 @@ Error: ${errorData.error}` : ''}`, type: 'error' });
                 <li key={index} className="mb-4 pb-4 border-b border-gray-200">
                   <div className="flex justify-between items-center">
                     <h3 className="text-2xl font-bold">{orderItem.mealType.meal_type_name}</h3>
-                    <div role="group" aria-label={`Actions for ${orderItem.mealType.meal_type_name}`}>
+                    <div
+                      role="group"
+                      aria-label={`Actions for ${orderItem.mealType.meal_type_name}`}
+                    >
                       <button
                         onClick={() => handleEditItem(index)}
                         className="text-blue-500 hover:text-blue-700 font-bold mr-2 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -233,48 +235,57 @@ Error: ${errorData.error}` : ''}`, type: 'error' });
                       </button>
                     </div>
                   </div>
-                {isDrinkOnly ? (
-                  <>
-                    <p>{t.basePrice}: ${orderItem.mealType.meal_type_price.toFixed(2)}</p>
-                    {orderItem.drink && (
+                  {isDrinkOnly ? (
+                    <>
                       <p>
-                        {t.drink}: {orderItem.drink.name} (+${orderItem.drink.upcharge.toFixed(2)})
+                        {t.basePrice}: ${orderItem.mealType.meal_type_price.toFixed(2)}
                       </p>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <p>{t.basePrice}: ${orderItem.mealType.meal_type_price.toFixed(2)}</p>
-                    <h4 className="text-xl font-semibold mt-4">{t.entrees}:</h4>
-                    <ul role="list" aria-label="Selected entrees">
-                      {orderItem.entrees.map((item) => (
-                        <li key={item.menu_item_id}>
-                          {item.name} (+${item.upcharge.toFixed(2)})
-                        </li>
-                      ))}
-                    </ul>
-                    <h4 className="text-xl font-semibold mt-4">{t.sides}:</h4>
-                    <ul role="list" aria-label="Selected sides">
-                      {orderItem.sides.map((item) => (
-                        <li key={item.menu_item_id}>
-                          {item.name} (+${item.upcharge.toFixed(2)})
-                        </li>
-                      ))}
-                    </ul>
-                    {orderItem.drink && (
-                      <p className="text-xl font-semibold mt-4">
-                        {t.drink}: {orderItem.drink.name} (+${orderItem.drink.upcharge.toFixed(2)})
+                      {orderItem.drink && (
+                        <p>
+                          {t.drink}: {orderItem.drink.name} (+${orderItem.drink.upcharge.toFixed(2)}
+                          )
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        {t.basePrice}: ${orderItem.mealType.meal_type_price.toFixed(2)}
                       </p>
-                    )}
-                  </>
-                )}
+                      <h4 className="text-xl font-semibold mt-4">{t.entrees}:</h4>
+                      <ul role="list" aria-label="Selected entrees">
+                        {orderItem.entrees.map((item, index) => (
+                          <li key={`${item.menu_item_id}-${index}`}>
+                            {item.name} (+${item.upcharge.toFixed(2)})
+                          </li>
+                        ))}
+                      </ul>
+                      <h4 className="text-xl font-semibold mt-4">{t.sides}:</h4>
+                      <ul role="list" aria-label="Selected sides">
+                        {orderItem.sides.map((item, index) => (
+                          <li key={`${item.menu_item_id}-${index}`}>
+                            {item.name} (+${item.upcharge.toFixed(2)})
+                          </li>
+                        ))}
+                      </ul>
+                      {orderItem.drink && (
+                        <p className="text-xl font-semibold mt-4">
+                          {t.drink}: {orderItem.drink.name} (+${orderItem.drink.upcharge.toFixed(2)}
+                          )
+                        </p>
+                      )}
+                    </>
+                  )}
                 </li>
               );
             })}
           </ul>
           <div className="text-right mt-6 pt-4 border-t-2 border-gray-300">
             <p className="text-2xl font-bold mb-2" role="status" aria-live="polite">
-              {t.total}: <span aria-label={`Subtotal ${totalPrice.toFixed(2)} dollars`}>${totalPrice.toFixed(2)}</span>
+              {t.total}:{' '}
+              <span aria-label={`Subtotal ${totalPrice.toFixed(2)} dollars`}>
+                ${totalPrice.toFixed(2)}
+              </span>
             </p>
 
             {/* Discount Code Section */}
@@ -317,8 +328,18 @@ Error: ${errorData.error}` : ''}`, type: 'error' });
                       className="text-red-600 hover:text-red-800 button-press"
                       aria-label="Remove discount"
                     >
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -327,12 +348,22 @@ Error: ${errorData.error}` : ''}`, type: 'error' });
             </div>
 
             {discountAmount > 0 && (
-              <p className="text-2xl font-bold mb-4 text-green-700" role="status" aria-live="polite">
-                Final Total: <span aria-label={`Final total ${finalPrice.toFixed(2)} dollars`}>${finalPrice.toFixed(2)}</span>
+              <p
+                className="text-2xl font-bold mb-4 text-green-700"
+                role="status"
+                aria-live="polite"
+              >
+                Final Total:{' '}
+                <span aria-label={`Final total ${finalPrice.toFixed(2)} dollars`}>
+                  ${finalPrice.toFixed(2)}
+                </span>
               </p>
             )}
             <div className="mb-4">
-              <label htmlFor="order-notes" className="block text-lg font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="order-notes"
+                className="block text-lg font-semibold text-gray-700 mb-2"
+              >
                 {t.orderNotes}:
               </label>
               <textarea
@@ -354,7 +385,10 @@ Error: ${errorData.error}` : ''}`, type: 'error' });
                 className="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500"
                 aria-label="Mark order as rush order"
               />
-              <label htmlFor="rush-order" className="text-lg font-semibold text-gray-700 cursor-pointer">
+              <label
+                htmlFor="rush-order"
+                className="text-lg font-semibold text-gray-700 cursor-pointer"
+              >
                 {t.markAsRushOrder}
               </label>
             </div>

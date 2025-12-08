@@ -126,13 +126,69 @@ const ALaCartePage = () => {
       return;
     }
 
-    const newOrderItem: OrderItem = {
-      mealType: mealType,
-      entrees: item.item_type === 'entree' ? [item] : [],
-      sides: item.item_type === 'side' ? [item] : [],
-    };
+    setOrder((prevOrder) => {
+      // Try to find an existing order item with the same mealType
+      const existingOrderItemIndex = prevOrder.findIndex(
+        (orderItem) => orderItem.mealType.meal_type_id === sizeMealTypeId
+      );
 
-    setOrder([...order, newOrderItem]);
+      if (existingOrderItemIndex !== -1) {
+        // If an existing order item is found, update it
+        const updatedOrder = [...prevOrder];
+        const existingOrderItem = { ...updatedOrder[existingOrderItemIndex] }; // Create a copy
+
+        if (item.item_type === 'entree') {
+          const itemIndex = existingOrderItem.entrees.findIndex(
+            (entree) => entree.menu_item_id === item.menu_item_id
+          );
+
+          if (itemIndex !== -1) {
+            // Item already exists, remove it (deselect)
+            existingOrderItem.entrees.splice(itemIndex, 1);
+          } else {
+            // Item does not exist, add it or replace if full
+            if (existingOrderItem.entrees.length < mealType.entree_count) {
+              existingOrderItem.entrees.push(item);
+            } else {
+              // Replace the last entree if full (simple replacement strategy)
+              existingOrderItem.entrees[existingOrderItem.entrees.length - 1] = item;
+            }
+          }
+        } else if (item.item_type === 'side') {
+          const itemIndex = existingOrderItem.sides.findIndex(
+            (side) => side.menu_item_id === item.menu_item_id
+          );
+
+          if (itemIndex !== -1) {
+            // Item already exists, remove it (deselect)
+            existingOrderItem.sides.splice(itemIndex, 1);
+          } else {
+            // Item does not exist, add it or replace if full
+            if (existingOrderItem.sides.length < mealType.side_count) {
+              existingOrderItem.sides.push(item);
+            } else {
+              // Replace the last side if full
+              existingOrderItem.sides[existingOrderItem.sides.length - 1] = item;
+            }
+          }
+        } else if (item.item_type === 'drink') {
+          // For drinks, always replace if one exists, otherwise add
+          existingOrderItem.drink = item;
+        }
+
+        updatedOrder[existingOrderItemIndex] = existingOrderItem;
+        return updatedOrder;
+      } else {
+        // If no existing order item is found, create a new one
+        const newOrderItem: OrderItem = {
+          mealType: mealType,
+          entrees: item.item_type === 'entree' ? [item] : [],
+          sides: item.item_type === 'side' ? [item] : [],
+          drink: item.item_type === 'drink' ? item : undefined,
+        };
+        return [...prevOrder, newOrderItem];
+      }
+    });
   };
 
   const entrees = menuItems.filter((item) => item.item_type === 'entree');
