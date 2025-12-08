@@ -229,27 +229,67 @@ export const createOrder = async (req: Request, res: Response) => {
   }
 };
 
-export const getActiveOrders = async (_req: Request, res: Response) => {
+export const getActiveOrders = async (req: Request, res: Response) => {
   const client = await pool.connect();
+  const { status, limit } = req.query;
 
   try {
-    // Get all orders that are not addressed or cancelled
-    const result = await client.query(
-      `SELECT 
-        o.order_id,
-        o.staff_id,
-        o.datetime,
-        o.price,
-        o.order_status,
-        s.username as staff_username,
-        COUNT(DISTINCT m.meal_id) as meal_count
-      FROM "Order" o
-      LEFT JOIN staff s ON o.staff_id = s.staff_id
-      LEFT JOIN meal m ON o.order_id = m.order_id
-      WHERE (o.order_status IS NULL OR o.order_status NOT IN ('addressed', 'cancelled'))
-      GROUP BY o.order_id, o.staff_id, o.datetime, o.price, o.order_status, s.username
-      ORDER BY o.datetime DESC NULLS LAST, o.order_id DESC`
-    );
+    let query = '';
+    let queryParams: any[] = [];
+
+    if (status === 'addressed') {
+      const limitValue = limit ? parseInt(limit as string, 10) : 20;
+      query = `
+        SELECT 
+          o.order_id,
+          o.customer_name,
+          o.datetime,
+          o.order_status,
+          o.completed_at,
+          o.price,
+          s.username as staff_username
+        FROM "Order" o
+        LEFT JOIN staff s ON o.staff_id = s.staff_id
+        WHERE o.order_status = 'addressed'
+        ORDER BY o.datetime DESC, o.order_id DESC
+        LIMIT $1
+      `;
+      queryParams = [limitValue];
+    } else {
+      query = `
+        SELECT 
+          o.order_id,
+          o.staff_id,
+          o.datetime,
+          o.price,
+          o.order_status,
+          s.username as staff_username,
+          COUNT(DISTINCT m.meal_id) as meal_count
+        FROM "Order" o
+        LEFT JOIN staff s ON o.staff_id = s.staff_id
+        LEFT JOIN meal m ON o.order_id = m.order_id
+        WHERE (o.order_status IS NULL OR o.order_status NOT IN ('addressed', 'cancelled'))
+        GROUP BY o.order_id, o.staff_id, o.datetime, o.price, o.order_status, s.username
+        ORDER BY o.datetime DESC NULLS LAST, o.order_id DESC
+      `;
+    }
+
+    const result = await client.query(query, queryParams);
+
+    if (status === 'addressed') {
+      return res.status(200).json({
+        success: true,
+        data: result.rows.map((row) => ({
+          order_id: row.order_id,
+          customer_name: row.customer_name || 'Guest',
+          datetime: row.datetime,
+          completed_at: row.completed_at,
+          order_status: row.order_status,
+          price: row.price ? parseFloat(row.price) : 0,
+          staff_username: row.staff_username || null,
+        })),
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -264,7 +304,7 @@ export const getActiveOrders = async (_req: Request, res: Response) => {
       })),
     });
   } catch (error) {
-    console.error('Error fetching active orders:', error);
+    console.error('Error fetching orders:', error);
     return res.status(500).json({ success: false, error: (error as Error).message });
   } finally {
     client.release();

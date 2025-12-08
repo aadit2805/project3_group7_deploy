@@ -8,6 +8,24 @@ import { useTranslatedTexts, useTranslation } from '@/app/hooks/useTranslation';
 import Tooltip from '@/app/components/Tooltip';
 
 import { useToast } from '@/app/hooks/useToast';
+import { useWeather } from '@/app/context/WeatherContext';
+
+interface MenuItem {
+  menu_item_id: number;
+  name: string;
+  upcharge: number;
+  is_available: boolean;
+  item_type: string;
+}
+
+interface MealType {
+  meal_type_id: number;
+  meal_type_name: string;
+  meal_type_price: number;
+  entree_count: number;
+  side_count: number;
+  drink_size: string;
+}
 
 /**
  * Shopping Cart page - displays customer's order items and allows order submission
@@ -19,6 +37,11 @@ const ShoppingCart = () => {
   const { translateBatch, currentLanguage } = useTranslation();
   const [translatedNames, setTranslatedNames] = useState<Record<string, string>>({});
   const { addToast } = useToast();
+  const { weather } = useWeather();
+  
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [mealTypes, setMealTypes] = useState<MealType[]>([]);
+  const [showWeatherRecommendation, setShowWeatherRecommendation] = useState(true);
 
   const textLabels = [
     'Back to Ordering',
@@ -101,6 +124,24 @@ const ShoppingCart = () => {
   const [pointsError, setPointsError] = useState<string | null>(null);
 
   const POINTS_PER_DOLLAR = 25; // Points conversion rate: 25 points = $1 discount
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const backendUrl = '';
+        const menuItemsRes = await fetch(`${backendUrl}/api/menu-items`);
+        const menuItemsData = await menuItemsRes.json();
+        setMenuItems(menuItemsData);
+
+        const mealTypesRes = await fetch(`${backendUrl}/api/meal-types`);
+        const mealTypesData = await mealTypesRes.json();
+        setMealTypes(mealTypesData);
+      } catch (error) {
+        console.error('Error fetching menu data:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   // Calculate total price including both promotional discount and points discount
   // Apply promotional discount first, then points discount
@@ -272,6 +313,78 @@ const ShoppingCart = () => {
     setDiscountCode('');
     setPromoDiscountAmount(0);
     setPromoDiscountName('');
+  };
+
+  const handleAddWeatherRecommendation = (drinkName: string) => {
+
+    const drinkItem = menuItems.find(
+      (item) => item.item_type === 'drink' && item.name.toLowerCase().includes(drinkName.toLowerCase())
+    );
+
+    if (!drinkItem) {
+      addToast({ message: `Could not find ${drinkName} in menu`, type: 'error' });
+      return;
+    }
+
+    const mediumMealType = mealTypes.find((mt) => mt.meal_type_id === 14);
+    if (!mediumMealType) {
+      addToast({ message: 'Could not find Medium size', type: 'error' });
+      return;
+    }
+
+    const newOrderItem: OrderItem = {
+      mealType: mediumMealType,
+      entrees: [],
+      sides: [],
+      drink: drinkItem,
+    };
+
+    setOrder([...order, newOrderItem]);
+    
+    setShowWeatherRecommendation(false);
+    
+    addToast({ message: `Added Medium ${drinkItem.name} to your order`, type: 'success' });
+  };
+
+  const isDrinkInOrder = (drinkName: string) => {
+    return order.some((orderItem) => {
+      if (orderItem.drink) {
+        return orderItem.drink.name.toLowerCase().includes(drinkName.toLowerCase());
+      }
+      return false;
+    });
+  };
+
+  const shouldShowRecommendation = () => {
+    if (!showWeatherRecommendation || !weather) return false;
+    
+    if (weather.temperature < 21) {
+      return !isDrinkInOrder('Hot Tea');
+    } else if (weather.temperature > 32) {
+      return !isDrinkInOrder('Sprite');
+    }
+    
+    return false;
+  };
+
+  const getRecommendationText = () => {
+    if (!weather) return '';
+    if (weather.temperature < 21) {
+      return "It's quite chilly outside! Would you like to add a Medium Hot Tea to your order?";
+    } else if (weather.temperature > 32) {
+      return "It's terribly hot outside! Would you like to add a Medium Sprite to your order?";
+    }
+    return '';
+  };
+
+  const getRecommendationDrink = () => {
+    if (!weather) return '';
+    if (weather.temperature < 21) {
+      return 'Hot Tea';
+    } else if (weather.temperature > 32) {
+      return 'Sprite';
+    }
+    return '';
   };
 
   const handleSubmitOrder = async () => {
@@ -493,6 +606,21 @@ const ShoppingCart = () => {
               })}
             </ul>
             <div className="mt-6 pt-4 border-t-2 border-gray-300">
+              {/* Weather Recommendation Section */}
+              {shouldShowRecommendation() && (
+                <div className="mb-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200 flex items-center justify-between gap-4">
+                  <p className="text-lg font-semibold text-gray-700 flex-1">
+                    {getRecommendationText()}
+                  </p>
+                  <button
+                    onClick={() => handleAddWeatherRecommendation(getRecommendationDrink())}
+                    className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 button-press whitespace-nowrap"
+                  >
+                    Add
+                  </button>
+                </div>
+              )}
+
               {/* Discount Code Section */}
               <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <label className="block text-lg font-semibold text-gray-700 mb-2">

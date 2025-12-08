@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import LanguageSelector from '@/app/components/LanguageSelector';
 import { useTranslatedTexts } from '@/app/hooks/useTranslation';
 import Tooltip from '@/app/components/Tooltip';
 import ClientOnly from '@/app/components/ClientOnly';
+import { WeatherProvider, useWeather } from '@/app/context/WeatherContext';
 
-export default function CustomerLayout({ children }: { children: React.ReactNode }) {
+function CustomerLayoutContent({ children }: { children: React.ReactNode }) {
   const { translatedTexts } = useTranslatedTexts(['Home', 'Customer Kiosk', 'My Profile', 'Promotions', 'Track Order']);
   const homeText = translatedTexts[0] || 'Home';
   const kioskText = translatedTexts[1] || 'Customer Kiosk';
@@ -18,6 +19,8 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
 
   const router = useRouter();
   const pathname = usePathname();
+  const { weather, weatherLoading } = useWeather();
+  const [isWeatherDropdownOpen, setIsWeatherDropdownOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('customerToken');
@@ -138,10 +141,58 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
               );
             }}
           </ClientOnly>
+          <div className="relative">
+            <button
+              onClick={() => setIsWeatherDropdownOpen(!isWeatherDropdownOpen)}
+              className="bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2 shadow-sm transition-colors duration-200"
+              disabled={weatherLoading}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+              </svg>
+              <span className="text-sm">Weather</span>
+              <svg className={`w-4 h-4 transition-transform duration-200 ${isWeatherDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {isWeatherDropdownOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-10" 
+                  onClick={() => setIsWeatherDropdownOpen(false)}
+                />
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-20">
+                  <div className="p-3">
+                    {weatherLoading ? (
+                      <div className="text-sm text-gray-600 text-center py-2">Loading temperature...</div>
+                    ) : weather ? (
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-gray-800">{Math.round(weather.temperature)}°C</div>
+                        <div className="text-sm font-medium text-gray-700 mt-1 capitalize">{weather.description}</div>
+                        <div className="text-sm text-gray-600 mt-1">Humidity: {weather.humidity}%</div>
+                        <div className="text-xs text-gray-500 mt-1">{weather.city}, {weather.country}</div>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-600 text-center py-2">Weather data unavailable</div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
           <LanguageSelector showLabel={false} />
         </div>
       </div>
       {children}
     </div>
+  );
+}
+
+export default function CustomerLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <WeatherProvider>
+      <CustomerLayoutContent>{children}</CustomerLayoutContent>
+    </WeatherProvider>
   );
 }
