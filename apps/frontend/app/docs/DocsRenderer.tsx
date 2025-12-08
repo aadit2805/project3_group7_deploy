@@ -29,6 +29,12 @@ export default function DocsRenderer({
     if (dataBase && typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-base', dataBase);
     }
+    
+    // Force light mode
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.documentElement.style.colorScheme = 'light';
+    }
 
     // Inject CSS links into the head
     cssLinks.forEach((href) => {
@@ -42,6 +48,89 @@ export default function DocsRenderer({
     const customStyle = document.createElement('style');
     customStyle.id = 'typedoc-custom-sidebar-width';
     customStyle.textContent = `
+      /* Force light mode only - comprehensive overrides */
+      :root,
+      html,
+      body,
+      html[data-theme='dark'],
+      body[data-theme='dark'],
+      html[data-theme='light'],
+      body[data-theme='light'] {
+        --color-background: #ffffff !important;
+        --color-background-secondary: #f8f9fa !important;
+        --color-background-warning: #fffbdd !important;
+        --color-text: #222222 !important;
+        --color-text-aside: #6e6e6e !important;
+        --color-link: #1e70bf !important;
+        --color-ts: #9600ff !important;
+        --color-ts-interface: #647f1b !important;
+        --color-ts-enum: #937210 !important;
+        --color-ts-class: #0672de !important;
+        --color-ts-private: #707070 !important;
+        --color-icon-background: #ffffff !important;
+        --color-accent: #c5c7c9 !important;
+        --color-active-menu-item: rgba(0, 0, 0, 0.1) !important;
+        --color-code-background: #f5f5f5 !important;
+        --color-document: #ffffff !important;
+        color-scheme: light !important;
+        background: #ffffff !important;
+        color: #222222 !important;
+      }
+      
+      /* Force all backgrounds to be light */
+      body,
+      .container,
+      .container-main,
+      .col-content,
+      .tsd-panel,
+      .tsd-page-title,
+      .tsd-typography,
+      section {
+        background-color: #ffffff !important;
+        background: #ffffff !important;
+        color: #222222 !important;
+      }
+      
+      /* Fix dark boxes and panels */
+      .tsd-index-content,
+      .tsd-member,
+      .tsd-member-group,
+      .tsd-signatures,
+      .tsd-signature,
+      .tsd-description,
+      dl,
+      dd,
+      dt {
+        background-color: #ffffff !important;
+        background: #ffffff !important;
+        color: #222222 !important;
+      }
+      
+      /* Fix all text to be dark */
+      h1, h2, h3, h4, h5, h6,
+      p, span, a, li, td, th,
+      .tsd-signature-symbol,
+      .tsd-signature-type,
+      .tsd-kind-icon {
+        color: #222222 !important;
+      }
+      
+      /* Links should be visible */
+      a {
+        color: #1e70bf !important;
+      }
+      
+      a:hover {
+        color: #145a99 !important;
+      }
+      
+      /* Code blocks */
+      code,
+      pre {
+        background-color: #f5f5f5 !important;
+        color: #222222 !important;
+      }
+      
       /* Hide the left sidebar completely */
       .col-sidebar,
       .site-menu {
@@ -826,10 +915,15 @@ export default function DocsRenderer({
   }, [bodyContent]);
 
   return (
-    <>
+    <div className="docs-light-mode-wrapper" style={{ 
+      colorScheme: 'light',
+      backgroundColor: '#ffffff',
+      color: '#333333',
+      minHeight: '100vh'
+    }}>
       {/* Render body content */}
       <div ref={containerRef} dangerouslySetInnerHTML={{ __html: bodyContent }} />
-    </>
+    </div>
   );
 }
 

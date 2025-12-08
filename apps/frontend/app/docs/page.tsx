@@ -12,8 +12,8 @@ export const metadata: Metadata = {
  */
 export default function DocsPage() {
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-6">Documentation</h1>
+    <div className="container mx-auto p-8 min-h-screen bg-white text-gray-900" style={{ colorScheme: 'light' }}>
+      <h1 className="text-3xl font-bold mb-6 text-gray-900">Documentation</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="border rounded-lg p-6 hover:shadow-lg transition-shadow">
           <h2 className="text-2xl font-semibold mb-4">Frontend Documentation</h2>
