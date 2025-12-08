@@ -7,6 +7,7 @@ import { OrderContext, OrderItem } from '@/app/context/OrderContext';
 import { EmployeeContext } from '@/app/context/EmployeeContext'; // Import EmployeeContext
 import { useTranslatedTexts, useTranslation } from '@/app/hooks/useTranslation';
 import Tooltip from '@/app/components/Tooltip';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
 interface MenuItem {
   menu_item_id: number;
@@ -128,7 +129,10 @@ const CashierInterfaceContent = () => {
       try {
         const backendUrl = '';
         const res = await fetch(`${backendUrl}/api/meal-types`);
-        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(`Failed to fetch meal types: ${res.status}`);
+        }
+        const data = await safeJsonParse(res);
         setMealTypes(data);
       } catch (error) {
         console.error('Error fetching meal types:', error);
@@ -192,12 +196,18 @@ const CashierInterfaceContent = () => {
         try {
           const backendUrl = '';
           const mealTypeRes = await fetch(`${backendUrl}/api/meal-types/${mealTypeId}`);
-          const mealTypeData: MealType = await mealTypeRes.json();
+          if (!mealTypeRes.ok) {
+            throw new Error(`Failed to fetch meal type: ${mealTypeRes.status}`);
+          }
+          const mealTypeData: MealType = await safeJsonParse(mealTypeRes);
           setSelectedMealType(mealTypeData);
 
           // Fetch menu items with time-based availability filtering (same as customer kiosk)
           const menuItemsRes = await fetch(`${backendUrl}/api/menu-items?is_available=true`);
-          const menuItemsData: MenuItem[] = await menuItemsRes.json();
+          if (!menuItemsRes.ok) {
+            throw new Error(`Failed to fetch menu items: ${menuItemsRes.status}`);
+          }
+          const menuItemsData: MenuItem[] = await safeJsonParse(menuItemsRes);
           setMenuItems(menuItemsData);
 
           if (editIndex !== null) {

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Tooltip from '@/app/components/Tooltip';
 
 import { useToast } from '@/app/hooks/useToast';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
 /**
  * Inventory Manager page - allows employees to view and manage inventory
@@ -58,12 +59,18 @@ const InventoryManager = () => {
     setLoading(true);
     try {
       const inventoryRes = await fetch('/api/inventory');
-      const inventoryData = await inventoryRes.json();
+      if (!inventoryRes.ok) {
+        throw new Error(`Failed to fetch inventory: ${inventoryRes.status}`);
+      }
+      const inventoryData = await safeJsonParse(inventoryRes);
       setFoodInventory(inventoryData.food);
       setNonFoodInventory(inventoryData.non_food);
 
-                  const menuItemsRes = await fetch('/api/inventory/menu-items');
-      const menuItemsData = await menuItemsRes.json();
+      const menuItemsRes = await fetch('/api/inventory/menu-items');
+      if (!menuItemsRes.ok) {
+        throw new Error(`Failed to fetch menu items: ${menuItemsRes.status}`);
+      }
+      const menuItemsData = await safeJsonParse(menuItemsRes);
       setMenuItems(menuItemsData);
     } catch (error) {
       console.error('Failed to fetch data', error);

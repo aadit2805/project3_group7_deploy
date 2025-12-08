@@ -22,15 +22,34 @@ export const getAuthenticatedUserController = async (req: Request, res: Response
 
         if (!staffExists) {
           // Create staff entry for Google OAuth user
+          // Ensure username is unique by checking if it already exists
+          let username = user.name || user.email;
+          let usernameExists = await prisma.staff.findUnique({
+            where: { username },
+          });
+
+          // If username exists, make it unique by appending staff_id
+          if (usernameExists) {
+            username = `${username}_${user.id}`;
+            // Check again in case the appended version also exists (unlikely but possible)
+            usernameExists = await prisma.staff.findUnique({
+              where: { username },
+            });
+            // If still exists, append timestamp to ensure uniqueness
+            if (usernameExists) {
+              username = `${user.name || user.email}_${Date.now()}`;
+            }
+          }
+
           await prisma.staff.create({
             data: {
               staff_id: user.id,
-              username: user.name || user.email, // Prefer name over email
+              username: username,
               role: user.role,
               password_hash: "GOOGLE_AUTH_USER", // Placeholder for Google authenticated users
             },
           });
-          console.log(`Created staff entry for Google user: ${user.name}`);
+          console.log(`Created staff entry for Google user: ${username}`);
         } else {
           // Update username to use name if available and different from current
           // This ensures the username is always the name, not the email
