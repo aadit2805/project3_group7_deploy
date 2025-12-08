@@ -87,7 +87,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           />
           
           {/* Dropdown content */}
-          <div className="absolute z-20 w-64 mt-2 bg-white border border-gray-300 rounded-md shadow-lg max-h-96 overflow-y-auto">
+          <div className="absolute right-0 z-20 w-64 mt-2 bg-white border border-gray-300 rounded-md shadow-lg max-h-96 overflow-y-auto">
             <div className="py-1" role="menu">
               {supportedLanguages.length === 0 ? (
                 <div className="px-4 py-2 text-sm text-gray-500">
