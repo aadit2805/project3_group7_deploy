@@ -6,6 +6,10 @@ import AddMenuItemForm from './components/AddMenuItemForm';
 import FilterableMenuItems from './components/FilterableMenuItems';
 import ActiveOrdersList from './components/ActiveOrdersList';
 
+/**
+ * Manager page - main dashboard for managers to manage menu items and orders
+ * Contains tabs for active orders, adding menu items, and managing existing items
+ */
 export default function ManagerPage() {
   const { user } = useEmployee();
   const [activeTab, setActiveTab] = useState<'add' | 'list' | 'orders' | 'past'>('orders');

@@ -28,6 +28,10 @@ interface MealType {
   drink_size: string;
 }
 
+/**
+ * Cashier Interface page - allows employees to process customer orders
+ * Supports meal type selection, entree/side/drink selection, and order submission
+ */
 const CashierInterfaceContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -107,6 +111,7 @@ const CashierInterfaceContent = () => {
   const { user } = employeeContext; // Get user from EmployeeContext
   const { order, setOrder } = context;
 
+  // State for meal customization
   const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [selectedEntrees, setSelectedEntrees] = useState<MenuItem[]>([]);
@@ -119,6 +124,7 @@ const CashierInterfaceContent = () => {
   const [translatedMenuItems, setTranslatedMenuItems] = useState<Record<number, string>>({});
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Fetch all meal types on component mount
   useEffect(() => {
     const fetchMealTypes = async () => {
       try {
@@ -216,6 +222,7 @@ const CashierInterfaceContent = () => {
     }
   }, [mealTypeId, editIndex, order]);
 
+  // Handle selection of entrees or sides (toggle selection)
   const handleSelectItem = (item: MenuItem, type: 'entree' | 'side') => {
     if (type === 'entree') {
       if (selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id)) {
@@ -232,6 +239,7 @@ const CashierInterfaceContent = () => {
     }
   };
 
+  // Add or update order item in the order context
   const handleAddOrUpdateOrder = (mealTypeOverride?: MealType) => {
     const mealTypeToUse = mealTypeOverride || selectedMealType;
     if (mealTypeToUse) {

@@ -3,6 +3,11 @@ import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+/**
+ * Authenticate a staff member by username and password
+ * Compares provided password with hashed password in database
+ * Returns staff object without password hash on success, null on failure
+ */
 export const authenticateStaff = async (username: string, passwordPlain: string) => {
   try {
     const staff = await prisma.staff.findUnique({
@@ -19,7 +24,8 @@ export const authenticateStaff = async (username: string, passwordPlain: string)
       return null; // Invalid password
     }
 
-    // Return staff object without password hash
+    // Return staff object without password hash for security
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password_hash, ...staffWithoutHash } = staff;
     return staffWithoutHash;
   } catch (error) {
@@ -28,6 +34,10 @@ export const authenticateStaff = async (username: string, passwordPlain: string)
   }
 };
 
+/**
+ * Get all local staff members
+ * Returns list of staff with ID, username, role, and creation date
+ */
 export const getLocalStaff = async () => {
   try {
     const staff = await prisma.staff.findMany({
@@ -45,6 +55,10 @@ export const getLocalStaff = async () => {
   }
 };
 
+/**
+ * Update a local staff member's username and role
+ * Returns updated staff object without password hash
+ */
 export const updateLocalStaff = async (staff_id: number, username: string, role: string) => {
   try {
     const updatedStaff = await prisma.staff.update({
@@ -67,8 +81,14 @@ export const updateLocalStaff = async (staff_id: number, username: string, role:
   }
 };
 
+/**
+ * Update a local staff member's password
+ * Hashes the new password using bcrypt before storing
+ * Returns updated staff object without password hash
+ */
 export const updateLocalStaffPassword = async (staff_id: number, newPasswordPlain: string) => {
   try {
+    // Hash the new password with bcrypt
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPasswordPlain, salt);
 
@@ -91,8 +111,14 @@ export const updateLocalStaffPassword = async (staff_id: number, newPasswordPlai
   }
 };
 
+/**
+ * Create a new local staff member
+ * Hashes the password before storing in database
+ * Returns created staff object without password hash
+ */
 export const createLocalStaff = async (username: string, role: string, passwordPlain: string) => {
   try {
+    // Hash the password with bcrypt before storing
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(passwordPlain, salt);
 
@@ -115,4 +141,3 @@ export const createLocalStaff = async (username: string, role: string, passwordP
     throw new Error('Failed to create local staff');
   }
 };
-

@@ -4,12 +4,18 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Tooltip from '@/app/components/Tooltip';
 
+/**
+ * Restock Report page - displays items that need to be restocked
+ * Shows food items below 20 stock and non-food items below 80 stock
+ */
 const RestockReport = () => {
+  // State for inventory items needing restock
   const [foodItems, setFoodItems] = useState([]);
   const [nonFoodItems, setNonFoodItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Fetch restock report on component mount
   useEffect(() => {
     const fetchRestockReport = async () => {
       try {

@@ -30,8 +30,13 @@ interface PromotionalDiscount {
   end_date: string;
 }
 
+/**
+ * Promotions page - displays current promotions and weather-based offers
+ * Shows active discount codes and weather-based special offers
+ */
 const PromotionsPage = () => {
   const { addToast } = useToast();
+  // State for weather and promotions data
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [discounts, setDiscounts] = useState<PromotionalDiscount[]>([]);
@@ -80,6 +85,7 @@ const PromotionsPage = () => {
     perfectWeatherSpecial: translatedTexts[16] || 'Perfect Weather Special',
   };
 
+  // Fetch current weather to generate weather-based promotions
   useEffect(() => {
     const fetchWeather = async () => {
       try {

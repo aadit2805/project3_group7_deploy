@@ -56,11 +56,17 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
   currency: 'USD',
 });
 
+/**
+ * Loyalty Analytics page - displays loyalty program analytics and statistics
+ * Shows member counts, points distribution, and spending comparisons between loyalty and non-loyalty customers
+ */
 const LoyaltyAnalyticsPage = () => {
+  // State for analytics data
   const [data, setData] = useState<LoyaltyAnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch loyalty analytics data on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
