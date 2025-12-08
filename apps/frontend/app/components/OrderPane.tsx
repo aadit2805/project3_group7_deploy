@@ -203,112 +203,120 @@ Error: ${errorData.error}`
 
   return (
     <aside
-      className="w-full lg:w-1/3 bg-gray-100 p-4 sm:p-6"
+      className="bg-gray-100 p-4 sm:p-6 flex flex-col h-full"
       role="complementary"
       aria-label="Order summary"
     >
-      <h2 className="text-2xl sm:text-3xl font-semibold mb-4">{t.title}</h2>
+      <h2 className="text-2xl sm:text-3xl font-semibold mb-4 flex-shrink-0">{t.title}</h2>
       {order.length === 0 ? (
-        <p role="status" aria-live="polite">
-          {t.empty}
-        </p>
+        <div className="flex-grow flex items-center justify-center">
+          <p role="status" aria-live="polite" className="text-gray-500">
+            {t.empty}
+          </p>
+        </div>
       ) : (
         <>
-          <ul role="list" aria-label="Order items">
-            {order.map((orderItem, index) => {
-              const isDrinkOnly =
-                orderItem.entrees.length === 0 && orderItem.sides.length === 0 && orderItem.drink;
-              const itemTotalPrice =
-                orderItem.mealType.meal_type_price +
-                orderItem.entrees.reduce((sum, item) => sum + item.upcharge, 0) +
-                orderItem.sides.reduce((sum, item) => sum + item.upcharge, 0) +
-                (orderItem.drink ? orderItem.drink.upcharge : 0);
+          <div className="flex-grow overflow-y-auto pr-2">
+            <ul role="list" aria-label="Order items">
+              {order.map((orderItem, index) => {
+                const isDrinkOnly =
+                  orderItem.entrees.length === 0 &&
+                  orderItem.sides.length === 0 &&
+                  orderItem.drink;
+                const itemTotalPrice =
+                  orderItem.mealType.meal_type_price +
+                  orderItem.entrees.reduce((sum, item) => sum + item.upcharge, 0) +
+                  orderItem.sides.reduce((sum, item) => sum + item.upcharge, 0) +
+                  (orderItem.drink ? orderItem.drink.upcharge : 0);
 
-              return (
-                <li key={index} className="mb-4 pb-4 border-b border-gray-200">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                    <h3 className="text-xl sm:text-2xl font-bold break-words">
-                      {orderItem.mealType.meal_type_name}
-                    </h3>
-                    <div
-                      role="group"
-                      aria-label={`Actions for ${orderItem.mealType.meal_type_name}`}
-                      className="flex gap-2"
-                    >
-                      <button
-                        onClick={() => handleEditItem(index)}
-                        className="text-blue-500 hover:text-blue-700 font-bold px-3 py-2 sm:px-2 sm:py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
-                        aria-label={`Edit ${orderItem.mealType.meal_type_name} item`}
+                return (
+                  <li key={index} className="mb-4 pb-4 border-b border-gray-200">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                      <h3 className="text-xl sm:text-2xl font-bold break-words">
+                        {orderItem.mealType.meal_type_name}
+                      </h3>
+                      <div
+                        role="group"
+                        aria-label={`Actions for ${orderItem.mealType.meal_type_name}`}
+                        className="flex gap-2 flex-shrink-0"
                       >
-                        {t.edit}
-                      </button>
-                      <button
-                        onClick={() => handleRemoveFromOrder(index)}
-                        className="text-red-500 hover:text-red-700 font-bold px-3 py-2 sm:px-2 sm:py-1 rounded focus:outline-none focus:ring-2 focus:ring-red-500 min-h-[44px] sm:min-h-0"
-                        aria-label={`Remove ${orderItem.mealType.meal_type_name} from order`}
-                      >
-                        {t.remove}
-                      </button>
+                        <button
+                          onClick={() => handleEditItem(index)}
+                          className="text-blue-500 hover:text-blue-700 font-bold px-3 py-2 sm:px-2 sm:py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
+                          aria-label={`Edit ${orderItem.mealType.meal_type_name} item`}
+                        >
+                          {t.edit}
+                        </button>
+                        <button
+                          onClick={() => handleRemoveFromOrder(index)}
+                          className="text-red-500 hover:text-red-700 font-bold px-3 py-2 sm:px-2 sm:py-1 rounded focus:outline-none focus:ring-2 focus:ring-red-500 min-h-[44px] sm:min-h-0"
+                          aria-label={`Remove ${orderItem.mealType.meal_type_name} from order`}
+                        >
+                          {t.remove}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  {isDrinkOnly ? (
-                    <>
-                      <p>
-                        {t.basePrice}: ${orderItem.mealType.meal_type_price.toFixed(2)}
-                      </p>
-                      {orderItem.drink && (
+                    {isDrinkOnly ? (
+                      <>
                         <p>
-                          {t.drink}: {orderItem.drink.name} (+${orderItem.drink.upcharge.toFixed(2)}
-                          )
+                          {t.basePrice}: ${orderItem.mealType.meal_type_price.toFixed(2)}
                         </p>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <p>
-                        {t.basePrice}: ${orderItem.mealType.meal_type_price.toFixed(2)}
-                      </p>
-                      <h4 className="text-lg sm:text-xl font-semibold mt-4">{t.entrees}:</h4>
-                      <ul role="list" aria-label="Selected entrees">
-                        {orderItem.entrees.map((item, index) => (
-                          <li
-                            key={`${item.menu_item_id}-${index}`}
-                            className="text-sm sm:text-base"
-                          >
-                            {item.name} (+${item.upcharge.toFixed(2)})
-                          </li>
-                        ))}
-                      </ul>
-                      <h4 className="text-lg sm:text-xl font-semibold mt-4">{t.sides}:</h4>
-                      <ul role="list" aria-label="Selected sides">
-                        {orderItem.sides.map((item, index) => (
-                          <li
-                            key={`${item.menu_item_id}-${index}`}
-                            className="text-sm sm:text-base"
-                          >
-                            {item.name} (+${item.upcharge.toFixed(2)})
-                          </li>
-                        ))}
-                      </ul>
-                      {orderItem.drink && (
-                        <p className="text-lg sm:text-xl font-semibold mt-4">
-                          {t.drink}: {orderItem.drink.name} (+${orderItem.drink.upcharge.toFixed(2)}
-                          )
+                        {orderItem.drink && (
+                          <p>
+                            {t.drink}: {orderItem.drink.name} (+
+                            {orderItem.drink.upcharge.toFixed(2)})
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p>
+                          {t.basePrice}: ${orderItem.mealType.meal_type_price.toFixed(2)}
                         </p>
-                      )}
-                    </>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-          <div className="text-center sm:text-right mt-6 pt-4 border-t-2 border-gray-300">
-            <p className="text-xl sm:text-2xl font-bold mb-2" role="status" aria-live="polite">
-              {t.total}:{' '}
-              <span aria-label={`Subtotal ${totalPrice.toFixed(2)} dollars`}>
-                ${totalPrice.toFixed(2)}
-              </span>
-            </p>
+                        <h4 className="text-lg sm:text-xl font-semibold mt-4">{t.entrees}:</h4>
+                        <ul role="list" aria-label="Selected entrees">
+                          {orderItem.entrees.map((item, index) => (
+                            <li
+                              key={`${item.menu_item_id}-${index}`}
+                              className="text-sm sm:text-base"
+                            >
+                              {item.name} (+${item.upcharge.toFixed(2)})
+                            </li>
+                          ))}
+                        </ul>
+                        <h4 className="text-lg sm:text-xl font-semibold mt-4">{t.sides}:</h4>
+                        <ul role="list" aria-label="Selected sides">
+                          {orderItem.sides.map((item, index) => (
+                            <li
+                              key={`${item.menu_item_id}-${index}`}
+                              className="text-sm sm:text-base"
+                            >
+                              {item.name} (+${item.upcharge.toFixed(2)})
+                            </li>
+                          ))}
+                        </ul>
+                        {orderItem.drink && (
+                          <p className="text-lg sm:text-xl font-semibold mt-4">
+                            {t.drink}: {orderItem.drink.name} (+
+                            {orderItem.drink.upcharge.toFixed(2)})
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div className="flex-shrink-0 pt-4 border-t-2 border-gray-300">
+            <div className="text-center sm:text-right">
+              <p className="text-xl sm:text-2xl font-bold mb-2" role="status" aria-live="polite">
+                {t.total}:{' '}
+                <span aria-label={`Subtotal ${totalPrice.toFixed(2)} dollars`}>
+                  ${totalPrice.toFixed(2)}
+                </span>
+              </p>
+            </div>
 
             {/* Discount Code Section */}
             <div className="mb-4">
@@ -414,14 +422,18 @@ Error: ${errorData.error}`
                 {t.markAsRushOrder}
               </label>
             </div>
-            <button
-              onClick={handleSubmitOrder}
-              className="w-full sm:w-auto bg-success hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl mt-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
-              disabled={isTranslating || order.length === 0}
-              aria-label={`Submit order with ${order.length} item${order.length !== 1 ? 's' : ''}, total ${finalPrice.toFixed(2)} dollars`}
-            >
-              {t.submitOrder}
-            </button>
+            <div className="text-center sm:text-right">
+              <button
+                onClick={handleSubmitOrder}
+                className="w-full sm:w-auto bg-success hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl mt-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+                disabled={isTranslating || order.length === 0}
+                aria-label={`Submit order with ${order.length} item${
+                  order.length !== 1 ? 's' : ''
+                }, total ${finalPrice.toFixed(2)} dollars`}
+              >
+                {t.submitOrder}
+              </button>
+            </div>
           </div>
         </>
       )}
