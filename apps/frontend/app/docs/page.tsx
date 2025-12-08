@@ -22,7 +22,7 @@ export default function DocsPage() {
           </p>
           <Link
             href="/docs/frontend"
-            className="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="inline-block bg-primary text-white px-4 py-2 rounded hover:bg-blue-600"
           >
             View Frontend Docs
           </Link>
@@ -34,7 +34,7 @@ export default function DocsPage() {
           </p>
           <Link
             href="/docs/backend"
-            className="inline-block bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            className="inline-block bg-success text-white px-4 py-2 rounded hover:bg-green-600"
           >
             View Backend Docs
           </Link>

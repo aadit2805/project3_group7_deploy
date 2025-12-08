@@ -613,7 +613,7 @@ const CashierInterfaceContent = () => {
                       handleAddOrUpdateOrder(drinkMealType);
                     }
                   }}
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl min-h-[44px] w-full sm:w-auto"
+                  className="bg-primary hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl min-h-[44px] w-full sm:w-auto"
                   disabled={!selectedDrink}
                 >
                   {editIndex !== null ? t.updateItem : t.addToOrder}
@@ -738,7 +738,7 @@ const CashierInterfaceContent = () => {
           <div className="text-center mb-10 sm:mb-20">
             <button
               onClick={() => handleAddOrUpdateOrder()}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl min-h-[44px] w-full sm:w-auto"
+              className="bg-primary hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl min-h-[44px] w-full sm:w-auto"
               disabled={
                 selectedMealType &&
                 (selectedEntrees.length !== selectedMealType.entree_count ||

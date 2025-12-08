@@ -142,7 +142,7 @@ const MealTypeSelection = () => {
             <span>{t.shoppingCart}</span>
             {itemCount > 0 && (
               <span
-                className="ml-2 bg-red-500 text-white rounded-full px-2 py-1 text-sm"
+                className="ml-2 bg-danger text-white rounded-full px-2 py-1 text-sm"
                 aria-label={`${itemCount} items in cart`}
               >
                 {itemCount}

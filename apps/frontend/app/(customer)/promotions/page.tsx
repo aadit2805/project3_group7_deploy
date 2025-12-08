@@ -261,7 +261,7 @@ const PromotionsPage = () => {
                 </div>
                 <Link
                   href="/shopping-cart"
-                  className="mt-4 inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="mt-4 inline-block bg-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   aria-label={`${t.useCode} ${discount.name} - ${discount.code}`}
                 >
                   {t.useCode}

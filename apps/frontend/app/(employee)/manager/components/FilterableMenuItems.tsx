@@ -16,7 +16,7 @@ export default function FilterableMenuItems() {
           onClick={() => setFilter(null)}
           className={`px-4 py-2 rounded-lg font-medium ${
             filter === null
-              ? 'bg-blue-500 text-white'
+              ? 'bg-primary text-white'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           } transition-colors`}
         >
@@ -28,7 +28,7 @@ export default function FilterableMenuItems() {
             onClick={() => setFilter(type)}
             className={`px-4 py-2 rounded-lg font-medium capitalize ${
               filter === type
-                ? 'bg-blue-500 text-white'
+                ? 'bg-primary text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             } transition-colors`}
           >

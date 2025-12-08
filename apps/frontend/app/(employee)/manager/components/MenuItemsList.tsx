@@ -95,7 +95,7 @@ function AllergenEditor({
         <button
           type="button"
           onClick={handleAddCustomAllergen}
-          className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="px-2 py-1 text-xs bg-primary text-white rounded hover:bg-blue-600"
         >
           Add
         </button>

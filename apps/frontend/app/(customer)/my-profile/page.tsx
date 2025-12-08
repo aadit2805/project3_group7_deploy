@@ -381,7 +381,7 @@ const MyProfile = () => {
           {!editingAllergens && (
             <button
               onClick={() => setEditingAllergens(true)}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="bg-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
               {t.editAllergens}
             </button>
@@ -416,7 +416,7 @@ const MyProfile = () => {
                   onClick={() => toggleAllergen(allergen)}
                   className={`px-3 py-2 rounded-full font-semibold transition-colors ${
                     allergenPreferences.includes(allergen)
-                      ? 'bg-red-500 text-white border-2 border-red-600'
+                      ? 'bg-danger text-white border-2 border-red-600'
                       : 'bg-gray-100 text-gray-700 border-2 border-gray-300 hover:border-red-300'
                   }`}
                 >
@@ -428,7 +428,7 @@ const MyProfile = () => {
               <button
                 onClick={handleSaveAllergens}
                 disabled={savingAllergens}
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded disabled:opacity-50"
+                className="bg-success hover:bg-green-700 text-white font-bold py-2 px-6 rounded disabled:opacity-50"
               >
                 {savingAllergens ? 'Saving...' : t.savePreferences}
               </button>
@@ -474,7 +474,7 @@ const MyProfile = () => {
                 </div>
                 <button
                   onClick={() => handleReorder(order.order_items)}
-                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4"
+                  className="bg-success hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4"
                 >
                   Reorder
                 </button>
@@ -504,7 +504,7 @@ const MyProfile = () => {
 
                 <button
                   onClick={() => handleReorder(order.order_items)}
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  className="bg-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 >
                   Reorder
                 </button>

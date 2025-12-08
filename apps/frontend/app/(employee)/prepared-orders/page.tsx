@@ -162,7 +162,7 @@ export default function PreparedOrdersPage() {
                   </div>
                   <button
                     onClick={() => markOrderAddressed(order.order_id)}
-                    className="ml-4 px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors font-medium shadow-sm hover:shadow-md"
+                    className="ml-4 px-6 py-2 bg-primary text-white rounded hover:bg-blue-600 transition-colors font-medium shadow-sm hover:shadow-md"
                   >
                     Mark as Addressed
                   </button>

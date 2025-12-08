@@ -374,7 +374,7 @@ const ShoppingCart = () => {
             <p className="text-xl mb-4">{t.cartEmpty}</p>
             <Link
               href="/meal-type-selection"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="bg-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               aria-label="Start ordering meals"
             >
               {t.startOrdering}
@@ -643,7 +643,7 @@ const ShoppingCart = () => {
 
               <button
                 onClick={handleSubmitOrder}
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl hover:shadow-lg button-press transition-all duration-200 animate-bounce-in focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                className="bg-success hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl hover:shadow-lg button-press transition-all duration-200 animate-bounce-in focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 aria-label={`Submit order with ${order.length} item${order.length !== 1 ? 's' : ''}, total ${totalPrice.toFixed(2)} dollars`}
               >
                 {t.submitOrder}

@@ -630,7 +630,7 @@ const CustomerKioskContent = () => {
             </h1>
             <Link
               href="/shopping-cart"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 sm:px-6 rounded-lg text-base sm:text-lg inline-flex items-center min-h-[44px] w-full sm:w-auto justify-center"
+              className="bg-primary hover:bg-blue-700 text-white font-bold py-3 px-4 sm:px-6 rounded-lg text-base sm:text-lg inline-flex items-center min-h-[44px] w-full sm:w-auto justify-center"
               aria-label={t.shoppingCart}
             >
               <Tooltip text={t.shoppingCart} position="bottom">
@@ -652,7 +652,7 @@ const CustomerKioskContent = () => {
               </Tooltip>
               {t.shoppingCart}
               {itemCount > 0 && (
-                <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-1 text-sm">
+                <span className="ml-2 bg-danger text-white rounded-full px-2 py-1 text-sm">
                   {itemCount}
                 </span>
               )}
@@ -709,7 +709,7 @@ const CustomerKioskContent = () => {
                         onClick={() => toggleAllergenFilter(allergen)}
                         className={`px-3 py-1 rounded-full text-sm font-semibold transition-colors ${
                           allergenFilter.has(allergen)
-                            ? 'bg-red-500 text-white border-2 border-red-600'
+                            ? 'bg-danger text-white border-2 border-red-600'
                             : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-red-300'
                         }`}
                       >
@@ -756,7 +756,7 @@ const CustomerKioskContent = () => {
                     {renderAllergenBadge(item)}
                     <button
                       onClick={() => handleSelectItem(item, 'entree')}
-                      className="mt-4 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                      className="mt-4 px-4 py-2 bg-success text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
                     >
                       Add to selection
                     </button>
@@ -812,7 +812,7 @@ const CustomerKioskContent = () => {
                         {t.upcharge}: ${item.upcharge.toFixed(2)}
                       </p>
                       {isOutOfStock && (
-                        <div className="mt-2 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full inline-block">
+                        <div className="mt-2 px-3 py-1 bg-danger text-white text-sm font-semibold rounded-full inline-block">
                           Out of Stock
                         </div>
                       )}
@@ -869,7 +869,7 @@ const CustomerKioskContent = () => {
                         {t.upcharge}: ${item.upcharge.toFixed(2)}
                       </p>
                       {isOutOfStock && (
-                        <div className="mt-2 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full inline-block">
+                        <div className="mt-2 px-3 py-1 bg-danger text-white text-sm font-semibold rounded-full inline-block">
                           Out of Stock
                         </div>
                       )}
@@ -927,7 +927,7 @@ const CustomerKioskContent = () => {
                           {t.upcharge}: ${item.upcharge.toFixed(2)}
                         </p>
                         {isOutOfStock && (
-                          <div className="mt-2 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full inline-block">
+                          <div className="mt-2 px-3 py-1 bg-danger text-white text-sm font-semibold rounded-full inline-block">
                             Out of Stock
                           </div>
                         )}
@@ -942,7 +942,7 @@ const CustomerKioskContent = () => {
           <div className="text-center mb-6 sm:mb-8 animate-fade-in animate-stagger-2">
             <button
               onClick={handleAddOrUpdateOrder}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg md:text-xl hover:shadow-lg button-press transition-all duration-200 animate-bounce-in min-h-[44px] w-full sm:w-auto"
+              className="bg-primary hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg md:text-xl hover:shadow-lg button-press transition-all duration-200 animate-bounce-in min-h-[44px] w-full sm:w-auto"
               disabled={
                 selectedMealType &&
                 (selectedEntrees.length !== selectedMealType.entree_count ||

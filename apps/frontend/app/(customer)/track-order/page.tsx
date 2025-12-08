@@ -304,7 +304,7 @@ const TrackOrderContent = () => {
             <div className="flex items-center">
               <div className={`w-4 h-4 rounded-full mr-4 ${
                 orderStatus.order_status === 'pending' || orderStatus.order_status === 'in_progress' || orderStatus.order_status === 'completed' || orderStatus.order_status === 'addressed'
-                  ? 'bg-green-500' : 'bg-gray-300'
+                  ? 'bg-success' : 'bg-gray-300'
               }`}></div>
               <div>
                 <p className="font-semibold">{t.pending}</p>
@@ -314,7 +314,7 @@ const TrackOrderContent = () => {
             <div className="flex items-center">
               <div className={`w-4 h-4 rounded-full mr-4 ${
                 orderStatus.order_status === 'in_progress' || orderStatus.order_status === 'completed' || orderStatus.order_status === 'addressed'
-                  ? 'bg-green-500' : 'bg-gray-300'
+                  ? 'bg-success' : 'bg-gray-300'
               }`}></div>
               <div>
                 <p className="font-semibold">{t.inProgress}</p>
@@ -324,7 +324,7 @@ const TrackOrderContent = () => {
             <div className="flex items-center">
               <div className={`w-4 h-4 rounded-full mr-4 ${
                 orderStatus.order_status === 'completed' || orderStatus.order_status === 'addressed'
-                  ? 'bg-green-500' : 'bg-gray-300'
+                  ? 'bg-success' : 'bg-gray-300'
               }`}></div>
               <div>
                 <p className="font-semibold">{t.readyForPickup}</p>
@@ -340,7 +340,7 @@ const TrackOrderContent = () => {
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
           <Link
             href="/order-confirmation"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 sm:px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-center"
+            className="bg-primary hover:bg-blue-700 text-white font-bold py-2 px-4 sm:px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-center"
             aria-label={t.viewDetails}
           >
             {t.viewDetails}

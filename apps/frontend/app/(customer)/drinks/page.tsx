@@ -141,7 +141,7 @@ const DrinksPage = () => {
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center sm:text-left">{t.title}</h1>
         <Link
           href="/shopping-cart"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg inline-flex items-center"
+          className="bg-primary hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg inline-flex items-center"
           aria-label={t.shoppingCart}
         >
           <Tooltip text={t.shoppingCart} position="bottom">
@@ -163,7 +163,7 @@ const DrinksPage = () => {
           </Tooltip>
           {t.shoppingCart}
           {itemCount > 0 && (
-            <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-1 text-sm">
+            <span className="ml-2 bg-danger text-white rounded-full px-2 py-1 text-sm">
               {itemCount}
             </span>
           )}
@@ -221,19 +221,19 @@ const DrinksPage = () => {
                   <div className="flex flex-col space-y-2 mt-4">
                     <button
                       onClick={() => handleAddDrink(item, 13)}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
+                      className="bg-primary hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
                     >
                       {t.add} {t.small}
                     </button>
                     <button
                       onClick={() => handleAddDrink(item, 14)}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
+                      className="bg-primary hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
                     >
                       {t.add} {t.medium}
                     </button>
                     <button
                       onClick={() => handleAddDrink(item, 15)}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
+                      className="bg-primary hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
                     >
                       {t.add} {t.large}
                     </button>

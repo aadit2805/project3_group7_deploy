@@ -288,7 +288,7 @@ export default function BestSellingPage() {
             </div>
             <button
               onClick={() => fetchAllStats()}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-all duration-200 hover:shadow-lg button-press"
+              className="px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition-all duration-200 hover:shadow-lg button-press"
             >
               Refresh
             </button>
@@ -306,7 +306,7 @@ export default function BestSellingPage() {
                 onClick={() => handlePresetClick('today')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activePreset === 'today'
-                    ? 'bg-blue-500 text-white shadow-md'
+                    ? 'bg-primary text-white shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -316,7 +316,7 @@ export default function BestSellingPage() {
                 onClick={() => handlePresetClick('last7days')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activePreset === 'last7days'
-                    ? 'bg-blue-500 text-white shadow-md'
+                    ? 'bg-primary text-white shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -326,7 +326,7 @@ export default function BestSellingPage() {
                 onClick={() => handlePresetClick('last30days')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activePreset === 'last30days'
-                    ? 'bg-blue-500 text-white shadow-md'
+                    ? 'bg-primary text-white shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -336,7 +336,7 @@ export default function BestSellingPage() {
                 onClick={() => handlePresetClick('thisMonth')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activePreset === 'thisMonth'
-                    ? 'bg-blue-500 text-white shadow-md'
+                    ? 'bg-primary text-white shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -346,7 +346,7 @@ export default function BestSellingPage() {
                 onClick={() => handlePresetClick('lastMonth')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activePreset === 'lastMonth'
-                    ? 'bg-blue-500 text-white shadow-md'
+                    ? 'bg-primary text-white shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -410,7 +410,7 @@ export default function BestSellingPage() {
               <div className="flex gap-2">
                 <button
                   onClick={handleDateFilter}
-                  className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                  className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
                 >
                   Apply Filter
                 </button>
