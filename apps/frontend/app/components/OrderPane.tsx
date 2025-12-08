@@ -202,8 +202,12 @@ Error: ${errorData.error}`
   };
 
   return (
-    <aside className="w-1/3 bg-gray-100 p-6" role="complementary" aria-label="Order summary">
-      <h2 className="text-3xl font-semibold mb-4">{t.title}</h2>
+    <aside
+      className="w-full lg:w-1/3 bg-gray-100 p-4 sm:p-6"
+      role="complementary"
+      aria-label="Order summary"
+    >
+      <h2 className="text-2xl sm:text-3xl font-semibold mb-4">{t.title}</h2>
       {order.length === 0 ? (
         <p role="status" aria-live="polite">
           {t.empty}
@@ -222,22 +226,25 @@ Error: ${errorData.error}`
 
               return (
                 <li key={index} className="mb-4 pb-4 border-b border-gray-200">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-2xl font-bold">{orderItem.mealType.meal_type_name}</h3>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                    <h3 className="text-xl sm:text-2xl font-bold break-words">
+                      {orderItem.mealType.meal_type_name}
+                    </h3>
                     <div
                       role="group"
                       aria-label={`Actions for ${orderItem.mealType.meal_type_name}`}
+                      className="flex gap-2"
                     >
                       <button
                         onClick={() => handleEditItem(index)}
-                        className="text-blue-500 hover:text-blue-700 font-bold mr-2 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="text-blue-500 hover:text-blue-700 font-bold px-3 py-2 sm:px-2 sm:py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
                         aria-label={`Edit ${orderItem.mealType.meal_type_name} item`}
                       >
                         {t.edit}
                       </button>
                       <button
                         onClick={() => handleRemoveFromOrder(index)}
-                        className="text-red-500 hover:text-red-700 font-bold px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                        className="text-red-500 hover:text-red-700 font-bold px-3 py-2 sm:px-2 sm:py-1 rounded focus:outline-none focus:ring-2 focus:ring-red-500 min-h-[44px] sm:min-h-0"
                         aria-label={`Remove ${orderItem.mealType.meal_type_name} from order`}
                       >
                         {t.remove}
@@ -261,24 +268,30 @@ Error: ${errorData.error}`
                       <p>
                         {t.basePrice}: ${orderItem.mealType.meal_type_price.toFixed(2)}
                       </p>
-                      <h4 className="text-xl font-semibold mt-4">{t.entrees}:</h4>
+                      <h4 className="text-lg sm:text-xl font-semibold mt-4">{t.entrees}:</h4>
                       <ul role="list" aria-label="Selected entrees">
                         {orderItem.entrees.map((item, index) => (
-                          <li key={`${item.menu_item_id}-${index}`}>
+                          <li
+                            key={`${item.menu_item_id}-${index}`}
+                            className="text-sm sm:text-base"
+                          >
                             {item.name} (+${item.upcharge.toFixed(2)})
                           </li>
                         ))}
                       </ul>
-                      <h4 className="text-xl font-semibold mt-4">{t.sides}:</h4>
+                      <h4 className="text-lg sm:text-xl font-semibold mt-4">{t.sides}:</h4>
                       <ul role="list" aria-label="Selected sides">
                         {orderItem.sides.map((item, index) => (
-                          <li key={`${item.menu_item_id}-${index}`}>
+                          <li
+                            key={`${item.menu_item_id}-${index}`}
+                            className="text-sm sm:text-base"
+                          >
                             {item.name} (+${item.upcharge.toFixed(2)})
                           </li>
                         ))}
                       </ul>
                       {orderItem.drink && (
-                        <p className="text-xl font-semibold mt-4">
+                        <p className="text-lg sm:text-xl font-semibold mt-4">
                           {t.drink}: {orderItem.drink.name} (+${orderItem.drink.upcharge.toFixed(2)}
                           )
                         </p>
@@ -289,8 +302,8 @@ Error: ${errorData.error}`
               );
             })}
           </ul>
-          <div className="text-right mt-6 pt-4 border-t-2 border-gray-300">
-            <p className="text-2xl font-bold mb-2" role="status" aria-live="polite">
+          <div className="text-center sm:text-right mt-6 pt-4 border-t-2 border-gray-300">
+            <p className="text-xl sm:text-2xl font-bold mb-2" role="status" aria-live="polite">
               {t.total}:{' '}
               <span aria-label={`Subtotal ${totalPrice.toFixed(2)} dollars`}>
                 ${totalPrice.toFixed(2)}
@@ -300,7 +313,7 @@ Error: ${errorData.error}`
             {/* Discount Code Section */}
             <div className="mb-4">
               {!discountAmount ? (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <input
                     type="text"
                     value={discountCode}
@@ -312,13 +325,13 @@ Error: ${errorData.error}`
                       }
                     }}
                     placeholder="Enter discount code"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
                     aria-label="Discount code input"
                   />
                   <button
                     onClick={handleValidateDiscount}
                     disabled={validatingDiscount || !discountCode.trim()}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed button-press"
+                    className="px-4 py-2 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed button-press min-h-[44px]"
                   >
                     {validatingDiscount ? t.validating : t.applyDiscount}
                   </button>
@@ -358,7 +371,7 @@ Error: ${errorData.error}`
 
             {discountAmount > 0 && (
               <p
-                className="text-2xl font-bold mb-4 text-green-700"
+                className="text-xl sm:text-2xl font-bold mb-4 text-green-700 text-center sm:text-right"
                 role="status"
                 aria-live="polite"
               >
@@ -371,7 +384,7 @@ Error: ${errorData.error}`
             <div className="mb-4">
               <label
                 htmlFor="order-notes"
-                className="block text-lg font-semibold text-gray-700 mb-2"
+                className="block text-base sm:text-lg font-semibold text-gray-700 mb-2"
               >
                 {t.orderNotes}:
               </label>
@@ -380,12 +393,12 @@ Error: ${errorData.error}`
                 value={orderNotes}
                 onChange={(e) => setOrderNotes(e.target.value)}
                 placeholder="Enter any special instructions or notes..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm sm:text-base"
                 rows={3}
                 aria-label="Order notes input field"
               />
             </div>
-            <div className="flex items-center justify-end gap-3 mb-4">
+            <div className="flex items-center justify-center sm:justify-end gap-3 mb-4">
               <input
                 type="checkbox"
                 id="rush-order"
@@ -396,14 +409,14 @@ Error: ${errorData.error}`
               />
               <label
                 htmlFor="rush-order"
-                className="text-lg font-semibold text-gray-700 cursor-pointer"
+                className="text-base sm:text-lg font-semibold text-gray-700 cursor-pointer"
               >
                 {t.markAsRushOrder}
               </label>
             </div>
             <button
               onClick={handleSubmitOrder}
-              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-xl mt-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl mt-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
               disabled={isTranslating || order.length === 0}
               aria-label={`Submit order with ${order.length} item${order.length !== 1 ? 's' : ''}, total ${finalPrice.toFixed(2)} dollars`}
             >

@@ -28,19 +28,19 @@ export default function ManagerPage() {
 
   return (
     <div className="animate-fade-in">
-      <div className="mb-8 animate-slide-in-down">
-        <h1 className="text-3xl font-bold text-gray-800">Manager Controls</h1>
-        <p className="text-gray-600 mt-1">Manage menu items and active orders.</p>
+      <div className="mb-6 sm:mb-8 animate-slide-in-down">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Manager Controls</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Manage menu items and active orders.</p>
       </div>
 
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow-md mb-6 animate-scale-in animate-stagger-1">
+      <div className="bg-white rounded-lg shadow-md mb-4 sm:mb-6 animate-scale-in animate-stagger-1 overflow-x-auto">
         <div className="border-b border-gray-200">
-          <nav className="flex -mb-px">
+          <nav className="flex -mb-px min-w-max sm:min-w-0">
             <button
               onClick={() => setActiveTab('orders')}
-              className={`px-6 py-4 font-medium text-sm button-press transition-all duration-200 ${
+              className={`px-4 sm:px-6 py-3 sm:py-4 font-medium text-xs sm:text-sm button-press transition-all duration-200 min-h-[44px] whitespace-nowrap ${
                 activeTab === 'orders'
                   ? 'border-b-2 border-blue-500 text-blue-600'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -50,7 +50,7 @@ export default function ManagerPage() {
             </button>
             <button
               onClick={() => setActiveTab('add')}
-              className={`px-6 py-4 font-medium text-sm button-press transition-all duration-200 ${
+              className={`px-4 sm:px-6 py-3 sm:py-4 font-medium text-xs sm:text-sm button-press transition-all duration-200 min-h-[44px] whitespace-nowrap ${
                 activeTab === 'add'
                   ? 'border-b-2 border-blue-500 text-blue-600'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -60,7 +60,7 @@ export default function ManagerPage() {
             </button>
             <button
               onClick={() => setActiveTab('list')}
-              className={`px-6 py-4 font-medium text-sm button-press transition-all duration-200 ${
+              className={`px-4 sm:px-6 py-3 sm:py-4 font-medium text-xs sm:text-sm button-press transition-all duration-200 min-h-[44px] whitespace-nowrap ${
                 activeTab === 'list'
                   ? 'border-b-2 border-blue-500 text-blue-600'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -73,7 +73,7 @@ export default function ManagerPage() {
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-lg shadow-md p-6 animate-scale-in animate-stagger-2">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 animate-scale-in animate-stagger-2">
         {activeTab === 'orders' ? (
           <ActiveOrdersList />
         ) : activeTab === 'add' ? (

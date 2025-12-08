@@ -60,15 +60,15 @@ const EmployeeLayout = ({ children }: { children: ReactNode }) => {
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col">
-            <header className="h-16 bg-white border-b px-4 flex items-center justify-end lg:justify-between">
-              <h1 className="text-xl font-bold hidden lg:block">Panda Express POS System</h1>
-              <div className="flex items-center">
-                <div className="text-sm text-gray-500 mr-4">
+            <header className="min-h-16 bg-white border-b px-4 py-2 sm:py-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+              <h1 className="text-lg sm:text-xl font-bold">Panda Express POS System</h1>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-0 w-full sm:w-auto">
+                <div className="text-xs sm:text-sm text-gray-500 sm:mr-4">
                   Signed in as <span className="font-semibold">{user?.name || user?.email}</span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center px-4 py-2 text-left rounded-md text-red-600 hover:bg-red-100 button-press transition-all duration-200"
+                  className="flex items-center px-4 py-2 text-left rounded-md text-red-600 hover:bg-red-100 button-press transition-all duration-200 min-h-[44px] text-sm sm:text-base"
                 >
                   <LogOut className="h-5 w-5 mr-3" />
                   Logout
@@ -76,7 +76,9 @@ const EmployeeLayout = ({ children }: { children: ReactNode }) => {
               </div>
             </header>
 
-            <main className="flex-1 p-4 md:p-8 overflow-y-auto animate-fade-in">{children}</main>
+            <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto animate-fade-in">
+              {children}
+            </main>
           </div>
         </div>
       </ToastProvider>

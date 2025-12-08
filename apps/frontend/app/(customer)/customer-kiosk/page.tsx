@@ -598,7 +598,7 @@ const CustomerKioskContent = () => {
       <div className="mb-4">
         <Link href="/meal-type-selection">
           <button
-            className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 inline-flex items-center"
+            className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 inline-flex items-center min-h-[44px] text-sm sm:text-base"
             aria-label={t.backToSelection}
           >
             <Tooltip text={t.backToSelection} position="bottom">
@@ -624,13 +624,13 @@ const CustomerKioskContent = () => {
       </div>
       {selectedMealType && (
         <>
-          <div className="flex flex-wrap justify-center sm:justify-between items-center mb-8 gap-y-4">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center sm:justify-between items-center mb-6 sm:mb-8 gap-4">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center sm:text-left">
               {t.customizeYour} {translatedMealTypeName || selectedMealType.meal_type_name}
             </h1>
             <Link
               href="/shopping-cart"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg inline-flex items-center"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 sm:px-6 rounded-lg text-base sm:text-lg inline-flex items-center min-h-[44px] w-full sm:w-auto justify-center"
               aria-label={t.shoppingCart}
             >
               <Tooltip text={t.shoppingCart} position="bottom">
@@ -766,8 +766,8 @@ const CustomerKioskContent = () => {
             </section>
           )}
 
-          <section className="mb-10 animate-fade-in">
-            <h2 className="text-3xl font-semibold mb-4 animate-slide-in-down">
+          <section className="mb-6 sm:mb-10 animate-fade-in">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-4 animate-slide-in-down">
               {t.selectEntrees} ({selectedEntrees.length}/{selectedMealType.entree_count})
             </h2>
             <div className="mb-4 animate-fade-in animate-stagger-1">
@@ -779,7 +779,7 @@ const CustomerKioskContent = () => {
                 id="entree-search"
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {menuItems
                 .filter((item) => {
                   if (item.item_type !== 'entree') return false;
@@ -823,8 +823,8 @@ const CustomerKioskContent = () => {
             </div>
           </section>
 
-          <section className="mb-10 animate-fade-in">
-            <h2 className="text-3xl font-semibold mb-4 animate-slide-in-down">
+          <section className="mb-6 sm:mb-10 animate-fade-in">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-4 animate-slide-in-down">
               {t.selectSides} ({selectedSides.length}/{selectedMealType.side_count})
             </h2>
             <div className="mb-4 animate-fade-in animate-stagger-1">
@@ -836,7 +836,7 @@ const CustomerKioskContent = () => {
                 id="side-search"
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {menuItems
                 .filter((item) => {
                   if (item.item_type !== 'side') return false;
@@ -881,8 +881,8 @@ const CustomerKioskContent = () => {
           </section>
 
           {selectedMealType.drink_size !== 'none' && (
-            <section className="mb-10 animate-fade-in">
-              <h2 className="text-3xl font-semibold mb-4 animate-slide-in-down">
+            <section className="mb-6 sm:mb-10 animate-fade-in">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-4 animate-slide-in-down">
                 {t.selectDrink} (1)
               </h2>
               <div className="mb-4 animate-fade-in animate-stagger-1">
@@ -894,7 +894,7 @@ const CustomerKioskContent = () => {
                   id="drink-search"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {menuItems
                   .filter((item) => {
                     if (item.item_type !== 'drink') return false;
@@ -939,10 +939,10 @@ const CustomerKioskContent = () => {
             </section>
           )}
 
-          <div className="text-center mb-8 animate-fade-in animate-stagger-2">
+          <div className="text-center mb-6 sm:mb-8 animate-fade-in animate-stagger-2">
             <button
               onClick={handleAddOrUpdateOrder}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-lg sm:text-xl hover:shadow-lg button-press transition-all duration-200 animate-bounce-in"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg md:text-xl hover:shadow-lg button-press transition-all duration-200 animate-bounce-in min-h-[44px] w-full sm:w-auto"
               disabled={
                 selectedMealType &&
                 (selectedEntrees.length !== selectedMealType.entree_count ||

@@ -158,11 +158,11 @@ const InventoryManager = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Inventory Manager</h1>
-      <div className="mb-4 flex gap-2">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4">Inventory Manager</h1>
+      <div className="mb-4 flex flex-wrap gap-2">
         <Link href="/dashboard">
           <button 
-            className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 inline-flex items-center"
+            className="bg-gray-300 text-gray-800 px-3 sm:px-4 py-2 rounded hover:bg-gray-400 inline-flex items-center min-h-[44px] text-sm sm:text-base"
             aria-label="Back to Dashboard"
           >
             <Tooltip text="Back to Dashboard" position="bottom">
@@ -182,20 +182,21 @@ const InventoryManager = () => {
                 ></path>
               </svg>
             </Tooltip>
-            Back to Dashboard
+            <span className="hidden sm:inline">Back to Dashboard</span>
+            <span className="sm:hidden">Back</span>
           </button>
         </Link>
         <Link href="/kitchen-monitor">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          <button className="bg-blue-500 text-white px-3 sm:px-4 py-2 rounded hover:bg-blue-600 min-h-[44px] text-sm sm:text-base">
             Kitchen Monitor
           </button>
         </Link>
       </div>
 
       {/* Tab navigation for Food vs Non-Food inventory */}
-      <div className="flex border-b border-gray-200 mb-4">
+      <div className="flex border-b border-gray-200 mb-4 overflow-x-auto">
         <button
-          className={`py-2 px-4 text-lg font-medium ${
+          className={`py-2 px-3 sm:px-4 text-base sm:text-lg font-medium min-h-[44px] whitespace-nowrap ${
             activeTab === 'food' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'
           }`}
           onClick={() => setActiveTab('food')}
@@ -203,7 +204,7 @@ const InventoryManager = () => {
           Food Inventory
         </button>
         <button
-          className={`py-2 px-4 text-lg font-medium ${
+          className={`py-2 px-3 sm:px-4 text-base sm:text-lg font-medium min-h-[44px] whitespace-nowrap ${
             activeTab === 'non-food' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'
           }`}
           onClick={() => setActiveTab('non-food')}
@@ -215,17 +216,18 @@ const InventoryManager = () => {
       {/* Food Inventory Tab */}
       {activeTab === 'food' && (
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-xl font-semibold">Food Inventory</h2>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
+            <h2 className="text-lg sm:text-xl font-semibold">Food Inventory</h2>
             <div className="flex space-x-2">
               <Link href="/manager/restock-report">
-                <button className="bg-green-500 text-white px-4 py-2 rounded">
+                <button className="bg-green-500 text-white px-3 sm:px-4 py-2 rounded min-h-[44px] text-sm sm:text-base whitespace-nowrap">
                   Generate Restock Report
                 </button>
               </Link>
             </div>
           </div>
-          <table className="min-w-full bg-white">
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white">
             <thead>
               <tr>
                 <th className="py-2">Name</th>
@@ -243,7 +245,7 @@ const InventoryManager = () => {
                   <td className="border px-4 py-2">
                     <button
                       onClick={() => openModal(item, true, true)}
-                      className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
+                      className="bg-yellow-500 text-white px-3 py-2 rounded mr-2 min-h-[44px] text-sm sm:text-base"
                     >
                       Edit
                     </button>
@@ -253,22 +255,24 @@ const InventoryManager = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
       {/* Non-Food Inventory Tab */}
       {activeTab === 'non-food' && (
         <div>
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-xl font-semibold">Non-Food Inventory</h2>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
+            <h2 className="text-lg sm:text-xl font-semibold">Non-Food Inventory</h2>
             <button
               onClick={() => openModal(null, false, false)}
-              className="bg-blue-500 text-white px-4 py-2 rounded"
+              className="bg-blue-500 text-white px-3 sm:px-4 py-2 rounded min-h-[44px] text-sm sm:text-base whitespace-nowrap"
             >
               Add Non-Food Item
             </button>
           </div>
-          <table className="min-w-full bg-white">
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white">
             <thead>
               <tr>
                 <th className="py-2">Name</th>
@@ -285,7 +289,7 @@ const InventoryManager = () => {
                   <td className="border px-4 py-2">
                     <button
                       onClick={() => openModal(item, false, true)}
-                      className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
+                      className="bg-yellow-500 text-white px-3 py-2 rounded mr-2 min-h-[44px] text-sm sm:text-base"
                     >
                       Edit
                     </button>
@@ -295,13 +299,14 @@ const InventoryManager = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
       {/* Modal for adding/editing inventory items */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-10 sm:top-20 mx-auto p-4 sm:p-5 border w-11/12 sm:w-96 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
                                     <h3 className="text-lg font-bold mb-4">
                                       {isEdit ? (isFood ? 'Edit Food Stock' : 'Edit Non-Food Stock') : 'Add Non-Food Item'}
                                     </h3>
@@ -335,17 +340,17 @@ const InventoryManager = () => {
                                           </select>
                                         </div>
                                       )}
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
                 <button
                   type="submit"
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline min-h-[44px] text-sm sm:text-base"
                 >
                   Save
                 </button>
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline min-h-[44px] text-sm sm:text-base"
                 >
                   Cancel
                 </button>

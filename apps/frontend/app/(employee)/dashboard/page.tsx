@@ -36,13 +36,13 @@ interface DashboardCardProps {
 const DashboardCard = ({ href, title, description, icon: Icon, index }: DashboardCardProps) => (
   <Link
     href={href}
-    className={`block rounded-lg border border-gray-200 bg-white p-6 hover:shadow-lg hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} flex flex-col items-center text-center`}
+    className={`block rounded-lg border border-gray-200 bg-white p-4 sm:p-6 hover:shadow-lg hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} flex flex-col items-center text-center min-h-[44px]`}
   >
-    <Icon className="h-10 w-10 text-indigo-600 mb-4" />
-    <h2 className="mb-2 text-xl font-semibold text-gray-800">
+    <Icon className="h-8 w-8 sm:h-10 sm:w-10 text-indigo-600 mb-3 sm:mb-4" />
+    <h2 className="mb-2 text-lg sm:text-xl font-semibold text-gray-800">
       {title}
     </h2>
-    <p className="text-gray-600">
+    <p className="text-sm sm:text-base text-gray-600">
       {description}
     </p>
   </Link>
@@ -108,14 +108,14 @@ export default function DashboardPage() {
 
   return (
     <div className="animate-fade-in">
-      <div className="mb-8 animate-slide-in-down">
-        <h1 className="text-3xl font-bold text-gray-800">Welcome, {user?.name || user?.email}</h1>
-        <p className="text-gray-600 mt-1 animate-fade-in animate-stagger-1">
+      <div className="mb-6 sm:mb-8 animate-slide-in-down">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Welcome, {user?.name || user?.email}</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1 animate-fade-in animate-stagger-1">
           Select an action to get started.
         </p>
       </div>
 
-      <div className="space-y-12">
+      <div className="space-y-8 sm:space-y-12">
         {dashboardNavGroups.map((group) => {
           const filteredItems = group.items.filter(item =>
             item.role === 'ALL' || item.role === user?.role
@@ -133,11 +133,11 @@ export default function DashboardPage() {
 
           return (
             <div key={group.name}>
-              <h2 className="text-2xl font-bold text-gray-700 mb-6 flex items-center">
-                <group.icon className="h-8 w-8 text-indigo-600 mr-3" />
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-700 mb-4 sm:mb-6 flex items-center">
+                <group.icon className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-600 mr-2 sm:mr-3" />
                 {group.name}
               </h2>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {filteredItems.map((card, index) => (
                   <DashboardCard
                     key={card.href}
