@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useEmployee } from '@/app/context/EmployeeContext';
 import { useToast } from '@/app/hooks/useToast';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
 interface DailySalesData {
   total_sales: number;
@@ -58,7 +59,7 @@ export default function DailySalesPage() {
           throw new Error('Failed to fetch sales data');
         }
 
-        const result = await response.json();
+        const result = await safeJsonParse(response);
         if (result.success) {
           setSalesData(result.data);
         } else {

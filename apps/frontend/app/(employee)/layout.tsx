@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ClipboardList, Monitor, LayoutDashboard, UserCog, BarChart2, LogOut, FileText, Tag } from 'lucide-react';
 import { EmployeeContext } from '@/app/context/EmployeeContext';
 import ToastProvider from '@/app/context/ToastContext';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
 interface User {
   id: number;
@@ -26,7 +27,7 @@ const EmployeeLayout = ({ children }: { children: ReactNode }) => {
       try {
         const res = await fetch('/api/user');
         if (!res.ok) throw new Error('Not authenticated');
-        const userData = await res.json();
+        const userData = await safeJsonParse(res);
         if (!['CASHIER', 'MANAGER'].includes(userData.role)) {
           throw new Error('Access denied');
         }

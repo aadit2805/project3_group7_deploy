@@ -1,17 +1,14 @@
 'use client';
 
-import React, { useContext, useState, forwardRef, useImperativeHandle } from 'react';
+import React, { useContext, useState } from 'react';
 import { OrderContext, OrderItem } from '@/app/context/OrderContext';
 import { EmployeeContext } from '@/app/context/EmployeeContext'; // Import EmployeeContext
 import { useRouter } from 'next/navigation';
 import { useTranslatedTexts } from '@/app/hooks/useTranslation';
 import { useToast } from '@/app/hooks/useToast';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
-export interface OrderPaneRef {
-  submitOrder: () => void;
-}
-
-const OrderPane = forwardRef<OrderPaneRef, { onOrderSubmitSuccess?: () => void }>(({ onOrderSubmitSuccess }, ref) => {
+const OrderPane = ({ onOrderSubmitSuccess }: { onOrderSubmitSuccess?: () => void }) => {
   const context = useContext(OrderContext);
   const employeeContext = useContext(EmployeeContext); // Access EmployeeContext
   const router = useRouter();
@@ -45,7 +42,6 @@ const OrderPane = forwardRef<OrderPaneRef, { onOrderSubmitSuccess?: () => void }
     'Remove Discount',
     'Validating...',
     'Discount Applied',
-    'Cancel Order',
   ];
 
   const { translatedTexts, isTranslating } = useTranslatedTexts(textLabels);
@@ -72,7 +68,6 @@ const OrderPane = forwardRef<OrderPaneRef, { onOrderSubmitSuccess?: () => void }
     removeDiscount: translatedTexts[17] || 'Remove Discount',
     validating: translatedTexts[18] || 'Validating...',
     discountApplied: translatedTexts[19] || 'Discount Applied',
-    cancelOrder: translatedTexts[20] || 'Cancel Order',
   };
 
   if (!context || !employeeContext) {
@@ -118,7 +113,10 @@ const OrderPane = forwardRef<OrderPaneRef, { onOrderSubmitSuccess?: () => void }
         }),
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`Failed to validate discount: ${response.status}`);
+      }
+      const data = await safeJsonParse(response);
 
       if (data.valid && data.discount) {
         setDiscountAmount(data.discount_amount);
@@ -143,17 +141,6 @@ const OrderPane = forwardRef<OrderPaneRef, { onOrderSubmitSuccess?: () => void }
     setDiscountCode('');
     setDiscountAmount(0);
     setDiscountName('');
-  };
-
-  const handleCancelOrder = () => {
-    setOrder([]);
-    setIsRushOrder(false);
-    setOrderNotes('');
-    setDiscountCode('');
-    setDiscountAmount(0);
-    setDiscountName('');
-    localStorage.removeItem('order');
-    router.push('/cashier-interface');
   };
 
   const handleSubmitOrder = async () => {
@@ -197,7 +184,12 @@ const OrderPane = forwardRef<OrderPaneRef, { onOrderSubmitSuccess?: () => void }
                 }
 
               } else {
-        const errorData = await response.json().catch(() => ({}));
+        let errorData: any = {};
+        try {
+          errorData = await safeJsonParse(response);
+        } catch {
+          // If response is not JSON, use empty object
+        }
         console.error('Order submission failed:', errorData);
         addToast({ message: `${t.failMessage} ${errorData.error ? `
 Error: ${errorData.error}` : ''}`, type: 'error' });
@@ -208,23 +200,18 @@ Error: ${errorData.error}` : ''}`, type: 'error' });
     }
   };
 
-  useImperativeHandle(ref, () => ({
-    submitOrder: handleSubmitOrder,
-  }));
-
   return (
     <aside 
-      className="w-1/3 bg-gray-100 flex flex-col overflow-hidden min-h-0" 
+      className="w-1/3 bg-gray-100 p-6" 
       role="complementary" 
       aria-label="Order summary"
     >
-      <div className="p-6 flex flex-col h-full overflow-y-auto min-h-0">
-        <h2 className="text-3xl font-semibold mb-4">{t.title}</h2>
-        {order.length === 0 ? (
-          <p role="status" aria-live="polite">{t.empty}</p>
-        ) : (
-          <>
-            <ul role="list" aria-label="Order items">
+      <h2 className="text-3xl font-semibold mb-4">{t.title}</h2>
+      {order.length === 0 ? (
+        <p role="status" aria-live="polite">{t.empty}</p>
+      ) : (
+        <>
+          <ul role="list" aria-label="Order items">
             {order.map((orderItem, index) => {
               const isDrinkOnly =
                 orderItem.entrees.length === 0 && orderItem.sides.length === 0 && orderItem.drink;
@@ -380,32 +367,19 @@ Error: ${errorData.error}` : ''}`, type: 'error' });
                 {t.markAsRushOrder}
               </label>
             </div>
-            <div className="flex gap-3 mt-4">
-              <button
-                onClick={handleCancelOrder}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex-1"
-                disabled={isTranslating}
-                aria-label="Cancel order and return to meal type selection"
-              >
-                {t.cancelOrder}
-              </button>
-              <button
-                onClick={handleSubmitOrder}
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex-1"
-                disabled={isTranslating || order.length === 0}
-                aria-label={`Submit order with ${order.length} item${order.length !== 1 ? 's' : ''}, total ${finalPrice.toFixed(2)} dollars`}
-              >
-                {t.submitOrder}
-              </button>
-            </div>
+            <button
+              onClick={handleSubmitOrder}
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-xl mt-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isTranslating || order.length === 0}
+              aria-label={`Submit order with ${order.length} item${order.length !== 1 ? 's' : ''}, total ${finalPrice.toFixed(2)} dollars`}
+            >
+              {t.submitOrder}
+            </button>
           </div>
         </>
       )}
-      </div>
     </aside>
   );
-});
-
-OrderPane.displayName = 'OrderPane';
+};
 
 export default OrderPane;
