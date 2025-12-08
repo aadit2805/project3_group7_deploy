@@ -42,6 +42,7 @@ const OrderPane = ({ onOrderSubmitSuccess }: { onOrderSubmitSuccess?: () => void
     'Remove Discount',
     'Validating...',
     'Discount Applied',
+    'Duplicate',
   ];
 
   const { translatedTexts, isTranslating } = useTranslatedTexts(textLabels);
@@ -68,6 +69,7 @@ const OrderPane = ({ onOrderSubmitSuccess }: { onOrderSubmitSuccess?: () => void
     removeDiscount: translatedTexts[17] || 'Remove Discount',
     validating: translatedTexts[18] || 'Validating...',
     discountApplied: translatedTexts[19] || 'Discount Applied',
+    duplicate: translatedTexts[20] || 'Duplicate',
   };
 
   if (!context || !employeeContext) {
@@ -75,7 +77,7 @@ const OrderPane = ({ onOrderSubmitSuccess }: { onOrderSubmitSuccess?: () => void
   }
 
   const { user } = employeeContext; // Get user from EmployeeContext
-  const { order, setOrder, totalPrice } = context;
+  const { order, setOrder, totalPrice, duplicateItem } = context;
 
   // Calculate final price with discount
   const finalPrice = Math.max(0, totalPrice - discountAmount);
@@ -233,7 +235,7 @@ Error: ${errorData.error}`
                     <div
                       role="group"
                       aria-label={`Actions for ${orderItem.mealType.meal_type_name}`}
-                      className="flex gap-2"
+                      className="flex flex-wrap gap-2"
                     >
                       <button
                         onClick={() => handleEditItem(index)}
@@ -241,6 +243,13 @@ Error: ${errorData.error}`
                         aria-label={`Edit ${orderItem.mealType.meal_type_name} item`}
                       >
                         {t.edit}
+                      </button>
+                      <button
+                        onClick={() => duplicateItem(index)}
+                        className="text-green-500 hover:text-green-700 font-bold px-3 py-2 sm:px-2 sm:py-1 rounded focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px] sm:min-h-0"
+                        aria-label={`Duplicate ${orderItem.mealType.meal_type_name} item`}
+                      >
+                        {t.duplicate}
                       </button>
                       <button
                         onClick={() => handleRemoveFromOrder(index)}

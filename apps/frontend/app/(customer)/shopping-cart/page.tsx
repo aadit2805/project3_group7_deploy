@@ -49,6 +49,7 @@ const ShoppingCart = () => {
     'Validating...', // New
     'Discount Applied', // New
     'Promotional Discount', // New
+    'Duplicate', // New
   ];
 
   const { translatedTexts } = useTranslatedTexts(textLabels);
@@ -82,11 +83,13 @@ const ShoppingCart = () => {
     validating: translatedTexts[25] || 'Validating...',
     discountApplied: translatedTexts[26] || 'Discount Applied',
     promotionalDiscount: translatedTexts[27] || 'Promotional Discount',
+    duplicate: translatedTexts[28] || 'Duplicate',
   };
 
   const order = context?.order || [];
   const setOrder = context?.setOrder || (() => {});
   const baseTotalPrice = context?.totalPrice || 0; // Base price before discounts
+  const duplicateItem = context?.duplicateItem || (() => {});
 
   // State for points and discounts
   const [customerPoints, setCustomerPoints] = useState<number | null>(null);
@@ -403,13 +406,20 @@ const ShoppingCart = () => {
                   >
                     <div className="flex flex-wrap justify-center sm:justify-between items-center gap-y-2">
                       <h2 className="text-xl sm:text-2xl font-bold">{mealName}</h2>
-                      <div role="group" aria-label={`Actions for ${mealName}`}>
+                      <div role="group" aria-label={`Actions for ${mealName}`} className="flex flex-wrap gap-2">
                         <button
                           onClick={() => handleEditItem(index)}
-                          className="text-blue-500 hover:text-blue-700 font-bold mr-2 px-3 py-1 border border-blue-500 rounded button-press transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                          className="text-blue-500 hover:text-blue-700 font-bold px-3 py-1 border border-blue-500 rounded button-press transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                           aria-label={`Edit ${mealName} item`}
                         >
                           {t.edit}
+                        </button>
+                        <button
+                          onClick={() => duplicateItem(index)}
+                          className="text-green-500 hover:text-green-700 font-bold px-3 py-1 border border-green-500 rounded button-press transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                          aria-label={`Duplicate ${mealName} item`}
+                        >
+                          {t.duplicate}
                         </button>
                         <button
                           onClick={() => handleRemoveFromOrder(index)}
