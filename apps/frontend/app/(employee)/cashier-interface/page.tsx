@@ -420,13 +420,13 @@ const CashierInterfaceContent = () => {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-4 sm:py-8">
       {!mealTypeId && !isDrinkSelection ? (
         <>
           <div className="mb-4 animate-slide-in-down">
             <Link href="/dashboard">
               <button
-                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 inline-flex items-center button-press transition-all duration-200 hover:shadow-md"
+                className="bg-gray-300 text-gray-800 px-4 py-2 sm:py-2 rounded hover:bg-gray-400 inline-flex items-center button-press transition-all duration-200 hover:shadow-md min-h-[44px] text-sm sm:text-base"
                 aria-label={t.backToDashboard}
               >
                 <Tooltip text={t.backToDashboard} position="bottom">
@@ -450,30 +450,30 @@ const CashierInterfaceContent = () => {
               </button>
             </Link>
           </div>
-          <h1 className="text-4xl font-bold text-center mb-8 animate-slide-in-down">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-6 sm:mb-8 animate-slide-in-down">
             {t.selectMealType}
           </h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {nonDrinkMealTypes.map((mealType, index) => (
               <div
                 key={mealType.meal_type_id}
                 onClick={() => handleSelectMealType(mealType)}
-                className="bg-[#D61927] rounded-lg shadow-md p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300"
+                className="bg-[#D61927] rounded-lg shadow-md p-4 sm:p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300 min-h-[44px]"
               >
-                <h2 className="text-2xl font-bold mb-2 text-white">
+                <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white break-words">
                   {translatedMealTypes[mealType.meal_type_id] || mealType.meal_type_name}
                 </h2>
-                <p className="text-white">
+                <p className="text-white text-sm sm:text-base">
                   {t.price}: ${mealType.meal_type_price.toFixed(2)}
                 </p>
-                <p className="text-white">
+                <p className="text-white text-sm sm:text-base">
                   {t.entrees}: {mealType.entree_count}
                 </p>
-                <p className="text-white">
+                <p className="text-white text-sm sm:text-base">
                   {t.sides}: {mealType.side_count}
                 </p>
                 {mealType.drink_size && (
-                  <p className="text-white">
+                  <p className="text-white text-sm sm:text-base">
                     {t.drink}: {mealType.drink_size}
                   </p>
                 )}
@@ -482,10 +482,10 @@ const CashierInterfaceContent = () => {
             {/* Drinks option */}
             <div
               onClick={handleSelectDrinks}
-              className="bg-[#D61927] rounded-lg shadow-md p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300"
+              className="bg-[#D61927] rounded-lg shadow-md p-4 sm:p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300 min-h-[44px]"
             >
-              <h2 className="text-2xl font-bold mb-2 text-white">{t.drinks}</h2>
-              <p className="text-white">{t.selectDrinkSize}</p>
+              <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white">{t.drinks}</h2>
+              <p className="text-white text-sm sm:text-base">{t.selectDrinkSize}</p>
             </div>
           </div>
         </>
@@ -499,15 +499,17 @@ const CashierInterfaceContent = () => {
                 setSelectedDrink(null);
                 setSearchQuery('');
               }}
-              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg"
+              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 sm:py-2 px-4 rounded-lg min-h-[44px] text-sm sm:text-base"
             >
               ← {t.backToMealTypes}
             </button>
           </div>
           {!selectedDrinkSize ? (
             <>
-              <h1 className="text-4xl font-bold text-center mb-8">{t.selectDrinkSize}</h1>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-6 sm:mb-8">
+                {t.selectDrinkSize}
+              </h1>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-4xl mx-auto">
                 {[
                   { name: 'Small', size: 'Small' },
                   { name: 'Medium', size: 'Medium' },
@@ -518,9 +520,9 @@ const CashierInterfaceContent = () => {
                     <div
                       key={sizeOption.size}
                       onClick={() => handleSelectDrinkSize(sizeOption.size)}
-                      className="bg-[#D61927] rounded-lg shadow-md p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300"
+                      className="bg-[#D61927] rounded-lg shadow-md p-4 sm:p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300 min-h-[44px]"
                     >
-                      <h2 className="text-2xl font-bold mb-2 text-white">
+                      <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white">
                         {sizeOption.name === 'Small'
                           ? t.small
                           : sizeOption.name === 'Medium'
@@ -528,7 +530,7 @@ const CashierInterfaceContent = () => {
                             : t.large}
                       </h2>
                       {mealType && (
-                        <p className="text-white">
+                        <p className="text-white text-sm sm:text-base">
                           {t.price}: ${mealType.meal_type_price.toFixed(2)}
                         </p>
                       )}
@@ -546,12 +548,12 @@ const CashierInterfaceContent = () => {
                     setSelectedDrink(null);
                     setSearchQuery('');
                   }}
-                  className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg"
+                  className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 sm:py-2 px-4 rounded-lg min-h-[44px] text-sm sm:text-base"
                 >
                   ← {t.selectDrinkSize}
                 </button>
               </div>
-              <h1 className="text-4xl font-bold text-center mb-8">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-6 sm:mb-8">
                 {t.selectDrink} -{' '}
                 {selectedDrinkSize === 'Small'
                   ? t.small
@@ -560,39 +562,41 @@ const CashierInterfaceContent = () => {
                     : t.large}
               </h1>
 
-              <div className="mb-6 max-w-2xl mx-auto">
+              <div className="mb-4 sm:mb-6 max-w-2xl mx-auto">
                 <input
                   type="text"
                   placeholder="Search drinks..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  className="w-full px-4 py-3 text-base sm:text-lg border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 min-h-[44px]"
                 />
               </div>
 
-              <section className="mb-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <section className="mb-6 sm:mb-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {filterMenuItems(menuItems.filter((item) => item.item_type === 'drink')).map(
                     (item) => {
                       const isSelected = selectedDrink?.menu_item_id === item.menu_item_id;
                       return (
                         <div
                           key={item.menu_item_id}
-                          className={`rounded-lg shadow-md p-6 cursor-pointer border-2 transition-all duration-300 ${
+                          className={`rounded-lg shadow-md p-4 sm:p-6 cursor-pointer border-2 transition-all duration-300 min-h-[44px] ${
                             isSelected
                               ? 'bg-black border-white border-4 shadow-2xl ring-4 ring-white/50'
                               : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-xl hover:bg-[#B81520]'
                           }`}
                           onClick={() => item.is_available && handleSelectDrinkItem(item)}
                         >
-                          <h3 className="text-xl font-bold mb-2 text-white">
+                          <h3 className="text-lg sm:text-xl font-bold mb-2 text-white break-words">
                             {translatedMenuItems[item.menu_item_id] || item.name}
                           </h3>
-                          <p className="text-white">
+                          <p className="text-white text-sm sm:text-base">
                             {t.upcharge}: ${item.upcharge.toFixed(2)}
                           </p>
                           {!item.is_available && (
-                            <p className="text-white font-semibold mt-2">{t.unavailable}</p>
+                            <p className="text-white font-semibold mt-2 text-sm sm:text-base">
+                              {t.unavailable}
+                            </p>
                           )}
                         </div>
                       );
@@ -601,7 +605,7 @@ const CashierInterfaceContent = () => {
                 </div>
               </section>
 
-              <div className="text-center mb-20">
+              <div className="text-center mb-10 sm:mb-20">
                 <button
                   onClick={() => {
                     const drinkMealType = getDrinkMealType(selectedDrinkSize);
@@ -609,7 +613,7 @@ const CashierInterfaceContent = () => {
                       handleAddOrUpdateOrder(drinkMealType);
                     }
                   }}
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-xl"
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl min-h-[44px] w-full sm:w-auto"
                   disabled={!selectedDrink}
                 >
                   {editIndex !== null ? t.updateItem : t.addToOrder}
@@ -635,31 +639,31 @@ const CashierInterfaceContent = () => {
                 sideCycleDirection.current.clear();
                 router.push('/cashier-interface');
               }}
-              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg"
+              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 sm:py-2 px-4 rounded-lg min-h-[44px] text-sm sm:text-base"
             >
               ← {t.backToMealTypes}
             </button>
           </div>
-          <h1 className="text-4xl font-bold text-center mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-6 sm:mb-8">
             {t.customize}{' '}
             {translatedMealTypes[selectedMealType.meal_type_id] || selectedMealType.meal_type_name}
           </h1>
 
-          <div className="mb-6 max-w-2xl mx-auto">
+          <div className="mb-4 sm:mb-6 max-w-2xl mx-auto">
             <input
               type="text"
               placeholder="Search meal options..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-3 text-base sm:text-lg border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 min-h-[44px]"
             />
           </div>
 
-          <section className="mb-10">
-            <h2 className="text-3xl font-semibold mb-4">
+          <section className="mb-6 sm:mb-10">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-4">
               {t.selectEntrees} ({selectedEntrees.length}/{selectedMealType.entree_count})
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filterMenuItems(menuItems.filter((item) => item.item_type === 'entree')).map(
                 (item) => {
                   const isSelected = selectedEntrees.some(
@@ -668,21 +672,23 @@ const CashierInterfaceContent = () => {
                   return (
                     <div
                       key={item.menu_item_id}
-                      className={`rounded-lg shadow-md p-6 cursor-pointer border-2 transition-all duration-300 ${
+                      className={`rounded-lg shadow-md p-4 sm:p-6 cursor-pointer border-2 transition-all duration-300 min-h-[44px] ${
                         isSelected
                           ? 'bg-black border-white border-4 shadow-2xl ring-4 ring-white/50'
                           : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-xl hover:bg-[#B81520]'
                       }`}
                       onClick={() => item.is_available && handleSelectItem(item, 'entree')}
                     >
-                      <h3 className="text-xl font-bold mb-2 text-white">
+                      <h3 className="text-lg sm:text-xl font-bold mb-2 text-white break-words">
                         {translatedMenuItems[item.menu_item_id] || item.name}
                       </h3>
-                      <p className="text-white">
+                      <p className="text-white text-sm sm:text-base">
                         {t.upcharge}: ${item.upcharge.toFixed(2)}
                       </p>
                       {!item.is_available && (
-                        <p className="text-white font-semibold mt-2">{t.unavailable}</p>
+                        <p className="text-white font-semibold mt-2 text-sm sm:text-base">
+                          {t.unavailable}
+                        </p>
                       )}
                     </div>
                   );
@@ -691,11 +697,11 @@ const CashierInterfaceContent = () => {
             </div>
           </section>
 
-          <section className="mb-10">
-            <h2 className="text-3xl font-semibold mb-4">
+          <section className="mb-6 sm:mb-10">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-4">
               {t.selectSides} ({selectedSides.length}/{selectedMealType.side_count})
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filterMenuItems(menuItems.filter((item) => item.item_type === 'side')).map(
                 (item) => {
                   const isSelected = selectedSides.some(
@@ -704,21 +710,23 @@ const CashierInterfaceContent = () => {
                   return (
                     <div
                       key={item.menu_item_id}
-                      className={`rounded-lg shadow-md p-6 cursor-pointer border-2 transition-all duration-300 ${
+                      className={`rounded-lg shadow-md p-4 sm:p-6 cursor-pointer border-2 transition-all duration-300 min-h-[44px] ${
                         isSelected
                           ? 'bg-black border-white border-4 shadow-2xl ring-4 ring-white/50'
                           : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-xl hover:bg-[#B81520]'
                       }`}
                       onClick={() => item.is_available && handleSelectItem(item, 'side')}
                     >
-                      <h3 className="text-xl font-bold mb-2 text-white">
+                      <h3 className="text-lg sm:text-xl font-bold mb-2 text-white break-words">
                         {translatedMenuItems[item.menu_item_id] || item.name}
                       </h3>
-                      <p className="text-white">
+                      <p className="text-white text-sm sm:text-base">
                         {t.upcharge}: ${item.upcharge.toFixed(2)}
                       </p>
                       {!item.is_available && (
-                        <p className="text-white font-semibold mt-2">{t.unavailable}</p>
+                        <p className="text-white font-semibold mt-2 text-sm sm:text-base">
+                          {t.unavailable}
+                        </p>
                       )}
                     </div>
                   );
@@ -727,10 +735,10 @@ const CashierInterfaceContent = () => {
             </div>
           </section>
 
-          <div className="text-center mb-20">
+          <div className="text-center mb-10 sm:mb-20">
             <button
               onClick={() => handleAddOrUpdateOrder()}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-xl"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl min-h-[44px] w-full sm:w-auto"
               disabled={
                 selectedMealType &&
                 (selectedEntrees.length !== selectedMealType.entree_count ||
