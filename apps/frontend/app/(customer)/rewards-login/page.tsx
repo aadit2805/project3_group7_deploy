@@ -112,7 +112,7 @@ function RewardsLoginContent() {
           <div className="flex flex-col space-y-3">
             <button
               onClick={() => handleAuth(isRegistering)}
-              className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="w-full px-4 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               {isRegistering ? 'Register' : 'Sign In'}
             </button>
@@ -124,7 +124,7 @@ function RewardsLoginContent() {
             </button>
             <button
               onClick={handleGuestContinue}
-              className="w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              className="w-full px-4 py-3 bg-success text-white font-semibold rounded-lg hover:bg-success-hover transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             >
               Continue as Guest
             </button>
@@ -134,7 +134,7 @@ function RewardsLoginContent() {
         <nav className="mt-6 text-center" aria-label="Back navigation">
           <Link
             href="/"
-            className="text-blue-500 hover:underline text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+            className="text-primary hover:underline text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
             aria-label="Return to home page"
           >
             ← Back to Home
