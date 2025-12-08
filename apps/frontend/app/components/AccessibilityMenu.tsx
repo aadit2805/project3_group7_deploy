@@ -106,15 +106,23 @@ export default function AccessibilityMenu() {
           <div className="space-y-4">
             {/* High Contrast Toggle */}
             <div className="flex items-center justify-between">
-              <label htmlFor="high-contrast" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="high-contrast"
+                className="text-sm font-medium text-gray-700"
+              >
                 High Contrast
               </label>
-              <button
+              <input
                 id="high-contrast"
+                type="checkbox"
                 role="switch"
-                aria-checked={highContrast}
-                onClick={toggleHighContrast}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                checked={highContrast}
+                onChange={toggleHighContrast}
+                className="sr-only"
+              />
+              <label
+                htmlFor="high-contrast"
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   highContrast ? 'bg-blue-600' : 'bg-gray-300'
                 }`}
               >
@@ -123,20 +131,28 @@ export default function AccessibilityMenu() {
                     highContrast ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
-              </button>
+              </label>
             </div>
 
             {/* Reduced Motion Toggle */}
             <div className="flex items-center justify-between">
-              <label htmlFor="reduced-motion" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="reduced-motion"
+                className="text-sm font-medium text-gray-700"
+              >
                 Reduced Motion
               </label>
-              <button
+              <input
                 id="reduced-motion"
+                type="checkbox"
                 role="switch"
-                aria-checked={reducedMotion}
-                onClick={toggleReducedMotion}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                checked={reducedMotion}
+                onChange={toggleReducedMotion}
+                className="sr-only"
+              />
+              <label
+                htmlFor="reduced-motion"
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   reducedMotion ? 'bg-blue-600' : 'bg-gray-300'
                 }`}
               >
@@ -145,20 +161,28 @@ export default function AccessibilityMenu() {
                     reducedMotion ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
-              </button>
+              </label>
             </div>
 
             {/* Simplified View Toggle */}
             <div className="flex items-center justify-between">
-              <label htmlFor="simplified-view" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="simplified-view"
+                className="text-sm font-medium text-gray-700"
+              >
                 Simplified View
               </label>
-              <button
+              <input
                 id="simplified-view"
+                type="checkbox"
                 role="switch"
-                aria-checked={simplifiedView}
-                onClick={toggleSimplifiedView}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                checked={simplifiedView}
+                onChange={toggleSimplifiedView}
+                className="sr-only"
+              />
+              <label
+                htmlFor="simplified-view"
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   simplifiedView ? 'bg-blue-600' : 'bg-gray-300'
                 }`}
               >
@@ -167,12 +191,14 @@ export default function AccessibilityMenu() {
                     simplifiedView ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
-              </button>
+              </label>
             </div>
 
             {/* Font Size */}
             <fieldset>
-              <legend className="text-sm font-medium text-gray-700 mb-2">Font Size</legend>
+              <legend className="text-sm font-medium text-gray-700 mb-2">
+                Font Size
+              </legend>
               <div className="space-y-2">
                 <label className="flex items-center">
                   <input
@@ -226,4 +252,3 @@ export default function AccessibilityMenu() {
     </div>
   );
 }
-
