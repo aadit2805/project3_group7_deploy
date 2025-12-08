@@ -58,6 +58,7 @@ export default function AuditLogsPage() {
     start_date: '',
     end_date: '',
   });
+  const [activePreset, setActivePreset] = useState<string>('');
 
   // Fetch audit logs with current filters and pagination
   const fetchAuditLogs = async () => {
@@ -109,9 +110,74 @@ export default function AuditLogsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, pagination.offset, user?.role]);
 
+  const getDateRange = (preset: string): { start: string; end: string } => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const end = new Date(today);
+    end.setHours(23, 59, 59, 999);
+
+    switch (preset) {
+      case 'today': {
+        const start = new Date(today);
+        return {
+          start: start.toISOString().split('T')[0],
+          end: end.toISOString().split('T')[0],
+        };
+      }
+      case 'last7days': {
+        const start = new Date(today);
+        start.setDate(start.getDate() - 6);
+        return {
+          start: start.toISOString().split('T')[0],
+          end: end.toISOString().split('T')[0],
+        };
+      }
+      case 'last30days': {
+        const start = new Date(today);
+        start.setDate(start.getDate() - 29);
+        return {
+          start: start.toISOString().split('T')[0],
+          end: end.toISOString().split('T')[0],
+        };
+      }
+      case 'thisMonth': {
+        const start = new Date(today.getFullYear(), today.getMonth(), 1);
+        return {
+          start: start.toISOString().split('T')[0],
+          end: end.toISOString().split('T')[0],
+        };
+      }
+      case 'lastMonth': {
+        const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        const lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+        return {
+          start: firstDayLastMonth.toISOString().split('T')[0],
+          end: lastDayLastMonth.toISOString().split('T')[0],
+        };
+      }
+      default:
+        return { start: '', end: '' };
+    }
+  };
+
+  const handlePresetClick = (preset: string) => {
+    const range = getDateRange(preset);
+    setFilters((prev) => ({
+      ...prev,
+      start_date: range.start,
+      end_date: range.end,
+    }));
+    setActivePreset(preset);
+    setPagination((prev) => ({ ...prev, offset: 0 }));
+  };
+
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     setPagination((prev) => ({ ...prev, offset: 0 })); // Reset to first page when filtering
+    // Clear preset when manually changing dates
+    if (key === 'start_date' || key === 'end_date') {
+      setActivePreset('');
+    }
   };
 
   const clearFilters = () => {
@@ -122,6 +188,7 @@ export default function AuditLogsPage() {
       start_date: '',
       end_date: '',
     });
+    setActivePreset('');
     setPagination((prev) => ({ ...prev, offset: 0 }));
   };
 
@@ -188,6 +255,63 @@ export default function AuditLogsPage() {
           </button>
         </div>
 
+        {/* Preset Date Range Buttons */}
+        <div className="mb-4 pb-4 border-b border-gray-200">
+          <p className="text-sm text-gray-600 mb-2">Quick Date Select:</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => handlePresetClick('today')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activePreset === 'today'
+                  ? 'bg-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Today
+            </button>
+            <button
+              onClick={() => handlePresetClick('last7days')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activePreset === 'last7days'
+                  ? 'bg-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Last 7 Days
+            </button>
+            <button
+              onClick={() => handlePresetClick('last30days')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activePreset === 'last30days'
+                  ? 'bg-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Last 30 Days
+            </button>
+            <button
+              onClick={() => handlePresetClick('thisMonth')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activePreset === 'thisMonth'
+                  ? 'bg-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              This Month
+            </button>
+            <button
+              onClick={() => handlePresetClick('lastMonth')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activePreset === 'lastMonth'
+                  ? 'bg-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Last Month
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -248,6 +372,7 @@ export default function AuditLogsPage() {
               type="date"
               value={filters.start_date}
               onChange={(e) => handleFilterChange('start_date', e.target.value)}
+              max={filters.end_date || undefined}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -260,6 +385,7 @@ export default function AuditLogsPage() {
               type="date"
               value={filters.end_date}
               onChange={(e) => handleFilterChange('end_date', e.target.value)}
+              min={filters.start_date || undefined}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
