@@ -470,7 +470,7 @@ const CashierInterfaceContent = () => {
                 </div>
               </section>
 
-              <div className="text-center mb-8">
+              <div className="text-center mb-20">
                 <button
                   onClick={() => {
                     const drinkMealType = getDrinkMealType(selectedDrinkSize);
@@ -578,7 +578,7 @@ const CashierInterfaceContent = () => {
             </div>
           </section>
 
-          <div className="text-center mb-8">
+          <div className="text-center mb-20">
             <button
               onClick={() => handleAddOrUpdateOrder()}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-xl"
