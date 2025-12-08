@@ -311,11 +311,11 @@ const ShoppingCart = () => {
         const data = await response.json();
         const orderId = data.data.orderId;
         const estimatedPrepTime = data.data.estimatedPrepTime;
-        
+
         // Store order ID and estimated prep time for confirmation page
         localStorage.setItem('lastOrderId', orderId);
         localStorage.setItem('estimatedPrepTime', estimatedPrepTime);
-        
+
         setOrder([]);
         setDiscountCode('');
         setPromoDiscountAmount(0);
@@ -323,7 +323,7 @@ const ShoppingCart = () => {
         setUsePoints(false);
         setPointsApplied(0);
         localStorage.removeItem('order');
-        
+
         // Redirect to order confirmation page
         router.push('/order-confirmation');
       } else {
@@ -363,7 +363,10 @@ const ShoppingCart = () => {
       </nav>
 
       <section className="bg-gray-100 p-4 sm:p-6 rounded-lg" aria-labelledby="cart-heading">
-        <h1 id="cart-heading" className="text-2xl sm:text-3xl font-semibold mb-4 text-center sm:text-left">
+        <h1
+          id="cart-heading"
+          className="text-2xl sm:text-3xl font-semibold mb-4 text-center sm:text-left"
+        >
           {t.title}
         </h1>
         {order.length === 0 ? (
@@ -444,8 +447,8 @@ const ShoppingCart = () => {
                               role="list"
                               aria-label="Selected entrees"
                             >
-                              {orderItem.entrees.map((item) => (
-                                <li key={item.menu_item_id} className="text-lg">
+                              {orderItem.entrees.map((item, index) => (
+                                <li key={`${item.menu_item_id}-${index}`} className="text-lg">
                                   {translatedNames[`item_${item.menu_item_id}`] || item.name} (+$
                                   {item.upcharge.toFixed(2)})
                                 </li>
@@ -461,8 +464,8 @@ const ShoppingCart = () => {
                               role="list"
                               aria-label="Selected sides"
                             >
-                              {orderItem.sides.map((item) => (
-                                <li key={item.menu_item_id} className="text-lg">
+                              {orderItem.sides.map((item, index) => (
+                                <li key={`${item.menu_item_id}-${index}`} className="text-lg">
                                   {translatedNames[`item_${item.menu_item_id}`] || item.name} (+$
                                   {item.upcharge.toFixed(2)})
                                 </li>
@@ -535,8 +538,18 @@ const ShoppingCart = () => {
                       className="text-red-600 hover:text-red-800 button-press"
                       aria-label="Remove discount"
                     >
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -583,7 +596,9 @@ const ShoppingCart = () => {
                 <div className="flex flex-wrap justify-center sm:justify-between items-center mb-2 text-green-700 gap-y-2">
                   <p className="text-lg sm:text-xl font-bold">
                     {t.promotionalDiscount}:{' '}
-                    <span aria-label={`Promotional discount ${promoDiscountAmount.toFixed(2)} dollars`}>
+                    <span
+                      aria-label={`Promotional discount ${promoDiscountAmount.toFixed(2)} dollars`}
+                    >
                       -${promoDiscountAmount.toFixed(2)}
                     </span>
                   </p>

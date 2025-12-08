@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useContext, Suspense } from 'react';
+import React, { useState, useEffect, useContext, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { OrderContext, OrderItem } from '@/app/context/OrderContext';
@@ -123,6 +123,10 @@ const CashierInterfaceContent = () => {
   const [translatedMenuItems, setTranslatedMenuItems] = useState<Record<number, string>>({});
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Track cycle direction for each item: true = ascending (0->1->2), false = descending (2->1->0)
+  const entreeCycleDirection = useRef<Map<number, boolean>>(new Map());
+  const sideCycleDirection = useRef<Map<number, boolean>>(new Map());
+
   // Fetch all meal types on component mount
   useEffect(() => {
     const fetchMealTypes = async () => {
@@ -148,7 +152,7 @@ const CashierInterfaceContent = () => {
       if (mealTypes.length > 0) {
         const mealTypeNames = mealTypes.map((mt) => mt.meal_type_name);
         const translated = await translateBatch(mealTypeNames);
-        
+
         const translatedMap: Record<number, string> = {};
         mealTypes.forEach((mt, index) => {
           translatedMap[mt.meal_type_id] = translated[index];
@@ -166,7 +170,7 @@ const CashierInterfaceContent = () => {
       if (menuItems.length > 0) {
         const menuItemNames = menuItems.map((item) => item.name);
         const translated = await translateBatch(menuItemNames);
-        
+
         const translatedMap: Record<number, string> = {};
         menuItems.forEach((item, index) => {
           translatedMap[item.menu_item_id] = translated[index];
@@ -180,6 +184,10 @@ const CashierInterfaceContent = () => {
 
   useEffect(() => {
     if (mealTypeId) {
+      // Reset cycle direction when meal type changes
+      entreeCycleDirection.current.clear();
+      sideCycleDirection.current.clear();
+
       const mealTypeIdNum = parseInt(mealTypeId, 10);
       // If it's a drink meal type (13, 14, 15), show drink selection
       if (mealTypeIdNum === 13 || mealTypeIdNum === 14 || mealTypeIdNum === 15) {
@@ -232,17 +240,91 @@ const CashierInterfaceContent = () => {
 
   // Handle selection of entrees or sides (toggle selection)
   const handleSelectItem = (item: MenuItem, type: 'entree' | 'side') => {
+    if (!selectedMealType) return; // Ensure meal type is selected
+
     if (type === 'entree') {
-      if (selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id)) {
-        setSelectedEntrees(selectedEntrees.filter((e) => e.menu_item_id !== item.menu_item_id));
-      } else if (selectedMealType && selectedEntrees.length < selectedMealType.entree_count) {
-        setSelectedEntrees([...selectedEntrees, item]);
+      // Count how many times this specific item is selected
+      const itemCount = selectedEntrees.filter((e) => e.menu_item_id === item.menu_item_id).length;
+      const totalCount = selectedEntrees.length;
+      const maxCount = selectedMealType.entree_count;
+      const isAscending = entreeCycleDirection.current.get(item.menu_item_id) ?? true;
+
+      // Dynamic cycle: 0 -> 1 -> 2 -> ... -> maxCount -> (maxCount-1) -> ... -> 1 -> 0
+      if (itemCount === 0) {
+        // Item not selected: add one if there's room, mark as ascending
+        if (totalCount < maxCount) {
+          entreeCycleDirection.current.set(item.menu_item_id, true);
+          setSelectedEntrees([...selectedEntrees, item]);
+        }
+      } else if (itemCount < maxCount && isAscending) {
+        // Ascending phase: add another one (if we haven't reached max)
+        if (totalCount < maxCount) {
+          setSelectedEntrees([...selectedEntrees, item]);
+        } else {
+          // Can't add more (total at max), switch to descending and remove one
+          entreeCycleDirection.current.set(item.menu_item_id, false);
+          const itemIndex = selectedEntrees.findIndex((e) => e.menu_item_id === item.menu_item_id);
+          if (itemIndex !== -1) {
+            setSelectedEntrees(selectedEntrees.filter((_, index) => index !== itemIndex));
+          }
+        }
+      } else {
+        // Descending phase or at max: remove one
+        const itemIndex = selectedEntrees.findIndex((e) => e.menu_item_id === item.menu_item_id);
+        if (itemIndex !== -1) {
+          const newEntrees = selectedEntrees.filter((_, index) => index !== itemIndex);
+          setSelectedEntrees(newEntrees);
+          // If after removal we have 0 of this item, delete from map; otherwise mark as descending
+          const newItemCount = newEntrees.filter(
+            (e) => e.menu_item_id === item.menu_item_id
+          ).length;
+          if (newItemCount === 0) {
+            entreeCycleDirection.current.delete(item.menu_item_id);
+          } else {
+            entreeCycleDirection.current.set(item.menu_item_id, false);
+          }
+        }
       }
     } else if (type === 'side') {
-      if (selectedSides.some((s) => s.menu_item_id === item.menu_item_id)) {
-        setSelectedSides(selectedSides.filter((s) => s.menu_item_id !== item.menu_item_id));
-      } else if (selectedMealType && selectedSides.length < selectedMealType.side_count) {
-        setSelectedSides([...selectedSides, item]);
+      // Count how many times this specific item is selected
+      const itemCount = selectedSides.filter((s) => s.menu_item_id === item.menu_item_id).length;
+      const totalCount = selectedSides.length;
+      const maxCount = selectedMealType.side_count;
+      const isAscending = sideCycleDirection.current.get(item.menu_item_id) ?? true;
+
+      // Dynamic cycle: 0 -> 1 -> 2 -> ... -> maxCount -> (maxCount-1) -> ... -> 1 -> 0
+      if (itemCount === 0) {
+        // Item not selected: add one if there's room, mark as ascending
+        if (totalCount < maxCount) {
+          sideCycleDirection.current.set(item.menu_item_id, true);
+          setSelectedSides([...selectedSides, item]);
+        }
+      } else if (itemCount < maxCount && isAscending) {
+        // Ascending phase: add another one (if we haven't reached max)
+        if (totalCount < maxCount) {
+          setSelectedSides([...selectedSides, item]);
+        } else {
+          // Can't add more (total at max), switch to descending and remove one
+          sideCycleDirection.current.set(item.menu_item_id, false);
+          const itemIndex = selectedSides.findIndex((s) => s.menu_item_id === item.menu_item_id);
+          if (itemIndex !== -1) {
+            setSelectedSides(selectedSides.filter((_, index) => index !== itemIndex));
+          }
+        }
+      } else {
+        // Descending phase or at max: remove one
+        const itemIndex = selectedSides.findIndex((s) => s.menu_item_id === item.menu_item_id);
+        if (itemIndex !== -1) {
+          const newSides = selectedSides.filter((_, index) => index !== itemIndex);
+          setSelectedSides(newSides);
+          // If after removal we have 0 of this item, delete from map; otherwise mark as descending
+          const newItemCount = newSides.filter((s) => s.menu_item_id === item.menu_item_id).length;
+          if (newItemCount === 0) {
+            sideCycleDirection.current.delete(item.menu_item_id);
+          } else {
+            sideCycleDirection.current.set(item.menu_item_id, false);
+          }
+        }
       }
     }
   };
@@ -273,11 +355,12 @@ const CashierInterfaceContent = () => {
       setSelectedMealType(null);
       setIsDrinkSelection(false);
       setSearchQuery('');
+      // Reset cycle direction when clearing selections
+      entreeCycleDirection.current.clear();
+      sideCycleDirection.current.clear();
       router.push('/cashier-interface');
     }
   };
-
-
 
   const handleSelectMealType = (mealType: MealType) => {
     setSelectedMealType(mealType);
@@ -311,9 +394,9 @@ const CashierInterfaceContent = () => {
 
   const getDrinkMealType = (size: string): MealType | null => {
     const sizeMap: Record<string, number> = {
-      'Small': 13,
-      'Medium': 14,
-      'Large': 15,
+      Small: 13,
+      Medium: 14,
+      Large: 15,
     };
     const mealTypeId = sizeMap[size];
     return mealTypes.find((mt) => mt.meal_type_id === mealTypeId) || null;
@@ -342,7 +425,7 @@ const CashierInterfaceContent = () => {
         <>
           <div className="mb-4 animate-slide-in-down">
             <Link href="/dashboard">
-              <button 
+              <button
                 className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 inline-flex items-center button-press transition-all duration-200 hover:shadow-md"
                 aria-label={t.backToDashboard}
               >
@@ -367,7 +450,9 @@ const CashierInterfaceContent = () => {
               </button>
             </Link>
           </div>
-          <h1 className="text-4xl font-bold text-center mb-8 animate-slide-in-down">{t.selectMealType}</h1>
+          <h1 className="text-4xl font-bold text-center mb-8 animate-slide-in-down">
+            {t.selectMealType}
+          </h1>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {nonDrinkMealTypes.map((mealType, index) => (
               <div
@@ -378,10 +463,20 @@ const CashierInterfaceContent = () => {
                 <h2 className="text-2xl font-bold mb-2 text-white">
                   {translatedMealTypes[mealType.meal_type_id] || mealType.meal_type_name}
                 </h2>
-                <p className="text-white">{t.price}: ${mealType.meal_type_price.toFixed(2)}</p>
-                <p className="text-white">{t.entrees}: {mealType.entree_count}</p>
-                <p className="text-white">{t.sides}: {mealType.side_count}</p>
-                {mealType.drink_size && <p className="text-white">{t.drink}: {mealType.drink_size}</p>}
+                <p className="text-white">
+                  {t.price}: ${mealType.meal_type_price.toFixed(2)}
+                </p>
+                <p className="text-white">
+                  {t.entrees}: {mealType.entree_count}
+                </p>
+                <p className="text-white">
+                  {t.sides}: {mealType.side_count}
+                </p>
+                {mealType.drink_size && (
+                  <p className="text-white">
+                    {t.drink}: {mealType.drink_size}
+                  </p>
+                )}
               </div>
             ))}
             {/* Drinks option */}
@@ -426,10 +521,16 @@ const CashierInterfaceContent = () => {
                       className="bg-[#D61927] rounded-lg shadow-md p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300"
                     >
                       <h2 className="text-2xl font-bold mb-2 text-white">
-                        {sizeOption.name === 'Small' ? t.small : sizeOption.name === 'Medium' ? t.medium : t.large}
+                        {sizeOption.name === 'Small'
+                          ? t.small
+                          : sizeOption.name === 'Medium'
+                            ? t.medium
+                            : t.large}
                       </h2>
                       {mealType && (
-                        <p className="text-white">{t.price}: ${mealType.meal_type_price.toFixed(2)}</p>
+                        <p className="text-white">
+                          {t.price}: ${mealType.meal_type_price.toFixed(2)}
+                        </p>
                       )}
                     </div>
                   );
@@ -451,7 +552,12 @@ const CashierInterfaceContent = () => {
                 </button>
               </div>
               <h1 className="text-4xl font-bold text-center mb-8">
-                {t.selectDrink} - {selectedDrinkSize === 'Small' ? t.small : selectedDrinkSize === 'Medium' ? t.medium : t.large}
+                {t.selectDrink} -{' '}
+                {selectedDrinkSize === 'Small'
+                  ? t.small
+                  : selectedDrinkSize === 'Medium'
+                    ? t.medium
+                    : t.large}
               </h1>
 
               <div className="mb-6 max-w-2xl mx-auto">
@@ -466,8 +572,8 @@ const CashierInterfaceContent = () => {
 
               <section className="mb-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filterMenuItems(menuItems.filter((item) => item.item_type === 'drink'))
-                    .map((item) => {
+                  {filterMenuItems(menuItems.filter((item) => item.item_type === 'drink')).map(
+                    (item) => {
                       const isSelected = selectedDrink?.menu_item_id === item.menu_item_id;
                       return (
                         <div
@@ -479,18 +585,23 @@ const CashierInterfaceContent = () => {
                           }`}
                           onClick={() => item.is_available && handleSelectDrinkItem(item)}
                         >
-                          <h3 className="text-xl font-bold mb-2 text-white">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
-                          <p className="text-white">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
+                          <h3 className="text-xl font-bold mb-2 text-white">
+                            {translatedMenuItems[item.menu_item_id] || item.name}
+                          </h3>
+                          <p className="text-white">
+                            {t.upcharge}: ${item.upcharge.toFixed(2)}
+                          </p>
                           {!item.is_available && (
                             <p className="text-white font-semibold mt-2">{t.unavailable}</p>
                           )}
                         </div>
                       );
-                    })}
+                    }
+                  )}
                 </div>
               </section>
 
-              <div className="text-center mb-8">
+              <div className="text-center mb-20">
                 <button
                   onClick={() => {
                     const drinkMealType = getDrinkMealType(selectedDrinkSize);
@@ -519,6 +630,9 @@ const CashierInterfaceContent = () => {
                 setSelectedDrinkSize(null);
                 setIsDrinkSelection(false);
                 setSearchQuery('');
+                // Reset cycle direction when going back
+                entreeCycleDirection.current.clear();
+                sideCycleDirection.current.clear();
                 router.push('/cashier-interface');
               }}
               className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg"
@@ -527,7 +641,8 @@ const CashierInterfaceContent = () => {
             </button>
           </div>
           <h1 className="text-4xl font-bold text-center mb-8">
-            {t.customize} {translatedMealTypes[selectedMealType.meal_type_id] || selectedMealType.meal_type_name}
+            {t.customize}{' '}
+            {translatedMealTypes[selectedMealType.meal_type_id] || selectedMealType.meal_type_name}
           </h1>
 
           <div className="mb-6 max-w-2xl mx-auto">
@@ -545,9 +660,11 @@ const CashierInterfaceContent = () => {
               {t.selectEntrees} ({selectedEntrees.length}/{selectedMealType.entree_count})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filterMenuItems(menuItems.filter((item) => item.item_type === 'entree'))
-                .map((item) => {
-                  const isSelected = selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id);
+              {filterMenuItems(menuItems.filter((item) => item.item_type === 'entree')).map(
+                (item) => {
+                  const isSelected = selectedEntrees.some(
+                    (e) => e.menu_item_id === item.menu_item_id
+                  );
                   return (
                     <div
                       key={item.menu_item_id}
@@ -558,14 +675,19 @@ const CashierInterfaceContent = () => {
                       }`}
                       onClick={() => item.is_available && handleSelectItem(item, 'entree')}
                     >
-                      <h3 className="text-xl font-bold mb-2 text-white">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
-                      <p className="text-white">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
+                      <h3 className="text-xl font-bold mb-2 text-white">
+                        {translatedMenuItems[item.menu_item_id] || item.name}
+                      </h3>
+                      <p className="text-white">
+                        {t.upcharge}: ${item.upcharge.toFixed(2)}
+                      </p>
                       {!item.is_available && (
                         <p className="text-white font-semibold mt-2">{t.unavailable}</p>
                       )}
                     </div>
                   );
-                })}
+                }
+              )}
             </div>
           </section>
 
@@ -574,9 +696,11 @@ const CashierInterfaceContent = () => {
               {t.selectSides} ({selectedSides.length}/{selectedMealType.side_count})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filterMenuItems(menuItems.filter((item) => item.item_type === 'side'))
-                .map((item) => {
-                  const isSelected = selectedSides.some((s) => s.menu_item_id === item.menu_item_id);
+              {filterMenuItems(menuItems.filter((item) => item.item_type === 'side')).map(
+                (item) => {
+                  const isSelected = selectedSides.some(
+                    (s) => s.menu_item_id === item.menu_item_id
+                  );
                   return (
                     <div
                       key={item.menu_item_id}
@@ -587,18 +711,23 @@ const CashierInterfaceContent = () => {
                       }`}
                       onClick={() => item.is_available && handleSelectItem(item, 'side')}
                     >
-                      <h3 className="text-xl font-bold mb-2 text-white">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
-                      <p className="text-white">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
+                      <h3 className="text-xl font-bold mb-2 text-white">
+                        {translatedMenuItems[item.menu_item_id] || item.name}
+                      </h3>
+                      <p className="text-white">
+                        {t.upcharge}: ${item.upcharge.toFixed(2)}
+                      </p>
                       {!item.is_available && (
                         <p className="text-white font-semibold mt-2">{t.unavailable}</p>
                       )}
                     </div>
                   );
-                })}
+                }
+              )}
             </div>
           </section>
 
-          <div className="text-center mb-8">
+          <div className="text-center mb-20">
             <button
               onClick={() => handleAddOrUpdateOrder()}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-xl"
@@ -617,8 +746,6 @@ const CashierInterfaceContent = () => {
           <h1 className="text-3xl font-bold">{t.loadingMealType}</h1>
         </div>
       )}
-
-
     </div>
   );
 };

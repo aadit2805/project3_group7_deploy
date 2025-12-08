@@ -33,6 +33,7 @@ interface OrderContextType {
   addToOrder: (item: OrderItem) => void;
   removeFromOrder: (index: number) => void;
   clearOrder: () => void;
+  duplicateItem: (index: number) => void;
 }
 
 export const OrderContext = createContext<OrderContextType | undefined>(undefined);
@@ -98,6 +99,19 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     setOrder([]);
   };
 
+  const duplicateItem = (index: number) => {
+    setOrder((prevOrder) => {
+      if (index < 0 || index >= prevOrder.length) {
+        console.warn(`Attempted to duplicate item at invalid index: ${index}`);
+        return prevOrder; // Return current order if index is out of bounds
+      }
+      const itemToDuplicate = prevOrder[index];
+      // Create a deep copy to avoid reference issues
+      const duplicatedItem = JSON.parse(JSON.stringify(itemToDuplicate));
+      return [...prevOrder, duplicatedItem];
+    });
+  };
+
   return (
     <OrderContext.Provider 
       value={{ 
@@ -106,7 +120,8 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
         totalPrice, 
         addToOrder, 
         removeFromOrder, 
-        clearOrder 
+        clearOrder,
+        duplicateItem 
       }}
     >
       {children}
