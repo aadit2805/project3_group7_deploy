@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { useFocusTrap } from '../hooks/useKeyboardNavigation';
 import Link from 'next/link';
+import ClientOnly from './ClientOnly';
 import Tooltip from './Tooltip';
 
 export default function AccessibilityMenu() {
@@ -38,6 +39,8 @@ export default function AccessibilityMenu() {
   }, [isOpen]);
 
   return (
+    <ClientOnly>
+      {() => (
     <div className="fixed bottom-4 right-4 z-50">
       <button
         ref={buttonRef}
@@ -250,5 +253,7 @@ export default function AccessibilityMenu() {
         </div>
       )}
     </div>
+    )}
+    </ClientOnly>
   );
 }
