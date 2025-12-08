@@ -13,7 +13,12 @@ interface MenuItem {
   availability_end_time?: string | null;
 }
 
-// Helper function to check if current time is within availability window
+/**
+ * Helper function to check if current time is within availability window
+ * @param startTime - Start time in HH:mm:ss or HH:mm format, or null/undefined
+ * @param endTime - End time in HH:mm:ss or HH:mm format, or null/undefined
+ * @returns True if current time is within the availability window, false otherwise
+ */
 function isWithinAvailabilityWindow(
   startTime: string | null | undefined,
   endTime: string | null | undefined
@@ -46,7 +51,11 @@ function isWithinAvailabilityWindow(
   }
 }
 
-// Helper function to filter menu items by time-based availability
+/**
+ * Helper function to filter menu items by time-based availability
+ * @param items - Array of menu items to filter
+ * @returns Filtered array of menu items that are currently available based on time restrictions
+ */
 function filterByTimeAvailability(items: MenuItem[]): MenuItem[] {
   return items.filter((item) => {
     // If is_available is false, item is not available regardless of time
@@ -62,7 +71,13 @@ function filterByTimeAvailability(items: MenuItem[]): MenuItem[] {
   });
 }
 
-// Get all menu items
+/**
+ * GET /api/menu-items
+ * Get all menu items with optional filtering by availability
+ * @param req - Express request object (supports query param: is_available=true)
+ * @param res - Express response object
+ * @returns JSON array of menu items with stock information
+ */
 export const getMenuItems = async (req: Request, res: Response): Promise<void> => {
   try {
     // Include stock information from inventory table
@@ -110,7 +125,13 @@ export const getMenuItems = async (req: Request, res: Response): Promise<void> =
   }
 };
 
-// Get menu items filtered by availability
+/**
+ * Get menu items filtered by availability
+ * Returns only items that are marked as available and within their time window
+ * @param _req - Express request object
+ * @param res - Express response object
+ * @returns JSON array of available menu items
+ */
 export const getAvailableMenuItems = async (_req: Request, res: Response): Promise<void> => {
   try {
     const result = await pool.query<MenuItem>(
@@ -128,7 +149,12 @@ export const getAvailableMenuItems = async (_req: Request, res: Response): Promi
   }
 };
 
-// Get menu items by type
+/**
+ * Get menu items filtered by type (entree, side, drink)
+ * @param req - Express request object (requires type param)
+ * @param res - Express response object
+ * @returns JSON array of menu items matching the specified type
+ */
 export const getMenuItemsByType = async (req: Request, res: Response): Promise<void> => {
   try {
     const { type } = req.params;
@@ -146,7 +172,12 @@ export const getMenuItemsByType = async (req: Request, res: Response): Promise<v
   }
 };
 
-// Get single menu item by ID
+/**
+ * Get a single menu item by ID
+ * @param req - Express request object (requires id param)
+ * @param res - Express response object
+ * @returns JSON object of the menu item or 404 if not found
+ */
 export const getMenuItemById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -170,7 +201,12 @@ export const getMenuItemById = async (req: Request, res: Response): Promise<void
   }
 };
 
-// Get menu items with inventory information
+/**
+ * Get menu items with inventory information (stock and reorder status)
+ * @param _req - Express request object
+ * @param res - Express response object
+ * @returns JSON array of menu items with inventory details
+ */
 export const getMenuItemsWithInventory = async (_req: Request, res: Response): Promise<void> => {
   try {
     const result = await pool.query(
@@ -200,7 +236,13 @@ export const getMenuItemsWithInventory = async (_req: Request, res: Response): P
   }
 };
 
-// Create a new menu item
+/**
+ * POST /api/menu-items (Manager only)
+ * Create a new menu item and corresponding inventory entry
+ * @param req - Express request object with menu item data in body
+ * @param res - Express response object
+ * @returns JSON object with success status and created menu item data
+ */
 export const createMenuItem = async (req: Request, res: Response): Promise<void> => {
   try {
     const {
@@ -338,7 +380,13 @@ export const createMenuItem = async (req: Request, res: Response): Promise<void>
   }
 };
 
-// Update a menu item
+/**
+ * PUT /api/menu-items/:id (Manager only)
+ * Update an existing menu item
+ * @param req - Express request object with menu item data in body and id in params
+ * @param res - Express response object
+ * @returns JSON object with success status and updated menu item data
+ */
 export const updateMenuItem = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -477,7 +525,13 @@ export const updateMenuItem = async (req: Request, res: Response): Promise<void>
   }
 };
 
-// Deactivate a menu item (set is_available to false)
+/**
+ * PUT /api/menu-items/:id/deactivate (Manager only)
+ * Deactivate a menu item by setting is_available to false
+ * @param req - Express request object with id in params
+ * @param res - Express response object
+ * @returns JSON object with success status and deactivated menu item data
+ */
 export const deactivateMenuItem = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -529,6 +583,12 @@ export const deactivateMenuItem = async (req: Request, res: Response): Promise<v
   }
 };
 
+/**
+ * Delete a menu item permanently
+ * @param req - Express request object with id in params
+ * @param res - Express response object
+ * @returns JSON object with success status and deleted menu item data
+ */
 export const deleteMenuItem = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -581,6 +641,13 @@ export const deleteMenuItem = async (req: Request, res: Response): Promise<void>
   }
 };
 
+/**
+ * GET /api/meal-types
+ * Get all meal types (e.g., breakfast, lunch, dinner)
+ * @param _req - Express request object
+ * @param res - Express response object
+ * @returns JSON array of all meal types
+ */
 export const getMealTypes = async (_req: Request, res: Response) => {
   try {
     const result = await pool.query('SELECT * FROM meal_types');
@@ -591,6 +658,13 @@ export const getMealTypes = async (_req: Request, res: Response) => {
   }
 };
 
+/**
+ * GET /api/meal-types/:id
+ * Get a single meal type by ID
+ * @param req - Express request object with id in params
+ * @param res - Express response object
+ * @returns JSON object of the meal type or 404 if not found
+ */
 export const getMealTypeById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
