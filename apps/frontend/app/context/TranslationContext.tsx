@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { safeJsonParse } from '../utils/jsonHelper';
 
 export interface Language {
   language: string;
@@ -192,9 +193,12 @@ export const TranslationProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const fetchLanguages = async () => {
       try {
-        console.log('[Translation] Fetching supported languages from:', `${API_BASE_URL}/api/translation/languages`);
+        console.log('[Translation] Fetching supported languages from:', `${API_BASE_URL}/translation/languages`);
         const response = await fetch(`${API_BASE_URL}/translation/languages`);
-        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await safeJsonParse(response);
         
         console.log('[Translation] Languages response:', data);
         
@@ -270,7 +274,10 @@ export const TranslationProvider = ({ children }: { children: ReactNode }) => {
           }),
         });
 
-        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await safeJsonParse(response);
         console.log('[Translation] Response:', data);
 
         if (data.success && data.translatedText) {
@@ -343,7 +350,10 @@ export const TranslationProvider = ({ children }: { children: ReactNode }) => {
           }),
         });
 
-        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await safeJsonParse(response);
         console.log('[Translation] Batch response:', data);
 
         if (data.success && data.translations) {

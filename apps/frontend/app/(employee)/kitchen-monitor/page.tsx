@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Tooltip from '@/app/components/Tooltip';
 import { useToast } from '@/app/hooks/useToast';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
 interface OrderItem {
   name: string;
@@ -40,8 +41,6 @@ export default function KitchenMonitor() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [isWeatherDropdownOpen, setIsWeatherDropdownOpen] = useState(false);
   const [weatherLoading, setWeatherLoading] = useState(false);
-  const [sortOrder, setSortOrder] = useState<'oldest' | 'newest'>('oldest');
-  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const router = useRouter();
   const previousOrderIdsRef = useRef<Set<number>>(new Set());
   const { addToast } = useToast();
@@ -80,7 +79,7 @@ export default function KitchenMonitor() {
       if (!response.ok) {
         throw new Error('Failed to fetch orders');
       }
-      const data = await response.json();
+      const data = await safeJsonParse(response);
       if (data.success) {
         const newOrders = data.data as KitchenOrder[];
         const currentOrderIds = new Set(newOrders.map((order) => order.order_id));
@@ -137,7 +136,7 @@ export default function KitchenMonitor() {
         }
       );
       if (response.ok) {
-        const data = await response.json();
+        const data = await safeJsonParse(response);
         if (data.success && data.weather) {
           setWeather({
             temperature: data.weather.temperature,
@@ -163,12 +162,6 @@ export default function KitchenMonitor() {
   useEffect(() => {
     fetchWeather();
   }, [fetchWeather]);
-
-  const sortedOrders = [...orders].sort((a, b) => {
-    const dateA = new Date(a.datetime).getTime();
-    const dateB = new Date(b.datetime).getTime();
-    return sortOrder === 'oldest' ? dateA - dateB : dateB - dateA;
-  });
 
   if (loading) {
     return (
@@ -300,55 +293,6 @@ export default function KitchenMonitor() {
             >
               {isCompactView ? 'Switch to Expanded' : 'Switch to Compact'}
             </button>
-            <div className="relative">
-              <button
-                onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2 shadow-sm transition-colors duration-200 font-semibold"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                </svg>
-                <span>Sort</span>
-                <svg className={`w-4 h-4 transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              
-              {isSortDropdownOpen && (
-                <>
-                  <div 
-                    className="fixed inset-0 z-10" 
-                    onClick={() => setIsSortDropdownOpen(false)}
-                  />
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-20">
-                    <div className="py-1">
-                      <button
-                        onClick={() => {
-                          setSortOrder('oldest');
-                          setIsSortDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors duration-200 ${
-                          sortOrder === 'oldest' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
-                        }`}
-                      >
-                        Oldest First
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSortOrder('newest');
-                          setIsSortDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors duration-200 ${
-                          sortOrder === 'newest' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
-                        }`}
-                      >
-                        Newest First
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
           </div>
         </div>
         <p className="text-gray-600 animate-fade-in animate-stagger-1">
@@ -357,13 +301,13 @@ export default function KitchenMonitor() {
       </div>
       {/* Orders Grid */}
       <div className={`grid gap-4 ${isCompactView ? 'grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'}`}>
-        {sortedOrders.length === 0 ? (
+        {orders.length === 0 ? (
           <div className="col-span-full text-center py-12 animate-fade-in">
             <p className="text-2xl text-gray-500">No active orders</p>
             <p className="text-gray-400 mt-2">New orders will appear here automatically</p>
           </div>
         ) : (
-          sortedOrders.map((order, index) => (
+          orders.map((order, index) => (
             <div
               key={order.order_id}
               className={`bg-white rounded-lg shadow-md border-2 border-gray-300 flex flex-col h-full hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 5) + 1, 4)} ${isCompactView ? 'text-xs' : ''}`}

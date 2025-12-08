@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { OrderContext, OrderItem } from '@/app/context/OrderContext';
 import { EmployeeContext } from '@/app/context/EmployeeContext'; // Import EmployeeContext
 import { useTranslatedTexts, useTranslation } from '@/app/hooks/useTranslation';
-import { useView } from '@/app/context/ViewContext';
 import Tooltip from '@/app/components/Tooltip';
+import { safeJsonParse } from '@/app/utils/jsonHelper';
 
 interface MenuItem {
   menu_item_id: number;
@@ -41,7 +41,6 @@ const CashierInterfaceContent = () => {
   const context = useContext(OrderContext);
   const employeeContext = useContext(EmployeeContext); // Access EmployeeContext
   const { translateBatch, currentLanguage } = useTranslation();
-  const { viewMode } = useView();
 
   // Translation labels
   const textLabels = [
@@ -134,7 +133,10 @@ const CashierInterfaceContent = () => {
       try {
         const backendUrl = '';
         const res = await fetch(`${backendUrl}/api/meal-types`);
-        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(`Failed to fetch meal types: ${res.status}`);
+        }
+        const data = await safeJsonParse(res);
         setMealTypes(data);
       } catch (error) {
         console.error('Error fetching meal types:', error);
@@ -202,12 +204,18 @@ const CashierInterfaceContent = () => {
         try {
           const backendUrl = '';
           const mealTypeRes = await fetch(`${backendUrl}/api/meal-types/${mealTypeId}`);
-          const mealTypeData: MealType = await mealTypeRes.json();
+          if (!mealTypeRes.ok) {
+            throw new Error(`Failed to fetch meal type: ${mealTypeRes.status}`);
+          }
+          const mealTypeData: MealType = await safeJsonParse(mealTypeRes);
           setSelectedMealType(mealTypeData);
 
           // Fetch menu items with time-based availability filtering (same as customer kiosk)
           const menuItemsRes = await fetch(`${backendUrl}/api/menu-items?is_available=true`);
-          const menuItemsData: MenuItem[] = await menuItemsRes.json();
+          if (!menuItemsRes.ok) {
+            throw new Error(`Failed to fetch menu items: ${menuItemsRes.status}`);
+          }
+          const menuItemsData: MenuItem[] = await safeJsonParse(menuItemsRes);
           setMenuItems(menuItemsData);
 
           if (editIndex !== null) {
@@ -442,117 +450,32 @@ const CashierInterfaceContent = () => {
               </button>
             </Link>
           </div>
-          <h1 className="text-4xl font-bold text-center mb-8 animate-slide-in-down">
-            {t.selectMealType}
-          </h1>
-          {viewMode === 'card' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {nonDrinkMealTypes.map((mealType, index) => (
-                <div
-                  key={mealType.meal_type_id}
-                  onClick={() => handleSelectMealType(mealType)}
-                  className="bg-[#D61927] rounded-lg shadow-md p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300"
-                >
-                  <h2 className="text-2xl font-bold mb-2 text-white">
-                    {translatedMealTypes[mealType.meal_type_id] || mealType.meal_type_name}
-                  </h2>
-                  <p className="text-white">
-                    {t.price}: ${mealType.meal_type_price.toFixed(2)}
-                  </p>
-                  <p className="text-white">
-                    {t.entrees}: {mealType.entree_count}
-                  </p>
-                  <p className="text-white">
-                    {t.sides}: {mealType.side_count}
-                  </p>
-                  {mealType.drink_size && (
-                    <p className="text-white">
-                      {t.drink}: {mealType.drink_size}
-                    </p>
-                  )}
-                </div>
-              ))}
-              {/* Drinks option */}
+          <h1 className="text-4xl font-bold text-center mb-8 animate-slide-in-down">{t.selectMealType}</h1>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {nonDrinkMealTypes.map((mealType, index) => (
               <div
-                onClick={handleSelectDrinks}
+                key={mealType.meal_type_id}
+                onClick={() => handleSelectMealType(mealType)}
                 className="bg-[#D61927] rounded-lg shadow-md p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300"
               >
-                <h2 className="text-2xl font-bold mb-2 text-white">{t.drinks}</h2>
-                <p className="text-white">{t.selectDrinkSize}</p>
+                <h2 className="text-2xl font-bold mb-2 text-white">
+                  {translatedMealTypes[mealType.meal_type_id] || mealType.meal_type_name}
+                </h2>
+                <p className="text-white">{t.price}: ${mealType.meal_type_price.toFixed(2)}</p>
+                <p className="text-white">{t.entrees}: {mealType.entree_count}</p>
+                <p className="text-white">{t.sides}: {mealType.side_count}</p>
+                {mealType.drink_size && <p className="text-white">{t.drink}: {mealType.drink_size}</p>}
               </div>
+            ))}
+            {/* Drinks option */}
+            <div
+              onClick={handleSelectDrinks}
+              className="bg-[#D61927] rounded-lg shadow-md p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300"
+            >
+              <h2 className="text-2xl font-bold mb-2 text-white">{t.drinks}</h2>
+              <p className="text-white">{t.selectDrinkSize}</p>
             </div>
-          ) : (
-            <div className="space-y-2 max-w-2xl mx-auto">
-              {nonDrinkMealTypes.map((mealType, index) => (
-                <div
-                  key={mealType.meal_type_id}
-                  onClick={() => handleSelectMealType(mealType)}
-                  className="bg-[#D61927] rounded-lg shadow-md p-4 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-lg hover:bg-[#B81520] transition-all duration-300"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h2 className="text-xl font-bold mb-1 text-white">
-                        {translatedMealTypes[mealType.meal_type_id] || mealType.meal_type_name}
-                      </h2>
-                      <div className="text-white text-sm space-y-0.5">
-                        <p>
-                          {t.price}: ${mealType.meal_type_price.toFixed(2)}
-                        </p>
-                        <p>
-                          {t.entrees}: {mealType.entree_count} | {t.sides}: {mealType.side_count}
-                        </p>
-                        {mealType.drink_size && (
-                          <p>
-                            {t.drink}: {mealType.drink_size}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <svg
-                      className="w-6 h-6 text-white ml-4 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              ))}
-              {/* Drinks option */}
-              <div
-                onClick={handleSelectDrinks}
-                className="bg-[#D61927] rounded-lg shadow-md p-4 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-lg hover:bg-[#B81520] transition-all duration-300"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h2 className="text-xl font-bold mb-1 text-white">{t.drinks}</h2>
-                    <p className="text-white text-sm">{t.selectDrinkSize}</p>
-                  </div>
-                  <svg
-                    className="w-6 h-6 text-white ml-4 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
         </>
       ) : isDrinkSelection ? (
         <>
@@ -572,85 +495,29 @@ const CashierInterfaceContent = () => {
           {!selectedDrinkSize ? (
             <>
               <h1 className="text-4xl font-bold text-center mb-8">{t.selectDrinkSize}</h1>
-              {viewMode === 'card' ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                  {[
-                    { name: 'Small', size: 'Small' },
-                    { name: 'Medium', size: 'Medium' },
-                    { name: 'Large', size: 'Large' },
-                  ].map((sizeOption) => {
-                    const mealType = getDrinkMealType(sizeOption.size);
-                    return (
-                      <div
-                        key={sizeOption.size}
-                        onClick={() => handleSelectDrinkSize(sizeOption.size)}
-                        className="bg-[#D61927] rounded-lg shadow-md p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300"
-                      >
-                        <h2 className="text-2xl font-bold mb-2 text-white">
-                          {sizeOption.name === 'Small'
-                            ? t.small
-                            : sizeOption.name === 'Medium'
-                              ? t.medium
-                              : t.large}
-                        </h2>
-                        {mealType && (
-                          <p className="text-white">
-                            {t.price}: ${mealType.meal_type_price.toFixed(2)}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="space-y-2 max-w-2xl mx-auto">
-                  {[
-                    { name: 'Small', size: 'Small' },
-                    { name: 'Medium', size: 'Medium' },
-                    { name: 'Large', size: 'Large' },
-                  ].map((sizeOption) => {
-                    const mealType = getDrinkMealType(sizeOption.size);
-                    return (
-                      <div
-                        key={sizeOption.size}
-                        onClick={() => handleSelectDrinkSize(sizeOption.size)}
-                        className="bg-[#D61927] rounded-lg shadow-md p-4 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-lg hover:bg-[#B81520] transition-all duration-300"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <h2 className="text-xl font-bold mb-1 text-white">
-                              {sizeOption.name === 'Small'
-                                ? t.small
-                                : sizeOption.name === 'Medium'
-                                  ? t.medium
-                                  : t.large}
-                            </h2>
-                            {mealType && (
-                              <p className="text-white text-sm">
-                                {t.price}: ${mealType.meal_type_price.toFixed(2)}
-                              </p>
-                            )}
-                          </div>
-                          <svg
-                            className="w-6 h-6 text-white ml-4 flex-shrink-0"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 5l7 7-7 7"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                {[
+                  { name: 'Small', size: 'Small' },
+                  { name: 'Medium', size: 'Medium' },
+                  { name: 'Large', size: 'Large' },
+                ].map((sizeOption) => {
+                  const mealType = getDrinkMealType(sizeOption.size);
+                  return (
+                    <div
+                      key={sizeOption.size}
+                      onClick={() => handleSelectDrinkSize(sizeOption.size)}
+                      className="bg-[#D61927] rounded-lg shadow-md p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300"
+                    >
+                      <h2 className="text-2xl font-bold mb-2 text-white">
+                        {sizeOption.name === 'Small' ? t.small : sizeOption.name === 'Medium' ? t.medium : t.large}
+                      </h2>
+                      {mealType && (
+                        <p className="text-white">{t.price}: ${mealType.meal_type_price.toFixed(2)}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </>
           ) : (
             <>
@@ -686,83 +553,29 @@ const CashierInterfaceContent = () => {
               </div>
 
               <section className="mb-10">
-                {viewMode === 'card' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filterMenuItems(menuItems.filter((item) => item.item_type === 'drink')).map(
-                      (item) => {
-                        const isSelected = selectedDrink?.menu_item_id === item.menu_item_id;
-                        return (
-                          <div
-                            key={item.menu_item_id}
-                            className={`rounded-lg shadow-md p-6 cursor-pointer border-2 transition-all duration-300 ${
-                              isSelected
-                                ? 'bg-black border-white border-4 shadow-2xl ring-4 ring-white/50'
-                                : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-xl hover:bg-[#B81520]'
-                            }`}
-                            onClick={() => item.is_available && handleSelectDrinkItem(item)}
-                          >
-                            <h3 className="text-xl font-bold mb-2 text-white">
-                              {translatedMenuItems[item.menu_item_id] || item.name}
-                            </h3>
-                            <p className="text-white">
-                              {t.upcharge}: ${item.upcharge.toFixed(2)}
-                            </p>
-                            {!item.is_available && (
-                              <p className="text-white font-semibold mt-2">{t.unavailable}</p>
-                            )}
-                          </div>
-                        );
-                      }
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {filterMenuItems(menuItems.filter((item) => item.item_type === 'drink')).map(
-                      (item) => {
-                        const isSelected = selectedDrink?.menu_item_id === item.menu_item_id;
-                        return (
-                          <div
-                            key={item.menu_item_id}
-                            className={`flex items-center justify-between p-4 rounded-lg cursor-pointer border-2 transition-all duration-300 ${
-                              isSelected
-                                ? 'bg-black border-white border-4 shadow-lg ring-2 ring-white/50'
-                                : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-md hover:bg-[#B81520]'
-                            }`}
-                            onClick={() => item.is_available && handleSelectDrinkItem(item)}
-                          >
-                            <div className="flex-1">
-                              <h3 className="text-lg font-bold text-white">
-                                {translatedMenuItems[item.menu_item_id] || item.name}
-                              </h3>
-                              <p className="text-white text-sm">
-                                {t.upcharge}: ${item.upcharge.toFixed(2)}
-                              </p>
-                              {!item.is_available && (
-                                <p className="text-white font-semibold mt-1 text-sm">
-                                  {t.unavailable}
-                                </p>
-                              )}
-                            </div>
-                            {isSelected && (
-                              <svg
-                                className="w-6 h-6 text-white ml-4"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                                aria-hidden="true"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            )}
-                          </div>
-                        );
-                      }
-                    )}
-                  </div>
-                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filterMenuItems(menuItems.filter((item) => item.item_type === 'drink'))
+                    .map((item) => {
+                      const isSelected = selectedDrink?.menu_item_id === item.menu_item_id;
+                      return (
+                        <div
+                          key={item.menu_item_id}
+                          className={`rounded-lg shadow-md p-6 cursor-pointer border-2 transition-all duration-300 ${
+                            isSelected
+                              ? 'bg-black border-white border-4 shadow-2xl ring-4 ring-white/50'
+                              : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-xl hover:bg-[#B81520]'
+                          }`}
+                          onClick={() => item.is_available && handleSelectDrinkItem(item)}
+                        >
+                          <h3 className="text-xl font-bold mb-2 text-white">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
+                          <p className="text-white">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
+                          {!item.is_available && (
+                            <p className="text-white font-semibold mt-2">{t.unavailable}</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
               </section>
 
               <div className="text-center mb-20">
@@ -823,178 +636,58 @@ const CashierInterfaceContent = () => {
             <h2 className="text-3xl font-semibold mb-4">
               {t.selectEntrees} ({selectedEntrees.length}/{selectedMealType.entree_count})
             </h2>
-            {viewMode === 'card' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filterMenuItems(menuItems.filter((item) => item.item_type === 'entree')).map(
-                  (item) => {
-                    const itemCount = selectedEntrees.filter(
-                      (e) => e.menu_item_id === item.menu_item_id
-                    ).length;
-                    const isSelected = itemCount > 0;
-                    return (
-                      <div
-                        key={item.menu_item_id}
-                        className={`rounded-lg shadow-md p-6 cursor-pointer border-2 transition-all duration-300 ${
-                          isSelected
-                            ? 'bg-black border-white border-4 shadow-2xl ring-4 ring-white/50'
-                            : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-xl hover:bg-[#B81520]'
-                        }`}
-                        onClick={() => item.is_available && handleSelectItem(item, 'entree')}
-                      >
-                        <h3 className="text-xl font-bold mb-2 text-white">
-                          {translatedMenuItems[item.menu_item_id] || item.name}
-                        </h3>
-                        <p className="text-white">
-                          {t.upcharge}: ${item.upcharge.toFixed(2)}
-                        </p>
-                        {isSelected && itemCount > 1 && (
-                          <p className="text-white font-semibold mt-2">Selected: {itemCount}</p>
-                        )}
-                        {!item.is_available && (
-                          <p className="text-white font-semibold mt-2">{t.unavailable}</p>
-                        )}
-                      </div>
-                    );
-                  }
-                )}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {filterMenuItems(menuItems.filter((item) => item.item_type === 'entree')).map(
-                  (item) => {
-                    const isSelected = selectedEntrees.some(
-                      (e) => e.menu_item_id === item.menu_item_id
-                    );
-                    return (
-                      <div
-                        key={item.menu_item_id}
-                        className={`flex items-center justify-between p-4 rounded-lg cursor-pointer border-2 transition-all duration-300 ${
-                          isSelected
-                            ? 'bg-black border-white border-4 shadow-lg ring-2 ring-white/50'
-                            : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-md hover:bg-[#B81520]'
-                        }`}
-                        onClick={() => item.is_available && handleSelectItem(item, 'entree')}
-                      >
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-white">
-                            {translatedMenuItems[item.menu_item_id] || item.name}
-                          </h3>
-                          <p className="text-white text-sm">
-                            {t.upcharge}: ${item.upcharge.toFixed(2)}
-                          </p>
-                          {!item.is_available && (
-                            <p className="text-white font-semibold mt-1 text-sm">{t.unavailable}</p>
-                          )}
-                        </div>
-                        {isSelected && (
-                          <svg
-                            className="w-6 h-6 text-white ml-4"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            aria-hidden="true"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        )}
-                      </div>
-                    );
-                  }
-                )}
-              </div>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filterMenuItems(menuItems.filter((item) => item.item_type === 'entree'))
+                .map((item) => {
+                  const isSelected = selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id);
+                  return (
+                    <div
+                      key={item.menu_item_id}
+                      className={`rounded-lg shadow-md p-6 cursor-pointer border-2 transition-all duration-300 ${
+                        isSelected
+                          ? 'bg-black border-white border-4 shadow-2xl ring-4 ring-white/50'
+                          : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-xl hover:bg-[#B81520]'
+                      }`}
+                      onClick={() => item.is_available && handleSelectItem(item, 'entree')}
+                    >
+                      <h3 className="text-xl font-bold mb-2 text-white">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
+                      <p className="text-white">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
+                      {!item.is_available && (
+                        <p className="text-white font-semibold mt-2">{t.unavailable}</p>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
           </section>
 
           <section className="mb-10">
             <h2 className="text-3xl font-semibold mb-4">
               {t.selectSides} ({selectedSides.length}/{selectedMealType.side_count})
             </h2>
-            {viewMode === 'card' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filterMenuItems(menuItems.filter((item) => item.item_type === 'side')).map(
-                  (item) => {
-                    const itemCount = selectedSides.filter(
-                      (s) => s.menu_item_id === item.menu_item_id
-                    ).length;
-                    const isSelected = itemCount > 0;
-                    return (
-                      <div
-                        key={item.menu_item_id}
-                        className={`rounded-lg shadow-md p-6 cursor-pointer border-2 transition-all duration-300 ${
-                          isSelected
-                            ? 'bg-black border-white border-4 shadow-2xl ring-4 ring-white/50'
-                            : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-xl hover:bg-[#B81520]'
-                        }`}
-                        onClick={() => item.is_available && handleSelectItem(item, 'side')}
-                      >
-                        <h3 className="text-xl font-bold mb-2 text-white">
-                          {translatedMenuItems[item.menu_item_id] || item.name}
-                        </h3>
-                        <p className="text-white">
-                          {t.upcharge}: ${item.upcharge.toFixed(2)}
-                        </p>
-                        {isSelected && itemCount > 1 && (
-                          <p className="text-white font-semibold mt-2">Selected: {itemCount}</p>
-                        )}
-                        {!item.is_available && (
-                          <p className="text-white font-semibold mt-2">{t.unavailable}</p>
-                        )}
-                      </div>
-                    );
-                  }
-                )}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {filterMenuItems(menuItems.filter((item) => item.item_type === 'side')).map(
-                  (item) => {
-                    const isSelected = selectedSides.some(
-                      (s) => s.menu_item_id === item.menu_item_id
-                    );
-                    return (
-                      <div
-                        key={item.menu_item_id}
-                        className={`flex items-center justify-between p-4 rounded-lg cursor-pointer border-2 transition-all duration-300 ${
-                          isSelected
-                            ? 'bg-black border-white border-4 shadow-lg ring-2 ring-white/50'
-                            : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-md hover:bg-[#B81520]'
-                        }`}
-                        onClick={() => item.is_available && handleSelectItem(item, 'side')}
-                      >
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-white">
-                            {translatedMenuItems[item.menu_item_id] || item.name}
-                          </h3>
-                          <p className="text-white text-sm">
-                            {t.upcharge}: ${item.upcharge.toFixed(2)}
-                          </p>
-                          {!item.is_available && (
-                            <p className="text-white font-semibold mt-1 text-sm">{t.unavailable}</p>
-                          )}
-                        </div>
-                        {isSelected && (
-                          <svg
-                            className="w-6 h-6 text-white ml-4"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            aria-hidden="true"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        )}
-                      </div>
-                    );
-                  }
-                )}
-              </div>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filterMenuItems(menuItems.filter((item) => item.item_type === 'side'))
+                .map((item) => {
+                  const isSelected = selectedSides.some((s) => s.menu_item_id === item.menu_item_id);
+                  return (
+                    <div
+                      key={item.menu_item_id}
+                      className={`rounded-lg shadow-md p-6 cursor-pointer border-2 transition-all duration-300 ${
+                        isSelected
+                          ? 'bg-black border-white border-4 shadow-2xl ring-4 ring-white/50'
+                          : 'bg-[#D61927] border-white/50 hover:border-white hover:shadow-xl hover:bg-[#B81520]'
+                      }`}
+                      onClick={() => item.is_available && handleSelectItem(item, 'side')}
+                    >
+                      <h3 className="text-xl font-bold mb-2 text-white">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
+                      <p className="text-white">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
+                      {!item.is_available && (
+                        <p className="text-white font-semibold mt-2">{t.unavailable}</p>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
           </section>
 
           <div className="text-center mb-20">

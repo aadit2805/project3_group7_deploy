@@ -1,16 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { useFocusTrap } from '../hooks/useKeyboardNavigation';
 import Link from 'next/link';
 import Tooltip from './Tooltip';
 
-export interface AccessibilityMenuRef {
-  openMenu: () => void;
-}
-
-const AccessibilityMenu = forwardRef<AccessibilityMenuRef>((props, ref) => {
+export default function AccessibilityMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -40,10 +36,6 @@ const AccessibilityMenu = forwardRef<AccessibilityMenuRef>((props, ref) => {
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen]);
-
-  useImperativeHandle(ref, () => ({
-    openMenu: () => setIsOpen(true),
-  }));
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -233,9 +225,5 @@ const AccessibilityMenu = forwardRef<AccessibilityMenuRef>((props, ref) => {
       )}
     </div>
   );
-});
-
-AccessibilityMenu.displayName = 'AccessibilityMenu';
-
-export default AccessibilityMenu;
+}
 

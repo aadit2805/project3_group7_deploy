@@ -2,20 +2,30 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
     "./app/utils/**/*.ts",
-    "./app/hooks/**/*.ts"
+    "./app/hooks/**/*.ts",
+    "./app/components/**/*.tsx",
+    "./app/context/**/*.tsx"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/api/**"
   ],
   "out": "./docs",
   "theme": "default",
-  "name": "Frontend Utilities & Hooks Documentation",
-  "readme": "./README.md",
+  "name": "Frontend Documentation",
   "includeVersion": true,
   "excludePrivate": false,
   "excludeProtected": false,
   "excludeInternal": false,
   "categorizeByGroup": true,
   "categoryOrder": [
-    "Utilities",
+    "Components",
     "Hooks",
+    "Utilities",
+    "Context",
     "*"
   ],
   "sort": ["source-order"],
