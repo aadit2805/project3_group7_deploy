@@ -1,6 +1,8 @@
 # Project 3 - Group 7
 
-## Setup Instructions
+You can access the project at: https://project3-group7.up.railway.app/
+
+## Setup Instructions to run locally
 
 ### Install Dependencies
 From the project root directory:
