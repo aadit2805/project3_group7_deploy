@@ -22,7 +22,9 @@ import {
   X,
   Clock,
   Shirt,
-  Boxes
+  Boxes,
+  FileCheck,
+  FileX
 } from 'lucide-react';
 
 interface NavItem {
@@ -62,6 +64,8 @@ const navGroups: NavGroup[] = [
     name: 'Reports & Analytics',
     icon: BarChart,
     items: [
+      { name: 'X Report (Mid-Day)', href: '/manager/x-report', icon: FileCheck },
+      { name: 'Z Report (Close Day)', href: '/manager/z-report', icon: FileX },
       { name: 'Revenue Reports', href: '/manager/revenue-reports', icon: DollarSign },
       { name: 'Order Analytics', href: '/manager/order-analytics', icon: ShoppingCart },
       { name: 'Loyalty Analytics', href: '/manager/loyalty-analytics', icon: LineChart },

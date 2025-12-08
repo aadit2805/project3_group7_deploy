@@ -27,6 +27,12 @@ import {
   getCashierDailySales,
 } from '../controllers/revenueController';
 import {
+  getXReport,
+  createZReport,
+  getTodaysZReport,
+  getZReportHistory,
+} from '../controllers/xzReportController';
+import {
   getAverageCompletionTime,
   getHourlyCompletionTime,
   getCompletionTimeSummary,
@@ -135,6 +141,12 @@ router.get('/revenue/daily', isAuthenticated, isManager, getDailyRevenueReport);
 router.get('/revenue/summary', isAuthenticated, isManager, getRevenueSummary);
 router.get('/revenue/orders/:date', isAuthenticated, isManager, getOrdersByDate);
 router.get('/revenue/export/csv', isAuthenticated, isManager, exportRevenueReportCSV);
+
+// X and Z Report routes (manager only)
+router.get('/reports/x-report', isAuthenticated, isManager, getXReport);
+router.post('/reports/z-report', isAuthenticated, isManager, createZReport);
+router.get('/reports/z-report/today', isAuthenticated, isManager, getTodaysZReport);
+router.get('/reports/z-report/history', isAuthenticated, isManager, getZReportHistory);
 
 // Cashier Daily Sales Summary (cashier or manager)
 router.get('/sales/daily', isAuthenticated, getCashierDailySales);
