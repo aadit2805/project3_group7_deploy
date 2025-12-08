@@ -40,7 +40,7 @@ export default function Home() {
               </p>
               <Link
                 href="/dashboard"
-                className="block w-full rounded-md bg-green-600 px-4 py-3 text-center font-semibold text-white transition-all duration-200 hover:bg-green-700 hover:shadow-lg button-press focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                className="block w-full rounded-md bg-green-700 px-4 py-3 text-center font-semibold text-white transition-all duration-200 hover:bg-green-800 hover:shadow-lg button-press focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 aria-label="Navigate to employee dashboard (requires login)"
               >
                 Go to Employee Dashboard

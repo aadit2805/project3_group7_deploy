@@ -69,7 +69,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 w-full sm:w-auto">
           <Link
             href="/promotions"
-            className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-xs sm:text-sm inline-flex items-center min-h-[44px] justify-center"
+            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-xs sm:text-sm inline-flex items-center min-h-[44px] justify-center"
           >
             {promotionsText}
           </Link>
@@ -82,20 +82,20 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
                   {lastOrderId && (
                     <Link
                       href={`/track-order?orderId=${lastOrderId}`}
-                      className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-xs sm:text-sm inline-flex items-center min-h-[44px] justify-center"
+                      className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-xs sm:text-sm inline-flex items-center min-h-[44px] justify-center"
                     >
                       {trackOrderText}
                     </Link>
                   )}
                   <Link
                     href="/my-profile"
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-xs sm:text-sm inline-flex items-center min-h-[44px] justify-center"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-xs sm:text-sm inline-flex items-center min-h-[44px] justify-center"
                   >
                     {myProfileText}
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-xs sm:text-sm inline-flex items-center min-h-[44px] justify-center"
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-xs sm:text-sm inline-flex items-center min-h-[44px] justify-center"
                   >
                     <svg
                       className="w-4 h-4 mr-1 sm:mr-2"
@@ -117,7 +117,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
               ) : (
                 <Link
                   href="/rewards-login"
-                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-xs sm:text-sm inline-flex items-center min-h-[44px] justify-center"
+                  className="bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-xs sm:text-sm inline-flex items-center min-h-[44px] justify-center"
                 >
                   <svg
                     className="w-4 h-4 mr-1 sm:mr-2"

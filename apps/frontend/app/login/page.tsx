@@ -168,14 +168,13 @@ function LoginContent() {
           </p>
         </div>
         <nav className="mt-6 text-center" aria-label="Back navigation">
-          <Link 
-            href="/" 
-            className="text-blue-500 hover:underline text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-            aria-label="Return to home page"
-          >
-            ← Back to Home
-          </Link>
-        </nav>
+          <Link
+                      href="/"
+                      className="text-blue-600 hover:underline text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                      aria-label="Return to home page"
+                    >
+                      ← Back to Home
+                    </Link>        </nav>
       </div>
     </main>
   );
