@@ -120,12 +120,12 @@ function LoginContent() {
         </form>
 
         <div className="relative flex justify-center text-sm mb-6">
-          <span className="px-2 bg-white text-gray-500">
-            Or continue with
-          </span>
           <div className="absolute inset-0 flex items-center" aria-hidden="true">
             <div className="w-full border-t border-gray-300" />
           </div>
+          <span className="relative px-2 bg-white text-gray-500">
+            Or continue with
+          </span>
         </div>
         <div className="space-y-4">
           <button

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslatedTexts } from '@/app/hooks/useTranslation';
@@ -232,7 +233,7 @@ const OrderConfirmation = () => {
             <h2 className="text-xl font-semibold mb-2">{t.qrCode}</h2>
             <p className="text-sm text-gray-600 mb-4">{t.saveQR}</p>
             <div className="flex justify-center mb-4">
-              <img src={qrCodeUrl} alt="Order Receipt QR Code" className="border-4 border-gray-200 rounded shadow-md" />
+              <Image src={qrCodeUrl} alt="Order Receipt QR Code" width={200} height={200} className="border-4 border-gray-200 rounded shadow-md" />
             </div>
             <button
               onClick={handleDownloadQRCode}

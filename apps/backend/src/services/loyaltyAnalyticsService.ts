@@ -1,5 +1,5 @@
-
 import { db } from '../db';
+import { Prisma } from '@prisma/client';
 
 /**
  * Gets the total number of loyalty members.
@@ -8,6 +8,25 @@ import { db } from '../db';
 async function getTotalLoyaltyMembers() {
   const totalMembers = await db.customer.count();
   return totalMembers;
+}
+
+/**
+ * Gets the number of new loyalty members who signed up in the last X days.
+ * @param days The number of days to look back.
+ * @returns The number of new members.
+ */
+async function getNewMembersLastXDays(days: number = 30) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+
+  const newMembersCount = await db.customer.count({
+    where: {
+      createdAt: {
+        gte: date,
+      },
+    },
+  });
+  return newMembersCount;
 }
 
 /**
@@ -28,19 +47,69 @@ async function getTotalRewardPoints() {
  * @param limit The number of top members to retrieve.
  * @returns A list of the top loyalty members.
  */
-async function getTopLoyaltyMembers(limit: number = 10) {
-  const topMembers = await db.customer.findMany({
+async function getAllLoyaltyMembers() {
+  const allMembers = await db.customer.findMany({
     orderBy: {
       rewards_points: 'desc',
     },
-    take: limit,
-    select: {
-      id: true,
-      email: true,
-      rewards_points: true,
+    include: {
+      loyalty_tiers: true, // Include the full tier object
     },
   });
-  return topMembers;
+  return allMembers;
+}
+
+/**
+ * Compares spending habits between loyalty and non-loyalty customers.
+ * @returns An object with revenue and average order value for both groups.
+ */
+async function getSpendingComparison() {
+  // Get all orders that have a price
+  const orders = await db.order.findMany({
+    where: {
+      price: {
+        not: null,
+      },
+    },
+  });
+
+  let loyaltyRevenue = new Prisma.Decimal(0);
+  let nonLoyaltyRevenue = new Prisma.Decimal(0);
+  let loyaltyOrderCount = 0;
+  let nonLoyaltyOrderCount = 0;
+
+  orders.forEach((order) => {
+    // Ensure order.price is not null before using it, although the query should guarantee this.
+    const orderTotal = new Prisma.Decimal(order.price || 0);
+
+    if (order.customerId) {
+      loyaltyRevenue = loyaltyRevenue.add(orderTotal);
+      loyaltyOrderCount++;
+    } else {
+      nonLoyaltyRevenue = nonLoyaltyRevenue.add(orderTotal);
+      nonLoyaltyOrderCount++;
+    }
+  });
+
+  const loyaltyAOV =
+    loyaltyOrderCount > 0 ? loyaltyRevenue.div(loyaltyOrderCount) : new Prisma.Decimal(0);
+  const nonLoyaltyAOV =
+    nonLoyaltyOrderCount > 0
+      ? nonLoyaltyRevenue.div(nonLoyaltyOrderCount)
+      : new Prisma.Decimal(0);
+
+  return {
+    loyalty: {
+      totalRevenue: loyaltyRevenue.toNumber(),
+      orderCount: loyaltyOrderCount,
+      averageOrderValue: loyaltyAOV.toNumber(),
+    },
+    nonLoyalty: {
+      totalRevenue: nonLoyaltyRevenue.toNumber(),
+      orderCount: nonLoyaltyOrderCount,
+      averageOrderValue: nonLoyaltyAOV.toNumber(),
+    },
+  };
 }
 
 /**
@@ -48,15 +117,20 @@ async function getTopLoyaltyMembers(limit: number = 10) {
  * @returns An object containing all loyalty analytics data.
  */
 export async function getLoyaltyAnalytics() {
-  const [totalMembers, totalPoints, topMembers] = await Promise.all([
-    getTotalLoyaltyMembers(),
-    getTotalRewardPoints(),
-    getTopLoyaltyMembers(),
-  ]);
+  const [totalMembers, totalPoints, allMembers, newMembers, spendingComparison] =
+    await Promise.all([
+      getTotalLoyaltyMembers(),
+      getTotalRewardPoints(),
+      getAllLoyaltyMembers(),
+      getNewMembersLastXDays(),
+      getSpendingComparison(),
+    ]);
 
   return {
     totalMembers,
     totalPoints,
-    topMembers,
+    allMembers,
+    newMembersLast30Days: newMembers,
+    spendingComparison,
   };
 }

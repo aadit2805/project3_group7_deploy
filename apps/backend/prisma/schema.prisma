@@ -8,20 +8,20 @@ datasource db {
 }
 
 model Order {
-  order_id          Int             @id @default(autoincrement())
-  staff_id          Int?
-  datetime          DateTime?       @db.Timestamp(6)
-  price             Float?
-  order_status      String?         @db.VarChar(50)
-  customer_name     String?         @db.VarChar(255)
-  completed_at      DateTime?       @db.Timestamp(6)
-  estimated_prep_time Int?          // Estimated prep time in minutes
-  customerId        String?         // Link to Customer.id
-  customer          Customer?       @relation(fields: [customerId], references: [id])
-  staff             staff?          @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
-  meal              meal[]
-  payment           payment[]
-  discounts         OrderDiscount[]
+  order_id            Int             @id @default(autoincrement())
+  staff_id            Int?
+  datetime            DateTime?       @db.Timestamp(6)
+  price               Float?
+  order_status        String?         @db.VarChar(50)
+  customer_name       String?         @db.VarChar(255)
+  completed_at        DateTime?       @db.Timestamp(6)
+  customerId          String?
+  estimated_prep_time Int?
+  customer            Customer?       @relation(fields: [customerId], references: [id])
+  staff               staff?          @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
+  discounts           OrderDiscount[]
+  meal                meal[]
+  payment             payment[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -83,10 +83,10 @@ model menu_items {
   upcharge                Float?
   is_available            Boolean?
   item_type               String?       @db.VarChar(50)
-  availability_start_time String?       @db.VarChar(10)
   availability_end_time   String?       @db.VarChar(10)
-  allergens               String?       @db.Text // JSON array of allergens
-  allergen_info           String?       @db.Text // Additional allergen details
+  availability_start_time String?       @db.VarChar(10)
+  allergen_info           String?
+  allergens               String?
   inventory               inventory[]
   meal_detail             meal_detail[]
 }
@@ -113,35 +113,39 @@ model staff {
   role                String                @default("CASHIER") @db.VarChar(50)
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
-  Order               Order[]
   AuditLog            AuditLog[]
+  Order               Order[]
   PromotionalDiscount PromotionalDiscount[]
 }
 
 model Customer {
-  id                   String          @id @default(uuid())
-  email                String?         @unique
-  phone_number         String?         @unique
-  password_hash        String
-  rewards_points       Int             @default(0)
-  allergen_preferences String?         @db.Text // JSON array of allergens to avoid
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-  orders               Order[]
-  feedback             OrderFeedback[]
+  id                    String                  @id @default(uuid())
+  email                 String?                 @unique
+  phone_number          String?                 @unique
+  password_hash         String
+  rewards_points        Int                     @default(0)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  allergen_preferences  String?
+  points_progress       Int                     @default(0)
+  current_tier_id       Int?
+  loyalty_tiers         loyalty_tiers?          @relation(fields: [current_tier_id], references: [id])
+  orders                Order[]
+  feedback              OrderFeedback[]
+  customer_tier_history customer_tier_history[]
 
   @@index([email])
   @@index([phone_number])
 }
 
 model OrderFeedback {
-  id         Int      @id @default(autoincrement())
-  order_id   Int      @unique
+  id          Int      @id @default(autoincrement())
+  order_id    Int      @unique
   customer_id String
-  customer   Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
-  rating     Int      // Rating from 1-5
-  comment    String?  @db.Text
-  created_at DateTime @default(now()) @db.Timestamptz(6)
+  rating      Int
+  comment     String?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
 
   @@index([customer_id])
   @@index([order_id])
@@ -161,16 +165,16 @@ model User {
 
 model AuditLog {
   id          Int      @id @default(autoincrement())
-  staff_id    Int? // Staff member who performed the action
-  staff       staff?   @relation(fields: [staff_id], references: [staff_id], onDelete: SetNull, onUpdate: NoAction)
-  action_type String   @db.VarChar(50) // CREATE, UPDATE, DELETE, DEACTIVATE, etc.
-  entity_type String   @db.VarChar(50) // menu_item, staff, inventory, order, user, etc.
-  entity_id   String?  @db.VarChar(255) // ID of the affected entity (as string to handle different ID types)
-  old_values  String?  @db.Text // JSON string of old values
-  new_values  String?  @db.Text // JSON string of new values
-  description String?  @db.VarChar(500) // Human-readable description
-  ip_address  String?  @db.VarChar(45) // IPv4 or IPv6 address
+  staff_id    Int?
+  action_type String   @db.VarChar(50)
+  entity_type String   @db.VarChar(50)
+  entity_id   String?  @db.VarChar(255)
+  old_values  String?
+  new_values  String?
+  description String?  @db.VarChar(500)
+  ip_address  String?  @db.VarChar(45)
   created_at  DateTime @default(now()) @db.Timestamptz(6)
+  staff       staff?   @relation(fields: [staff_id], references: [staff_id], onUpdate: NoAction)
 
   @@index([staff_id])
   @@index([entity_type, entity_id])
@@ -180,23 +184,23 @@ model AuditLog {
 
 model PromotionalDiscount {
   id                  Int             @id @default(autoincrement())
-  code                String          @unique @db.VarChar(50) // Discount code (e.g., "SUMMER20")
-  name                String          @db.VarChar(255) // Display name (e.g., "Summer Sale")
-  description         String?         @db.Text // Description of the promotion
-  discount_type       String          @db.VarChar(20) // "PERCENTAGE" or "FIXED_AMOUNT"
-  discount_value      Decimal         @db.Decimal(10, 2) // Percentage (0-100) or fixed amount in dollars
-  min_order_amount    Decimal?        @db.Decimal(10, 2) // Minimum order amount to apply discount
-  max_discount_amount Decimal?        @db.Decimal(10, 2) // Maximum discount amount (for percentage discounts)
-  start_date          DateTime        @db.Timestamptz(6) // When the promotion starts
-  end_date            DateTime        @db.Timestamptz(6) // When the promotion ends
-  is_active           Boolean         @default(true) // Whether the discount is currently active
-  usage_limit         Int? // Maximum number of times this discount can be used (null = unlimited)
-  usage_count         Int             @default(0) // Current usage count
-  created_by          Int? // Staff member who created the discount
-  created_by_staff    staff?          @relation(fields: [created_by], references: [staff_id], onDelete: SetNull, onUpdate: NoAction)
+  code                String          @unique @db.VarChar(50)
+  name                String          @db.VarChar(255)
+  description         String?
+  discount_type       String          @db.VarChar(20)
+  discount_value      Decimal         @db.Decimal(10, 2)
+  min_order_amount    Decimal?        @db.Decimal(10, 2)
+  max_discount_amount Decimal?        @db.Decimal(10, 2)
+  start_date          DateTime        @db.Timestamptz(6)
+  end_date            DateTime        @db.Timestamptz(6)
+  is_active           Boolean         @default(true)
+  usage_limit         Int?
+  usage_count         Int             @default(0)
+  created_by          Int?
   created_at          DateTime        @default(now()) @db.Timestamptz(6)
   updated_at          DateTime        @updatedAt @db.Timestamptz(6)
   OrderDiscount       OrderDiscount[]
+  created_by_staff    staff?          @relation(fields: [created_by], references: [staff_id], onUpdate: NoAction)
 
   @@index([code])
   @@index([is_active])
@@ -206,13 +210,36 @@ model PromotionalDiscount {
 
 model OrderDiscount {
   id              Int                 @id @default(autoincrement())
-  order_id        Int // Order that used this discount
-  discount_id     Int // Promotional discount used
-  discount        PromotionalDiscount @relation(fields: [discount_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  discount_amount Decimal             @db.Decimal(10, 2) // Actual discount amount applied
-  order           Order               @relation(fields: [order_id], references: [order_id], onDelete: Cascade, onUpdate: NoAction)
+  order_id        Int
+  discount_id     Int
+  discount_amount Decimal             @db.Decimal(10, 2)
   created_at      DateTime            @default(now()) @db.Timestamptz(6)
+  discount        PromotionalDiscount @relation(fields: [discount_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order           Order               @relation(fields: [order_id], references: [order_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([order_id])
   @@index([discount_id])
+}
+
+model customer_tier_history {
+  id            Int           @id @default(autoincrement())
+  customer_id   String
+  tier_id       Int
+  achieved_at   DateTime      @default(now()) @db.Timestamptz(6)
+  Customer      Customer      @relation(fields: [customer_id], references: [id])
+  loyalty_tiers loyalty_tiers @relation(fields: [tier_id], references: [id])
+
+  @@unique([customer_id, tier_id, achieved_at])
+  @@index([customer_id])
+  @@index([tier_id])
+}
+
+model loyalty_tiers {
+  id                    Int                     @id @default(autoincrement())
+  name                  String                  @unique @db.VarChar(50)
+  min_points            Int
+  max_points            Int?
+  benefits              String?
+  Customer              Customer[]
+  customer_tier_history customer_tier_history[]
 }

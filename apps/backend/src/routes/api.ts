@@ -37,6 +37,7 @@ import {
   getSalesTrends,
   getSalesSummary,
 } from '../controllers/salesAnalyticsController';
+import { getLoyaltyAnalytics } from '../controllers/loyaltyAnalyticsController';
 import {
   getLocalStaffController,
   updateLocalStaffController,
@@ -159,6 +160,9 @@ router.get('/analytics/sales-by-category', isAuthenticated, isManager, getSalesB
 router.get('/analytics/sales-trends', isAuthenticated, isManager, getSalesTrends);
 router.get('/analytics/sales-summary', isAuthenticated, isManager, getSalesSummary);
 
+// Loyalty Analytics routes (manager only)
+router.get('/analytics/loyalty', isAuthenticated, isManager, getLoyaltyAnalytics);
+
 // Meal Type routes
 router.get('/meal-types', getMealTypes);
 router.get('/meal-types/:id', getMealTypeById);
@@ -218,7 +222,7 @@ router.get('/feedback/all', isAuthenticated, isManager, getAllFeedback); // Mana
 router.use('/translation', translationRoutes);
 router.use('/weather', weatherRoutes);
 
-// Test external APIs
+  // Test external APIs
 router.get('/test-apis', async (_req: Request, res: Response) => {
   const results = {
     translation: { status: 'not tested', error: null as string | null },
@@ -266,5 +270,4 @@ router.get('/test-apis', async (_req: Request, res: Response) => {
 
   res.json(results);
 });
-
 export default router;

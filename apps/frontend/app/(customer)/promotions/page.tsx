@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useTranslatedTexts } from '@/app/hooks/useTranslation';
 import { useToast } from '@/app/hooks/useToast';
 import Link from 'next/link';
@@ -174,9 +175,11 @@ const PromotionsPage = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-4">
               {weather.icon && (
-                <img
+                <Image
                   src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
                   alt={weather.description}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 sm:w-20 sm:h-20"
                 />
               )}

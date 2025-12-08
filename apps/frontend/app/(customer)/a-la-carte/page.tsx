@@ -14,6 +14,7 @@ interface MenuItem {
   upcharge: number;
   is_available: boolean;
   item_type: string;
+  stock?: number;
 }
 
 interface MealType {
@@ -114,6 +115,11 @@ const ALaCartePage = () => {
   const itemCount = order.length;
 
   const handleAddItem = (item: MenuItem, sizeMealTypeId: number) => {
+    // Check if item is out of stock
+    if ((item.stock ?? 0) <= 0) {
+      return; // Don't allow adding if out of stock
+    }
+
     const mealType = mealTypes.find((mt) => mt.meal_type_id === sizeMealTypeId);
     if (!mealType) {
       console.error('Corresponding meal type not found for ID:', sizeMealTypeId);
@@ -314,36 +320,59 @@ const ALaCartePage = () => {
                 const isEntree = item.item_type === 'entree';
                 const isSide = item.item_type === 'side';
                 const isDrink = item.item_type === 'drink';
+                const isOutOfStock = (item.stock ?? 0) <= 0;
                 
                 return (
                   <div
                     key={item.menu_item_id}
-                    className={`bg-white rounded-lg shadow-md p-4 sm:p-6 hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)}`}
+                    className={`bg-white rounded-lg shadow-md p-4 sm:p-6 transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${
+                      isOutOfStock ? 'opacity-60 bg-gray-100' : 'hover-scale'
+                    }`}
                   >
                     <h3 className="text-xl font-bold mb-2">
                       {translatedMenuItems[item.menu_item_id] || item.name}
                     </h3>
                     <p className="text-sm text-gray-600 mb-4 capitalize">{item.item_type}</p>
+                    {isOutOfStock && (
+                      <div className="mb-4 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full inline-block">
+                        Out of Stock
+                      </div>
+                    )}
                     <div className="flex flex-wrap gap-2">
                       {isEntree && (
                         <>
                           <button
                             onClick={() => handleAddItem(item, 4)}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            disabled={isOutOfStock}
+                            className={`${
+                              isOutOfStock
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-500 hover:bg-blue-700'
+                            } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.small}`}
                           >
                             {t.add} {t.small}
                           </button>
                           <button
                             onClick={() => handleAddItem(item, 5)}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            disabled={isOutOfStock}
+                            className={`${
+                              isOutOfStock
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-500 hover:bg-blue-700'
+                            } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.medium}`}
                           >
                             {t.add} {t.medium}
                           </button>
                           <button
                             onClick={() => handleAddItem(item, 6)}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            disabled={isOutOfStock}
+                            className={`${
+                              isOutOfStock
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-500 hover:bg-blue-700'
+                            } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.large}`}
                           >
                             {t.add} {t.large}
@@ -354,21 +383,36 @@ const ALaCartePage = () => {
                         <>
                           <button
                             onClick={() => handleAddItem(item, 7)}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            disabled={isOutOfStock}
+                            className={`${
+                              isOutOfStock
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-500 hover:bg-blue-700'
+                            } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.small}`}
                           >
                             {t.add} {t.small}
                           </button>
                           <button
                             onClick={() => handleAddItem(item, 8)}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            disabled={isOutOfStock}
+                            className={`${
+                              isOutOfStock
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-500 hover:bg-blue-700'
+                            } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.medium}`}
                           >
                             {t.add} {t.medium}
                           </button>
                           <button
                             onClick={() => handleAddItem(item, 9)}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            disabled={isOutOfStock}
+                            className={`${
+                              isOutOfStock
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-500 hover:bg-blue-700'
+                            } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.large}`}
                           >
                             {t.add} {t.large}
@@ -379,21 +423,36 @@ const ALaCartePage = () => {
                         <>
                           <button
                             onClick={() => handleAddItem(item, 13)}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            disabled={isOutOfStock}
+                            className={`${
+                              isOutOfStock
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-500 hover:bg-blue-700'
+                            } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.small}`}
                           >
                             {t.add} {t.small}
                           </button>
                           <button
                             onClick={() => handleAddItem(item, 14)}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            disabled={isOutOfStock}
+                            className={`${
+                              isOutOfStock
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-500 hover:bg-blue-700'
+                            } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.medium}`}
                           >
                             {t.add} {t.medium}
                           </button>
                           <button
                             onClick={() => handleAddItem(item, 15)}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md"
+                            disabled={isOutOfStock}
+                            className={`${
+                              isOutOfStock
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-500 hover:bg-blue-700'
+                            } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.large}`}
                           >
                             {t.add} {t.large}

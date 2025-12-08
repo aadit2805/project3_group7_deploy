@@ -17,6 +17,7 @@ interface MenuItem {
   item_type: string;
   allergens?: string | null;
   allergen_info?: string | null;
+  stock?: number;
 }
 
 interface MealType {
@@ -280,6 +281,11 @@ const CustomerKioskContent = () => {
   }, [menuItems, selectedMealType, currentLanguage, translateBatch]);
 
   const handleSelectItem = (item: MenuItem, type: 'entree' | 'side' | 'drink') => {
+    // Check if item is out of stock
+    if ((item.stock ?? 0) <= 0) {
+      return; // Don't allow selection if out of stock
+    }
+
     if (type === 'entree') {
       if (selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id)) {
         setSelectedEntrees(selectedEntrees.filter((e) => e.menu_item_id !== item.menu_item_id));
@@ -641,21 +647,35 @@ const CustomerKioskContent = () => {
                   ).toLowerCase();
                   return itemName.includes(searchLower);
                 })
-                .map((item, index) => (
-                  <div
-                    key={item.menu_item_id}
-                    className={`bg-white rounded-lg shadow-md p-4 sm:p-6 cursor-pointer border-2 hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id) ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200'}`}
-                    onClick={() => handleSelectItem(item, 'entree')}
-                  >
-                    <h3 className="text-xl font-bold mb-2">
-                      {translatedMenuItems[item.menu_item_id] || item.name}
-                    </h3>
-                    <p className="text-gray-700">
-                      {t.upcharge}: ${item.upcharge.toFixed(2)}
-                    </p>
-                    {renderAllergenBadge(item)}
-                  </div>
-                ))}
+                .map((item, index) => {
+                  const isOutOfStock = (item.stock ?? 0) <= 0;
+                  return (
+                    <div
+                      key={item.menu_item_id}
+                      className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${
+                        isOutOfStock
+                          ? 'border-red-300 bg-gray-100 opacity-60 cursor-not-allowed'
+                          : selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id)
+                          ? 'border-blue-500 ring-2 ring-blue-300 cursor-pointer hover-scale'
+                          : 'border-gray-200 cursor-pointer hover-scale'
+                      }`}
+                      onClick={() => !isOutOfStock && handleSelectItem(item, 'entree')}
+                    >
+                      <h3 className="text-xl font-bold mb-2">
+                        {translatedMenuItems[item.menu_item_id] || item.name}
+                      </h3>
+                      <p className="text-gray-700">
+                        {t.upcharge}: ${item.upcharge.toFixed(2)}
+                      </p>
+                      {isOutOfStock && (
+                        <div className="mt-2 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full inline-block">
+                          Out of Stock
+                        </div>
+                      )}
+                      {renderAllergenBadge(item)}
+                    </div>
+                  );
+                })}
             </div>
           </section>
 
@@ -684,21 +704,35 @@ const CustomerKioskContent = () => {
                   ).toLowerCase();
                   return itemName.includes(searchLower);
                 })
-                .map((item, index) => (
-                  <div
-                    key={item.menu_item_id}
-                    className={`bg-white rounded-lg shadow-md p-4 sm:p-6 cursor-pointer border-2 hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${selectedSides.some((s) => s.menu_item_id === item.menu_item_id) ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200'}`}
-                    onClick={() => handleSelectItem(item, 'side')}
-                  >
-                    <h3 className="text-xl font-bold mb-2">
-                      {translatedMenuItems[item.menu_item_id] || item.name}
-                    </h3>
-                    <p className="text-gray-700">
-                      {t.upcharge}: ${item.upcharge.toFixed(2)}
-                    </p>
-                    {renderAllergenBadge(item)}
-                  </div>
-                ))}
+                .map((item, index) => {
+                  const isOutOfStock = (item.stock ?? 0) <= 0;
+                  return (
+                    <div
+                      key={item.menu_item_id}
+                      className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${
+                        isOutOfStock
+                          ? 'border-red-300 bg-gray-100 opacity-60 cursor-not-allowed'
+                          : selectedSides.some((s) => s.menu_item_id === item.menu_item_id)
+                          ? 'border-blue-500 ring-2 ring-blue-300 cursor-pointer hover-scale'
+                          : 'border-gray-200 cursor-pointer hover-scale'
+                      }`}
+                      onClick={() => !isOutOfStock && handleSelectItem(item, 'side')}
+                    >
+                      <h3 className="text-xl font-bold mb-2">
+                        {translatedMenuItems[item.menu_item_id] || item.name}
+                      </h3>
+                      <p className="text-gray-700">
+                        {t.upcharge}: ${item.upcharge.toFixed(2)}
+                      </p>
+                      {isOutOfStock && (
+                        <div className="mt-2 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full inline-block">
+                          Out of Stock
+                        </div>
+                      )}
+                      {renderAllergenBadge(item)}
+                    </div>
+                  );
+                })}
             </div>
           </section>
 
@@ -728,11 +762,19 @@ const CustomerKioskContent = () => {
                     ).toLowerCase();
                     return itemName.includes(searchLower);
                   })
-                  .map((item, index) => (
+                .map((item, index) => {
+                  const isOutOfStock = (item.stock ?? 0) <= 0;
+                  return (
                     <div
                       key={item.menu_item_id}
-                      className={`bg-white rounded-lg shadow-md p-4 sm:p-6 cursor-pointer border-2 hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${selectedDrink?.menu_item_id === item.menu_item_id ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200'}`}
-                      onClick={() => handleSelectItem(item, 'drink')}
+                      className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${
+                        isOutOfStock
+                          ? 'border-red-300 bg-gray-100 opacity-60 cursor-not-allowed'
+                          : selectedDrink?.menu_item_id === item.menu_item_id
+                          ? 'border-blue-500 ring-2 ring-blue-300 cursor-pointer hover-scale'
+                          : 'border-gray-200 cursor-pointer hover-scale'
+                      }`}
+                      onClick={() => !isOutOfStock && handleSelectItem(item, 'drink')}
                     >
                       <h3 className="text-xl font-bold mb-2">
                         {translatedMenuItems[item.menu_item_id] || item.name}
@@ -740,9 +782,15 @@ const CustomerKioskContent = () => {
                       <p className="text-gray-700">
                         {t.upcharge}: ${item.upcharge.toFixed(2)}
                       </p>
+                      {isOutOfStock && (
+                        <div className="mt-2 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full inline-block">
+                          Out of Stock
+                        </div>
+                      )}
                       {renderAllergenBadge(item)}
                     </div>
-                  ))}
+                  );
+                })}
               </div>
             </section>
           )}

@@ -65,23 +65,39 @@ function filterByTimeAvailability(items: MenuItem[]): MenuItem[] {
 // Get all menu items
 export const getMenuItems = async (req: Request, res: Response): Promise<void> => {
   try {
-    let query =
-      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info FROM menu_items';
+    // Include stock information from inventory table
+    let query = `
+      SELECT 
+        m.menu_item_id, 
+        m.name, 
+        m.upcharge, 
+        m.is_available, 
+        m.item_type, 
+        m.availability_start_time, 
+        m.availability_end_time, 
+        m.allergens, 
+        m.allergen_info,
+        COALESCE(i.stock, 0) as stock
+      FROM menu_items m
+      LEFT JOIN inventory i ON m.menu_item_id = i.menu_item_id
+    `;
     const queryParams: (string | boolean)[] = [];
 
     if (req.query.is_available === 'true') {
-      query += ' WHERE is_available = $1';
+      query += ' WHERE m.is_available = $1';
       queryParams.push(true);
     }
 
-    query += ' ORDER BY menu_item_id';
+    query += ' ORDER BY m.menu_item_id';
 
-    const result = await pool.query<MenuItem>(query, queryParams);
+    const result = await pool.query(query, queryParams);
     let items = result.rows;
 
-    // If filtering by availability, also filter by time-based availability
+    // If filtering by availability, also filter by time-based availability and stock
     if (req.query.is_available === 'true') {
       items = filterByTimeAvailability(items);
+      // Filter out items with stock = 0 for customer-facing requests
+      items = items.filter((item: MenuItem & { stock?: number }) => (item.stock ?? 0) > 0);
     }
 
     res.status(200).json(items);
@@ -198,6 +214,8 @@ export const createMenuItem = async (req: Request, res: Response): Promise<void>
       storage,
       availability_start_time,
       availability_end_time,
+      allergens,
+      allergen_info,
     } = req.body;
 
     // Validation
@@ -241,11 +259,29 @@ export const createMenuItem = async (req: Request, res: Response): Promise<void>
       }
     }
 
+    // Process allergens - convert array to JSON string if provided
+    const allergensJson = allergens ? JSON.stringify(Array.isArray(allergens) ? allergens : [allergens]) : null;
+    
+    // Generate allergen_info if not provided but allergens are
+    let finalAllergenInfo = allergen_info;
+    if (!finalAllergenInfo && allergensJson) {
+      try {
+        const allergenArray = JSON.parse(allergensJson);
+        if (allergenArray.length > 0) {
+          finalAllergenInfo = `Contains: ${allergenArray.join(', ')}`;
+        } else {
+          finalAllergenInfo = 'No major allergens';
+        }
+      } catch {
+        finalAllergenInfo = allergen_info || null;
+      }
+    }
+
     // Insert new menu item
     const result = await pool.query<MenuItem>(
-      `INSERT INTO menu_items (menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time`,
+      `INSERT INTO menu_items (menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info`,
       [
         itemId,
         name,
@@ -254,6 +290,8 @@ export const createMenuItem = async (req: Request, res: Response): Promise<void>
         item_type.toLowerCase(),
         availability_start_time || null,
         availability_end_time || null,
+        allergensJson,
+        finalAllergenInfo,
       ]
     );
 
@@ -311,6 +349,8 @@ export const updateMenuItem = async (req: Request, res: Response): Promise<void>
       item_type,
       availability_start_time,
       availability_end_time,
+      allergens,
+      allergen_info,
     } = req.body;
 
     // Get old values for audit log
@@ -328,7 +368,7 @@ export const updateMenuItem = async (req: Request, res: Response): Promise<void>
 
     // Build update query dynamically
     const updates: string[] = [];
-    const values: any[] = [];
+    const values: (string | number | boolean | null)[] = [];
     let paramCount = 1;
 
     if (name !== undefined) {
@@ -363,6 +403,31 @@ export const updateMenuItem = async (req: Request, res: Response): Promise<void>
       updates.push(`availability_end_time = $${paramCount++}`);
       values.push(availability_end_time || null);
     }
+    if (allergens !== undefined) {
+      const allergensJson = allergens ? JSON.stringify(Array.isArray(allergens) ? allergens : [allergens]) : null;
+      updates.push(`allergens = $${paramCount++}`);
+      values.push(allergensJson);
+      
+      // Auto-generate allergen_info if not provided but allergens are
+      if (allergen_info === undefined && allergensJson) {
+        try {
+          const allergenArray = JSON.parse(allergensJson);
+          if (allergenArray.length > 0) {
+            updates.push(`allergen_info = $${paramCount++}`);
+            values.push(`Contains: ${allergenArray.join(', ')}`);
+          } else {
+            updates.push(`allergen_info = $${paramCount++}`);
+            values.push('No major allergens');
+          }
+        } catch {
+          // If parsing fails, don't update allergen_info
+        }
+      }
+    }
+    if (allergen_info !== undefined) {
+      updates.push(`allergen_info = $${paramCount++}`);
+      values.push(allergen_info || null);
+    }
 
     if (updates.length === 0) {
       res.status(400).json({
@@ -377,7 +442,7 @@ export const updateMenuItem = async (req: Request, res: Response): Promise<void>
       `UPDATE menu_items 
        SET ${updates.join(', ')}
        WHERE menu_item_id = $${paramCount}
-       RETURNING menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time`,
+       RETURNING menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info`,
       values
     );
 
@@ -459,6 +524,58 @@ export const deactivateMenuItem = async (req: Request, res: Response): Promise<v
     console.error('Error deactivating menu item:', error);
     res.status(500).json({
       error: 'Failed to deactivate menu item',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+export const deleteMenuItem = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    // Get old values for audit log
+    const oldItemResult = await pool.query<MenuItem>(
+      'SELECT menu_item_id, name, upcharge, is_available, item_type, availability_start_time, availability_end_time, allergens, allergen_info FROM menu_items WHERE menu_item_id = $1',
+      [id]
+    );
+
+    if (oldItemResult.rows.length === 0) {
+      res.status(404).json({ error: 'Menu item not found' });
+      return;
+    }
+
+    const oldMenuItem = oldItemResult.rows[0];
+
+    // Delete the menu item (cascade will handle related inventory)
+    const result = await pool.query(
+      'DELETE FROM menu_items WHERE menu_item_id = $1 RETURNING menu_item_id, name',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Menu item not found' });
+      return;
+    }
+
+    // Log audit entry
+    await createAuditLog(req, {
+      action_type: 'DELETE',
+      entity_type: 'menu_item',
+      entity_id: String(id),
+      old_values: oldMenuItem,
+      new_values: null,
+      description: `Deleted menu item: ${oldMenuItem.name} (ID: ${id})`,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Menu item deleted successfully',
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Error deleting menu item:', error);
+    res.status(500).json({
+      error: 'Failed to delete menu item',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
   }

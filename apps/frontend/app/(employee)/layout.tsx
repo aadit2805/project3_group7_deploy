@@ -59,6 +59,7 @@ const EmployeeLayout = ({ children }: { children: ReactNode }) => {
     { href: '/manager/revenue-reports', label: 'Revenue', icon: BarChart2 },
     { href: '/manager/audit-logs', label: 'Audit Logs', icon: FileText },
     { href: '/manager/promotions', label: 'Promotions', icon: Tag },
+    { href: '/manager/loyalty-analytics', label: 'Loyalty', icon: BarChart2 },
   ];
 
   const navLinks = user?.role === 'MANAGER' ? [...cashierLinks, ...managerLinks] : cashierLinks;
