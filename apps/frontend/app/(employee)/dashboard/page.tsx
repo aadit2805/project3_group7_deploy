@@ -22,6 +22,9 @@ import {
   TrendingUp,
 } from 'lucide-react';
 
+/**
+ * Dashboard card component - displays a clickable card linking to a feature
+ */
 interface DashboardCardProps {
   href: string;
   title: string;
@@ -45,6 +48,10 @@ const DashboardCard = ({ href, title, description, icon: Icon, index }: Dashboar
   </Link>
 );
 
+/**
+ * Employee Dashboard page - displays available features based on user role
+ * Shows different cards for MANAGER vs CASHIER roles
+ */
 interface DashboardNavGroup {
   name: string;
   icon: React.ElementType;

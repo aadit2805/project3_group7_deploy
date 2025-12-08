@@ -45,6 +45,10 @@ interface Order {
   points_earned: number;
 }
 
+/**
+ * Customer Kiosk page - allows customers to customize their meal selections
+ * Supports meal type selection, entree/side/drink selection, allergen filtering, and recommendations
+ */
 const CustomerKioskContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -54,9 +58,11 @@ const CustomerKioskContent = () => {
   const context = useContext(OrderContext);
   const { translateBatch, currentLanguage } = useTranslation();
 
+  // State for past orders and recommendations
   const [pastOrders, setPastOrders] = useState<Order[]>([]);
   const [recommendedItems, setRecommendedItems] = useState<MenuItem[]>([]);
 
+  // Fetch customer's past orders for recommendations
   useEffect(() => {
     const fetchPastOrders = async () => {
       const customerId = localStorage.getItem('customerId');
@@ -91,6 +97,7 @@ const CustomerKioskContent = () => {
     fetchPastOrders();
   }, []);
 
+  // Generate recommendations based on past orders (top 3 most ordered entrees)
   useEffect(() => {
     if (pastOrders.length > 0) {
       const allEntrees = pastOrders.flatMap((order) =>
@@ -164,6 +171,7 @@ const CustomerKioskContent = () => {
 
   const { order, setOrder } = context;
 
+  // State for meal customization
   const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [translatedMenuItems, setTranslatedMenuItems] = useState<Record<number, string>>({});
@@ -171,6 +179,7 @@ const CustomerKioskContent = () => {
   const [selectedEntrees, setSelectedEntrees] = useState<MenuItem[]>([]);
   const [selectedSides, setSelectedSides] = useState<MenuItem[]>([]);
   const [selectedDrink, setSelectedDrink] = useState<MenuItem | undefined>(undefined);
+  // State for search and allergen filtering
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [allergenFilter, setAllergenFilter] = useState<Set<string>>(new Set());
   const [showAllergenFilter, setShowAllergenFilter] = useState(false);
@@ -187,6 +196,7 @@ const CustomerKioskContent = () => {
     }
   }, [mealTypeId, router]);
 
+  // Fetch meal type and menu items when mealTypeId changes
   useEffect(() => {
     if (mealTypeId) {
       // Reset cycle direction when meal type changes
@@ -293,6 +303,8 @@ const CustomerKioskContent = () => {
     translateContent();
   }, [menuItems, selectedMealType, currentLanguage, translateBatch]);
 
+  // Handle selection of menu items (entrees, sides, or drinks)
+  // Prevents selection if item is out of stock
   const handleSelectItem = (item: MenuItem, type: 'entree' | 'side' | 'drink') => {
     // Check if item is out of stock
     if ((item.stock ?? 0) <= 0) {
@@ -395,6 +407,7 @@ const CustomerKioskContent = () => {
     }
   };
 
+  // Add or update order item in the shopping cart
   const handleAddOrUpdateOrder = () => {
     if (selectedMealType) {
       const newOrderItem: OrderItem = {
@@ -422,6 +435,7 @@ const CustomerKioskContent = () => {
     }
   };
 
+  // Extract allergens from menu item (parses JSON string)
   const getAllergens = (item: MenuItem): string[] => {
     if (!item.allergens) return [];
     try {
@@ -432,6 +446,8 @@ const CustomerKioskContent = () => {
     }
   };
 
+  // Render allergen badge showing allergens or "no allergens" status
+  // Highlights allergens that match user's preferences
   const renderAllergenBadge = (item: MenuItem) => {
     const allergens = getAllergens(item);
 
@@ -544,7 +560,7 @@ const CustomerKioskContent = () => {
     );
   };
 
-  // Get all unique allergens from menu items
+  // Get all unique allergens from menu items for filter options
   const allAllergens = React.useMemo(() => {
     const allergensSet = new Set<string>();
     menuItems.forEach((item) => {
@@ -643,7 +659,7 @@ const CustomerKioskContent = () => {
             </Link>
           </div>
 
-          {/* Allergen Filter Section */}
+          {/* Allergen Filter Section - allows customers to hide items containing specific allergens */}
           {allAllergens.length > 0 && (
             <div className="mb-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
               <div className="flex justify-between items-center mb-3">

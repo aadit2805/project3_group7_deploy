@@ -31,8 +31,13 @@ interface User {
   name: string | null;
   role: string | null;
 }
+/**
+ * Order Analytics page - displays order completion time analytics
+ * Shows daily and hourly completion time statistics with filtering by date range
+ */
 export default function OrderAnalyticsPage() {
   const router = useRouter();
+  // State for user and analytics data
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +48,8 @@ export default function OrderAnalyticsPage() {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const { addToast } = useToast();
+  
+  // Fetch all analytics stats (daily, hourly, and summary) in parallel
   const fetchAllStats = useCallback(async (start?: string, end?: string) => {
     setLoadingStats(true);
     try {

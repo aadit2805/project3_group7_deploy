@@ -29,13 +29,19 @@ interface PromotionalDiscount {
   } | null;
 }
 
+/**
+ * Promotions Management page - allows managers to create and manage promotional discounts
+ * Supports creating, editing, and deleting discount codes with various discount types
+ */
 export default function PromotionsPage() {
   const { user } = useEmployee();
   const { addToast } = useToast();
+  // State for discounts and modal
   const [discounts, setDiscounts] = useState<PromotionalDiscount[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingDiscount, setEditingDiscount] = useState<PromotionalDiscount | null>(null);
+  // Form data for creating/editing discounts
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -50,6 +56,7 @@ export default function PromotionsPage() {
     usage_limit: '',
   });
 
+  // Fetch all promotional discounts
   const fetchDiscounts = async () => {
     setLoading(true);
     try {
@@ -72,6 +79,7 @@ export default function PromotionsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role]);
 
+  // Open modal for creating or editing a discount
   const handleOpenModal = (discount?: PromotionalDiscount) => {
     if (discount) {
       setEditingDiscount(discount);

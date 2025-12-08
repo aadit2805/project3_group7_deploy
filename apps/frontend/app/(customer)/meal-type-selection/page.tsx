@@ -18,6 +18,10 @@ interface MealType {
 
 
 
+/**
+ * Meal Type Selection page - allows customers to select a meal type
+ * Displays available meal types and links to customization page
+ */
 const MealTypeSelection = () => {
   const [mealTypes, setMealTypes] = useState<MealType[]>([]);
   const context = useContext(OrderContext);
@@ -55,6 +59,7 @@ const MealTypeSelection = () => {
     selectBeverage: translatedTexts[9] || 'Select a beverage',
   };
 
+  // Fetch available meal types on component mount
   useEffect(() => {
     const fetchMealTypes = async () => {
       try {

@@ -15,9 +15,14 @@ interface OrderData {
   customerName: string;
 }
 
+/**
+ * Order Confirmation page - displays order confirmation details after submission
+ * Shows QR code, estimated prep time, and allows customers to submit feedback
+ */
 const OrderConfirmation = () => {
   const router = useRouter();
   const { addToast } = useToast();
+  // State for order details and feedback
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,6 +87,7 @@ const OrderConfirmation = () => {
     saveQR: translatedTexts[23] || 'Save this QR code for your records',
   };
 
+  // Fetch order details and generate QR code on component mount
   useEffect(() => {
     const fetchOrderDetails = async () => {
       const lastOrderId = localStorage.getItem('lastOrderId');

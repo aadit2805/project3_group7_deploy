@@ -4,14 +4,19 @@ import { useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-// Separate component that uses client-side hooks
+/**
+ * Rewards Login page - allows customers to login or register for rewards program
+ * Supports both login and registration, with option to continue as guest
+ */
 function RewardsLoginContent() {
+  // State for authentication form
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
   const router = useRouter();
 
+  // Handle customer login or registration
   const handleAuth = async (isRegister: boolean) => {
     setError(null);
     if (!emailOrPhone || !password) {
@@ -50,6 +55,7 @@ function RewardsLoginContent() {
     }
   };
 
+  // Allow customers to continue as guest without logging in
   const handleGuestContinue = () => {
     // Clear any previous customer session data if any
     localStorage.removeItem('customerToken');
