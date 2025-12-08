@@ -287,15 +287,13 @@ const CustomerKioskContent = () => {
     }
 
     if (type === 'entree') {
-      if (selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id)) {
-        setSelectedEntrees(selectedEntrees.filter((e) => e.menu_item_id !== item.menu_item_id));
-      } else if (selectedMealType && selectedEntrees.length < selectedMealType.entree_count) {
+      if (!selectedMealType) return; // Ensure meal type is selected
+      if (selectedEntrees.length < selectedMealType.entree_count) {
         setSelectedEntrees([...selectedEntrees, item]);
       }
     } else if (type === 'side') {
-      if (selectedSides.some((s) => s.menu_item_id === item.menu_item_id)) {
-        setSelectedSides(selectedSides.filter((s) => s.menu_item_id !== item.menu_item_id));
-      } else if (selectedMealType && selectedSides.length < selectedMealType.side_count) {
+      if (!selectedMealType) return; // Ensure meal type is selected
+      if (selectedSides.length < selectedMealType.side_count) {
         setSelectedSides([...selectedSides, item]);
       }
     } else if (type === 'drink') {

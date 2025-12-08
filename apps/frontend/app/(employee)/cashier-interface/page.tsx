@@ -215,16 +215,14 @@ const CashierInterfaceContent = () => {
   }, [mealTypeId, editIndex, order]);
 
   const handleSelectItem = (item: MenuItem, type: 'entree' | 'side') => {
+    if (!selectedMealType) return; // Ensure meal type is selected
+
     if (type === 'entree') {
-      if (selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id)) {
-        setSelectedEntrees(selectedEntrees.filter((e) => e.menu_item_id !== item.menu_item_id));
-      } else if (selectedMealType && selectedEntrees.length < selectedMealType.entree_count) {
+      if (selectedEntrees.length < selectedMealType.entree_count) {
         setSelectedEntrees([...selectedEntrees, item]);
       }
     } else if (type === 'side') {
-      if (selectedSides.some((s) => s.menu_item_id === item.menu_item_id)) {
-        setSelectedSides(selectedSides.filter((s) => s.menu_item_id !== item.menu_item_id));
-      } else if (selectedMealType && selectedSides.length < selectedMealType.side_count) {
+      if (selectedSides.length < selectedMealType.side_count) {
         setSelectedSides([...selectedSides, item]);
       }
     }
