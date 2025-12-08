@@ -202,14 +202,12 @@ Error: ${errorData.error}`
   };
 
   return (
-    <aside 
-      className="w-1/3 bg-gray-100 p-6" 
-      role="complementary" 
-      aria-label="Order summary"
-    >
+    <aside className="w-1/3 bg-gray-100 p-6" role="complementary" aria-label="Order summary">
       <h2 className="text-3xl font-semibold mb-4">{t.title}</h2>
       {order.length === 0 ? (
-        <p role="status" aria-live="polite">{t.empty}</p>
+        <p role="status" aria-live="polite">
+          {t.empty}
+        </p>
       ) : (
         <>
           <ul role="list" aria-label="Order items">
@@ -290,8 +288,8 @@ Error: ${errorData.error}`
                 </li>
               );
             })}
-            </ul>
-            <div className="text-right mt-6 pt-4 border-t-2 border-gray-300">
+          </ul>
+          <div className="text-right mt-6 pt-4 border-t-2 border-gray-300">
             <p className="text-2xl font-bold mb-2" role="status" aria-live="polite">
               {t.total}:{' '}
               <span aria-label={`Subtotal ${totalPrice.toFixed(2)} dollars`}>

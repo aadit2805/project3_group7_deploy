@@ -450,7 +450,9 @@ const CashierInterfaceContent = () => {
               </button>
             </Link>
           </div>
-          <h1 className="text-4xl font-bold text-center mb-8 animate-slide-in-down">{t.selectMealType}</h1>
+          <h1 className="text-4xl font-bold text-center mb-8 animate-slide-in-down">
+            {t.selectMealType}
+          </h1>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {nonDrinkMealTypes.map((mealType, index) => (
               <div
@@ -461,10 +463,20 @@ const CashierInterfaceContent = () => {
                 <h2 className="text-2xl font-bold mb-2 text-white">
                   {translatedMealTypes[mealType.meal_type_id] || mealType.meal_type_name}
                 </h2>
-                <p className="text-white">{t.price}: ${mealType.meal_type_price.toFixed(2)}</p>
-                <p className="text-white">{t.entrees}: {mealType.entree_count}</p>
-                <p className="text-white">{t.sides}: {mealType.side_count}</p>
-                {mealType.drink_size && <p className="text-white">{t.drink}: {mealType.drink_size}</p>}
+                <p className="text-white">
+                  {t.price}: ${mealType.meal_type_price.toFixed(2)}
+                </p>
+                <p className="text-white">
+                  {t.entrees}: {mealType.entree_count}
+                </p>
+                <p className="text-white">
+                  {t.sides}: {mealType.side_count}
+                </p>
+                {mealType.drink_size && (
+                  <p className="text-white">
+                    {t.drink}: {mealType.drink_size}
+                  </p>
+                )}
               </div>
             ))}
             {/* Drinks option */}
@@ -509,10 +521,16 @@ const CashierInterfaceContent = () => {
                       className="bg-[#D61927] rounded-lg shadow-md p-6 cursor-pointer border-2 border-white/30 hover:border-white hover:shadow-xl hover:bg-[#B81520] transition-all duration-300"
                     >
                       <h2 className="text-2xl font-bold mb-2 text-white">
-                        {sizeOption.name === 'Small' ? t.small : sizeOption.name === 'Medium' ? t.medium : t.large}
+                        {sizeOption.name === 'Small'
+                          ? t.small
+                          : sizeOption.name === 'Medium'
+                            ? t.medium
+                            : t.large}
                       </h2>
                       {mealType && (
-                        <p className="text-white">{t.price}: ${mealType.meal_type_price.toFixed(2)}</p>
+                        <p className="text-white">
+                          {t.price}: ${mealType.meal_type_price.toFixed(2)}
+                        </p>
                       )}
                     </div>
                   );
@@ -554,8 +572,8 @@ const CashierInterfaceContent = () => {
 
               <section className="mb-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filterMenuItems(menuItems.filter((item) => item.item_type === 'drink'))
-                    .map((item) => {
+                  {filterMenuItems(menuItems.filter((item) => item.item_type === 'drink')).map(
+                    (item) => {
                       const isSelected = selectedDrink?.menu_item_id === item.menu_item_id;
                       return (
                         <div
@@ -567,14 +585,19 @@ const CashierInterfaceContent = () => {
                           }`}
                           onClick={() => item.is_available && handleSelectDrinkItem(item)}
                         >
-                          <h3 className="text-xl font-bold mb-2 text-white">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
-                          <p className="text-white">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
+                          <h3 className="text-xl font-bold mb-2 text-white">
+                            {translatedMenuItems[item.menu_item_id] || item.name}
+                          </h3>
+                          <p className="text-white">
+                            {t.upcharge}: ${item.upcharge.toFixed(2)}
+                          </p>
                           {!item.is_available && (
                             <p className="text-white font-semibold mt-2">{t.unavailable}</p>
                           )}
                         </div>
                       );
-                    })}
+                    }
+                  )}
                 </div>
               </section>
 
@@ -637,9 +660,11 @@ const CashierInterfaceContent = () => {
               {t.selectEntrees} ({selectedEntrees.length}/{selectedMealType.entree_count})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filterMenuItems(menuItems.filter((item) => item.item_type === 'entree'))
-                .map((item) => {
-                  const isSelected = selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id);
+              {filterMenuItems(menuItems.filter((item) => item.item_type === 'entree')).map(
+                (item) => {
+                  const isSelected = selectedEntrees.some(
+                    (e) => e.menu_item_id === item.menu_item_id
+                  );
                   return (
                     <div
                       key={item.menu_item_id}
@@ -650,14 +675,19 @@ const CashierInterfaceContent = () => {
                       }`}
                       onClick={() => item.is_available && handleSelectItem(item, 'entree')}
                     >
-                      <h3 className="text-xl font-bold mb-2 text-white">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
-                      <p className="text-white">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
+                      <h3 className="text-xl font-bold mb-2 text-white">
+                        {translatedMenuItems[item.menu_item_id] || item.name}
+                      </h3>
+                      <p className="text-white">
+                        {t.upcharge}: ${item.upcharge.toFixed(2)}
+                      </p>
                       {!item.is_available && (
                         <p className="text-white font-semibold mt-2">{t.unavailable}</p>
                       )}
                     </div>
                   );
-                })}
+                }
+              )}
             </div>
           </section>
 
@@ -666,9 +696,11 @@ const CashierInterfaceContent = () => {
               {t.selectSides} ({selectedSides.length}/{selectedMealType.side_count})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filterMenuItems(menuItems.filter((item) => item.item_type === 'side'))
-                .map((item) => {
-                  const isSelected = selectedSides.some((s) => s.menu_item_id === item.menu_item_id);
+              {filterMenuItems(menuItems.filter((item) => item.item_type === 'side')).map(
+                (item) => {
+                  const isSelected = selectedSides.some(
+                    (s) => s.menu_item_id === item.menu_item_id
+                  );
                   return (
                     <div
                       key={item.menu_item_id}
@@ -679,14 +711,19 @@ const CashierInterfaceContent = () => {
                       }`}
                       onClick={() => item.is_available && handleSelectItem(item, 'side')}
                     >
-                      <h3 className="text-xl font-bold mb-2 text-white">{translatedMenuItems[item.menu_item_id] || item.name}</h3>
-                      <p className="text-white">{t.upcharge}: ${item.upcharge.toFixed(2)}</p>
+                      <h3 className="text-xl font-bold mb-2 text-white">
+                        {translatedMenuItems[item.menu_item_id] || item.name}
+                      </h3>
+                      <p className="text-white">
+                        {t.upcharge}: ${item.upcharge.toFixed(2)}
+                      </p>
                       {!item.is_available && (
                         <p className="text-white font-semibold mt-2">{t.unavailable}</p>
                       )}
                     </div>
                   );
-                })}
+                }
+              )}
             </div>
           </section>
 
