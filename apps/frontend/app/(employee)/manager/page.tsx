@@ -8,7 +8,7 @@ import ActiveOrdersList from './components/ActiveOrdersList';
 
 export default function ManagerPage() {
   const { user } = useEmployee();
-  const [activeTab, setActiveTab] = useState<'add' | 'list' | 'orders'>('orders');
+  const [activeTab, setActiveTab] = useState<'add' | 'list' | 'orders' | 'past'>('orders');
 
   // Note: Access control is now handled by the EmployeeLayout,
   // but we can add a fallback for extra security or specific UI.
@@ -63,6 +63,16 @@ export default function ManagerPage() {
             >
               Manage Menu Items
             </button>
+            <button
+              onClick={() => setActiveTab('past')}
+              className={`px-6 py-4 font-medium text-sm button-press transition-all duration-200 ${
+                activeTab === 'past'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Past Orders
+            </button>
           </nav>
         </div>
       </div>
@@ -73,6 +83,8 @@ export default function ManagerPage() {
           <ActiveOrdersList />
         ) : activeTab === 'add' ? (
           <AddMenuItemForm onSuccess={() => setActiveTab('list')} />
+        ) : activeTab === 'past' ? (
+          <ActiveOrdersList variant="past" />
         ) : (
           <FilterableMenuItems />
         )}
