@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useId } from 'react';
 
 interface TooltipProps {
   text: string;
   children: React.ReactNode;
   position?: 'top' | 'bottom' | 'left' | 'right';
   className?: string;
-  ariaLabel?: string;
 }
 
 const Tooltip: React.FC<TooltipProps> = ({
@@ -15,12 +15,12 @@ const Tooltip: React.FC<TooltipProps> = ({
   children,
   position = 'top',
   className = '',
-  ariaLabel,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const tooltipRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const tooltipId = useId();
 
   useEffect(() => {
     if (isVisible && tooltipRef.current && wrapperRef.current) {
@@ -35,18 +35,34 @@ const Tooltip: React.FC<TooltipProps> = ({
       switch (position) {
         case 'top':
           top = wrapperRect.top + scrollY - tooltipRect.height - 8;
-          left = wrapperRect.left + scrollX + wrapperRect.width / 2 - tooltipRect.width / 2;
+          left =
+            wrapperRect.left +
+            scrollX +
+            wrapperRect.width / 2 -
+            tooltipRect.width / 2;
           break;
         case 'bottom':
           top = wrapperRect.bottom + scrollY + 8;
-          left = wrapperRect.left + scrollX + wrapperRect.width / 2 - tooltipRect.width / 2;
+          left =
+            wrapperRect.left +
+            scrollX +
+            wrapperRect.width / 2 -
+            tooltipRect.width / 2;
           break;
         case 'left':
-          top = wrapperRect.top + scrollY + wrapperRect.height / 2 - tooltipRect.height / 2;
+          top =
+            wrapperRect.top +
+            scrollY +
+            wrapperRect.height / 2 -
+            tooltipRect.height / 2;
           left = wrapperRect.left + scrollX - tooltipRect.width - 8;
           break;
         case 'right':
-          top = wrapperRect.top + scrollY + wrapperRect.height / 2 - tooltipRect.height / 2;
+          top =
+            wrapperRect.top +
+            scrollY +
+            wrapperRect.height / 2 -
+            tooltipRect.height / 2;
           left = wrapperRect.right + scrollX + 8;
           break;
       }
@@ -79,8 +95,7 @@ const Tooltip: React.FC<TooltipProps> = ({
     }
   };
 
-  // Add aria-label to child if it's a button/link and doesn't have one
-  const childWithProps = React.Children.map(children, (child) => {
+  const childWithProps = React.Children.map(children, child => {
     if (React.isValidElement(child)) {
       const props: any = {
         onMouseEnter: showTooltip,
@@ -88,7 +103,7 @@ const Tooltip: React.FC<TooltipProps> = ({
         onFocus: showTooltip,
         onBlur: hideTooltip,
         onKeyDown: handleKeyDown,
-        'aria-label': ariaLabel || (typeof child.props['aria-label'] === 'undefined' ? text : undefined),
+        'aria-describedby': isVisible ? tooltipId : undefined,
       };
       return React.cloneElement(child, props);
     }
@@ -98,9 +113,10 @@ const Tooltip: React.FC<TooltipProps> = ({
   return (
     <div ref={wrapperRef} className={`relative inline-block ${className}`}>
       {childWithProps}
-      {isVisible && text && (
+      {text && (
         <div
           ref={tooltipRef}
+          id={tooltipId}
           role="tooltip"
           className={`fixed z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-md shadow-lg pointer-events-none whitespace-nowrap ${
             isVisible ? 'opacity-100' : 'opacity-0'
@@ -109,7 +125,6 @@ const Tooltip: React.FC<TooltipProps> = ({
             top: `${tooltipPosition.top}px`,
             left: `${tooltipPosition.left}px`,
           }}
-          id={`tooltip-${text.replace(/\s+/g, '-').toLowerCase()}`}
         >
           {text}
           {/* Tooltip arrow */}

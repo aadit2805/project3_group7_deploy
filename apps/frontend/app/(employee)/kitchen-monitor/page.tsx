@@ -208,7 +208,7 @@ export default function KitchenMonitor() {
             </button>
           </Link>
           <Link href="/manager/inventory">
-            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            <button className="bg-primary text-white px-4 py-2 rounded hover:bg-blue-600">
               Inventory Manager
             </button>
           </Link>
@@ -289,7 +289,7 @@ export default function KitchenMonitor() {
             </span>
             <button
               onClick={() => setIsCompactView(!isCompactView)}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-semibold"
+              className="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-semibold"
             >
               {isCompactView ? 'Switch to Expanded' : 'Switch to Compact'}
             </button>
@@ -385,7 +385,7 @@ export default function KitchenMonitor() {
                 {isCompactView ? (
                   <button
                     onClick={() => markOrderDone(order.order_id)}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-1.5 px-2 rounded transition-colors duration-200 shadow-sm hover:shadow-md flex items-center justify-center"
+                    className="w-full bg-success hover:bg-green-600 text-white font-semibold py-1.5 px-2 rounded transition-colors duration-200 shadow-sm hover:shadow-md flex items-center justify-center"
                     title="Mark as done"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -400,7 +400,7 @@ export default function KitchenMonitor() {
                 ) : (
                   <button
                     onClick={() => markOrderDone(order.order_id)}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg button-press animate-bounce-in"
+                    className="w-full bg-success hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg button-press animate-bounce-in"
                   >
                     DONE
                   </button>

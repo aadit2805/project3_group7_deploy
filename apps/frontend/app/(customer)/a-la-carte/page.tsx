@@ -242,7 +242,7 @@ const ALaCartePage = () => {
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center sm:text-left">{t.title}</h1>
         <Link
           href="/shopping-cart"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg inline-flex items-center"
+          className="bg-primary hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg inline-flex items-center"
           aria-label={t.shoppingCart}
         >
           <Tooltip text={t.shoppingCart} position="bottom">
@@ -264,7 +264,7 @@ const ALaCartePage = () => {
           </Tooltip>
           {t.shoppingCart}
           {itemCount > 0 && (
-            <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-1 text-sm">
+            <span className="ml-2 bg-danger text-white rounded-full px-2 py-1 text-sm">
               {itemCount}
             </span>
           )}
@@ -306,7 +306,7 @@ const ALaCartePage = () => {
             onClick={() => setSelectedCategory(null)}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               selectedCategory === null
-                ? 'bg-blue-500 text-white'
+                ? 'bg-primary text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
             aria-label={t.allItems}
@@ -318,7 +318,7 @@ const ALaCartePage = () => {
             onClick={() => setSelectedCategory('entree')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
               selectedCategory === 'entree'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-primary text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
             aria-label={t.entrees}
@@ -330,7 +330,7 @@ const ALaCartePage = () => {
             onClick={() => setSelectedCategory('side')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
               selectedCategory === 'side'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-primary text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
             aria-label={t.sides}
@@ -342,7 +342,7 @@ const ALaCartePage = () => {
             onClick={() => setSelectedCategory('drink')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
               selectedCategory === 'drink'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-primary text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
             aria-label={t.drinks}
@@ -396,7 +396,7 @@ const ALaCartePage = () => {
                     </h3>
                     <p className="text-sm text-gray-600 mb-4 capitalize">{item.item_type}</p>
                     {isOutOfStock && (
-                      <div className="mb-4 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full inline-block">
+                      <div className="mb-4 px-3 py-1 bg-danger text-white text-sm font-semibold rounded-full inline-block">
                         Out of Stock
                       </div>
                     )}
@@ -409,7 +409,7 @@ const ALaCartePage = () => {
                             className={`${
                               isOutOfStock
                                 ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-500 hover:bg-blue-700'
+                                : 'bg-primary hover:bg-blue-700'
                             } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.small}`}
                           >
@@ -421,7 +421,7 @@ const ALaCartePage = () => {
                             className={`${
                               isOutOfStock
                                 ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-500 hover:bg-blue-700'
+                                : 'bg-primary hover:bg-blue-700'
                             } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.medium}`}
                           >
@@ -433,7 +433,7 @@ const ALaCartePage = () => {
                             className={`${
                               isOutOfStock
                                 ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-500 hover:bg-blue-700'
+                                : 'bg-primary hover:bg-blue-700'
                             } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.large}`}
                           >
@@ -449,7 +449,7 @@ const ALaCartePage = () => {
                             className={`${
                               isOutOfStock
                                 ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-500 hover:bg-blue-700'
+                                : 'bg-primary hover:bg-blue-700'
                             } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.small}`}
                           >
@@ -461,7 +461,7 @@ const ALaCartePage = () => {
                             className={`${
                               isOutOfStock
                                 ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-500 hover:bg-blue-700'
+                                : 'bg-primary hover:bg-blue-700'
                             } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.medium}`}
                           >
@@ -473,7 +473,7 @@ const ALaCartePage = () => {
                             className={`${
                               isOutOfStock
                                 ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-500 hover:bg-blue-700'
+                                : 'bg-primary hover:bg-blue-700'
                             } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.large}`}
                           >
@@ -489,7 +489,7 @@ const ALaCartePage = () => {
                             className={`${
                               isOutOfStock
                                 ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-500 hover:bg-blue-700'
+                                : 'bg-primary hover:bg-blue-700'
                             } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.small}`}
                           >
@@ -501,7 +501,7 @@ const ALaCartePage = () => {
                             className={`${
                               isOutOfStock
                                 ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-500 hover:bg-blue-700'
+                                : 'bg-primary hover:bg-blue-700'
                             } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.medium}`}
                           >
@@ -513,7 +513,7 @@ const ALaCartePage = () => {
                             className={`${
                               isOutOfStock
                                 ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-500 hover:bg-blue-700'
+                                : 'bg-primary hover:bg-blue-700'
                             } text-white font-bold py-1 px-3 rounded text-sm button-press transition-all duration-200 hover:shadow-md`}
                             aria-label={`${t.add} ${item.name} ${t.large}`}
                           >

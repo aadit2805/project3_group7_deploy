@@ -135,7 +135,7 @@ export default function ActiveOrdersList() {
         <p className="text-red-600 text-sm mt-1">{error}</p>
         <button
           onClick={fetchActiveOrders}
-          className="mt-3 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm"
+          className="mt-3 px-4 py-2 bg-danger text-white rounded hover:bg-red-600 transition-colors text-sm"
         >
           Retry
         </button>
@@ -149,7 +149,7 @@ export default function ActiveOrdersList() {
         <h2 className="text-2xl font-bold text-gray-800">Active Orders</h2>
         <button
           onClick={fetchActiveOrders}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm"
+          className="px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition-colors text-sm"
         >
           Refresh
         </button>

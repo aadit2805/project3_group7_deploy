@@ -263,7 +263,7 @@ export default function AuditLogsPage() {
               onClick={() => handlePresetClick('today')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activePreset === 'today'
-                  ? 'bg-blue-500 text-white shadow-md'
+                  ? 'bg-primary text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -273,7 +273,7 @@ export default function AuditLogsPage() {
               onClick={() => handlePresetClick('last7days')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activePreset === 'last7days'
-                  ? 'bg-blue-500 text-white shadow-md'
+                  ? 'bg-primary text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -283,7 +283,7 @@ export default function AuditLogsPage() {
               onClick={() => handlePresetClick('last30days')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activePreset === 'last30days'
-                  ? 'bg-blue-500 text-white shadow-md'
+                  ? 'bg-primary text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -293,7 +293,7 @@ export default function AuditLogsPage() {
               onClick={() => handlePresetClick('thisMonth')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activePreset === 'thisMonth'
-                  ? 'bg-blue-500 text-white shadow-md'
+                  ? 'bg-primary text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -303,7 +303,7 @@ export default function AuditLogsPage() {
               onClick={() => handlePresetClick('lastMonth')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activePreset === 'lastMonth'
-                  ? 'bg-blue-500 text-white shadow-md'
+                  ? 'bg-primary text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >

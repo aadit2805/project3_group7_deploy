@@ -416,7 +416,7 @@ Error: ${errorData.error}`
             </div>
             <button
               onClick={handleSubmitOrder}
-              className="w-full sm:w-auto bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl mt-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+              className="w-full sm:w-auto bg-success hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl mt-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
               disabled={isTranslating || order.length === 0}
               aria-label={`Submit order with ${order.length} item${order.length !== 1 ? 's' : ''}, total ${finalPrice.toFixed(2)} dollars`}
             >

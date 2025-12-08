@@ -119,7 +119,7 @@ const MealTypeSelection = () => {
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center sm:text-left">{t.title}</h1>
           <Link
             href="/shopping-cart"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg inline-flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg inline-flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             aria-label={`View shopping cart${itemCount > 0 ? ` with ${itemCount} item${itemCount !== 1 ? 's' : ''}` : ', currently empty'}`}
           >
             <Tooltip text={t.shoppingCart} position="bottom">
@@ -142,7 +142,7 @@ const MealTypeSelection = () => {
             <span>{t.shoppingCart}</span>
             {itemCount > 0 && (
               <span
-                className="ml-2 bg-red-500 text-white rounded-full px-2 py-1 text-sm"
+                className="ml-2 bg-danger text-white rounded-full px-2 py-1 text-sm"
                 aria-label={`${itemCount} items in cart`}
               >
                 {itemCount}

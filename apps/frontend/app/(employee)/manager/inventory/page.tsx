@@ -187,7 +187,7 @@ const InventoryManager = () => {
           </button>
         </Link>
         <Link href="/kitchen-monitor">
-          <button className="bg-blue-500 text-white px-3 sm:px-4 py-2 rounded hover:bg-blue-600 min-h-[44px] text-sm sm:text-base">
+          <button className="bg-primary text-white px-3 sm:px-4 py-2 rounded hover:bg-blue-600 min-h-[44px] text-sm sm:text-base">
             Kitchen Monitor
           </button>
         </Link>
@@ -220,7 +220,7 @@ const InventoryManager = () => {
             <h2 className="text-lg sm:text-xl font-semibold">Food Inventory</h2>
             <div className="flex space-x-2">
               <Link href="/manager/restock-report">
-                <button className="bg-green-500 text-white px-3 sm:px-4 py-2 rounded min-h-[44px] text-sm sm:text-base whitespace-nowrap">
+                <button className="bg-success text-white px-3 sm:px-4 py-2 rounded min-h-[44px] text-sm sm:text-base whitespace-nowrap">
                   Generate Restock Report
                 </button>
               </Link>
@@ -266,7 +266,7 @@ const InventoryManager = () => {
             <h2 className="text-lg sm:text-xl font-semibold">Non-Food Inventory</h2>
             <button
               onClick={() => openModal(null, false, false)}
-              className="bg-blue-500 text-white px-3 sm:px-4 py-2 rounded min-h-[44px] text-sm sm:text-base whitespace-nowrap"
+              className="bg-primary text-white px-3 sm:px-4 py-2 rounded min-h-[44px] text-sm sm:text-base whitespace-nowrap"
             >
               Add Non-Food Item
             </button>
@@ -343,14 +343,14 @@ const InventoryManager = () => {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
                 <button
                   type="submit"
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline min-h-[44px] text-sm sm:text-base"
+                  className="bg-primary hover:bg-blue-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline min-h-[44px] text-sm sm:text-base"
                 >
                   Save
                 </button>
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline min-h-[44px] text-sm sm:text-base"
+                  className="bg-danger hover:bg-red-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline min-h-[44px] text-sm sm:text-base"
                 >
                   Cancel
                 </button>
