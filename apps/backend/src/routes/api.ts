@@ -49,6 +49,7 @@ import {
   updateLocalStaffController,
   updateLocalStaffPasswordController,
   createLocalStaffController,
+  deleteLocalStaffController,
   staffLoginController,
   getAuthenticatedUserController, // Import getAuthenticatedUserController
 } from '../controllers/staffController'; // Import all staff controllers
@@ -73,6 +74,7 @@ import pool from '../config/db';
 import translationRoutes from './translation.routes';
 import weatherRoutes from './weather.routes';
 import inventoryRoutes from './inventory.routes';
+import productUsageRoutes from './productUsage.routes';
 import { isAuthenticated, isManager, isCashierOrManager } from '../middleware/auth';
 import { authenticateCustomer } from '../middleware/customerAuth'; // Import authenticateCustomer
 import axios from 'axios';
@@ -84,6 +86,9 @@ router.get('/user', isAuthenticated, getAuthenticatedUserController);
 
 // Inventory routes
 router.use('/inventory', inventoryRoutes);
+
+// Product usage analytics routes (manager only)
+router.use('/product-usage', isAuthenticated, isManager, productUsageRoutes);
 
 // GET /api/menu-items
 router.get('/menu-items', getMenuItems);
@@ -130,6 +135,7 @@ router.put(
   isManager,
   updateLocalStaffPasswordController
 ); // New route for updating local staff password
+router.delete('/staff/local/:id', isAuthenticated, isManager, deleteLocalStaffController); // Delete local staff
 // GET /api/orders/prepared - Get prepared orders (completed but not addressed)
 router.get('/orders/prepared', isAuthenticated, getPreparedOrders);
 

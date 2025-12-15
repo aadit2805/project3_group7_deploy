@@ -70,4 +70,49 @@ router.put('/:id/role', isManager, async (req: Request, res): Promise<void> => {
   }
 });
 
+// DELETE /api/users/:id - Delete a user (Manager only)
+router.delete('/:id', isManager, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Get user details before deletion for audit log
+    const userToDelete = await prisma.user.findUnique({
+      where: { id: parseInt(id, 10) },
+    });
+
+    if (!userToDelete) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Prevent deleting yourself
+    if (req.user && req.user.id === parseInt(id, 10)) {
+      res.status(400).json({ error: 'Cannot delete your own account' });
+      return;
+    }
+
+    // Delete the user
+    await prisma.user.delete({
+      where: { id: parseInt(id, 10) },
+    });
+
+    // Log audit entry
+    await createAuditLog(req, {
+      action_type: 'DELETE',
+      entity_type: 'user',
+      entity_id: String(id),
+      old_values: userToDelete,
+      description: `Deleted user: ${userToDelete.name || userToDelete.email || 'Unknown'} (ID: ${id}, Role: ${userToDelete.role})`,
+    });
+
+    res.json({ 
+      message: 'User deleted successfully',
+      deletedUser: userToDelete 
+    });
+  } catch (error) {
+    console.error(`Failed to delete user ${id}:`, error);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
 export default router;

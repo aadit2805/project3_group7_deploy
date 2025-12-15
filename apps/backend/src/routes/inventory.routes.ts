@@ -6,16 +6,18 @@ import {
   updateInventoryItem,
   getMenuItems,
   addFoodItemWithMenuItem,
-  getRestockReport, // Import the new controller function
+  getRestockReport,
+  deleteInventoryItem, // Import the delete controller function
 } from '../controllers/inventoryController';
 
 const router = Router();
 
 router.get('/', getInventory);
 router.get('/low-stock', getLowStock);
-router.get('/restock-report', getRestockReport); // Add the new route
+router.get('/restock-report', getRestockReport);
 router.post('/', addInventoryItem);
 router.put('/:id', updateInventoryItem);
+router.delete('/:id', deleteInventoryItem); // Add DELETE route
 router.get('/menu-items', getMenuItems);
 router.post('/food-with-menu-item', addFoodItemWithMenuItem);
 

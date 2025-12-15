@@ -245,3 +245,57 @@ export const createLocalStaffController = async (req: Request, res: Response): P
     res.status(500).json({ message: error.message || 'Internal server error' });
   }
 };
+
+/**
+ * Delete a local staff member
+ * Prevents self-deletion for security
+ * Creates audit log entry for the deletion
+ */
+export const deleteLocalStaffController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const staff_id = parseInt(req.params.id, 10);
+
+    if (isNaN(staff_id)) {
+      res.status(400).json({ message: 'Invalid staff ID' });
+      return;
+    }
+
+    // Get staff details before deletion for audit log
+    const staffToDelete = await prisma.staff.findUnique({
+      where: { staff_id },
+    });
+
+    if (!staffToDelete) {
+      res.status(404).json({ message: 'Staff member not found' });
+      return;
+    }
+
+    // Prevent deleting yourself
+    if (req.user && (req.user as any).staff_id === staff_id) {
+      res.status(400).json({ message: 'Cannot delete your own account' });
+      return;
+    }
+
+    // Delete the staff member
+    await prisma.staff.delete({
+      where: { staff_id },
+    });
+
+    // Log audit entry
+    await createAuditLog(req, {
+      action_type: 'DELETE',
+      entity_type: 'staff',
+      entity_id: String(staff_id),
+      old_values: staffToDelete,
+      description: `Deleted staff member: ${staffToDelete.username} (ID: ${staff_id}, Role: ${staffToDelete.role})`,
+    });
+
+    res.status(200).json({ 
+      message: 'Staff member deleted successfully',
+      deletedStaff: staffToDelete 
+    });
+  } catch (error: any) {
+    console.error('Error in deleteLocalStaffController:', error);
+    res.status(500).json({ message: error.message || 'Internal server error' });
+  }
+};

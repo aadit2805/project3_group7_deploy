@@ -278,3 +278,50 @@ export const addFoodItemWithMenuItem = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Something went wrong' });
   }
 };
+
+/**
+ * Delete a non-food inventory item
+ * Only non-food items can be deleted (food inventory is linked to menu items)
+ * Creates audit log entry for the deletion
+ */
+export const deleteInventoryItem = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { is_food } = req.body;
+
+    // Only allow deletion of non-food items
+    if (is_food) {
+      return res.status(400).json({ 
+        error: 'Cannot delete food inventory items. Food inventory is linked to menu items.' 
+      });
+    }
+
+    // Get the item details before deletion for audit log
+    const item = await db.non_food_inventory.findUnique({
+      where: { supply_id: Number(id) },
+    });
+
+    if (!item) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    // Delete the non-food inventory item
+    await db.non_food_inventory.delete({
+      where: { supply_id: Number(id) },
+    });
+
+    // Log audit entry
+    await createAuditLog(req, {
+      action_type: 'DELETE',
+      entity_type: 'non_food_inventory',
+      entity_id: String(id),
+      old_values: item,
+      description: `Deleted non-food inventory item: ${item.name} (ID: ${id})`,
+    });
+
+    return res.json({ message: 'Item deleted successfully', deletedItem: item });
+  } catch (error) {
+    console.error('Error deleting inventory item:', error);
+    return res.status(500).json({ error: 'Something went wrong' });
+  }
+};
