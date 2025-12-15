@@ -133,6 +133,10 @@ const InventoryManager = () => {
       if (res.ok) {
         fetchData();
         closeModal();
+        addToast({
+          message: `Item ${isEdit ? 'updated' : 'added'} successfully`,
+          type: 'success',
+        });
       } else {
         const errorData = await res.json();
         console.error('Failed to save item:', errorData.error || res.statusText);
@@ -145,6 +149,42 @@ const InventoryManager = () => {
       console.error('Failed to save item', error);
       addToast({
         message: 'Failed to save item',
+        type: 'error',
+      });
+    }
+  };
+
+  // Handle deletion of non-food inventory items
+  const handleDelete = async (item: any) => {
+    if (!confirm(`Are you sure you want to delete "${item.name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/inventory/${item.supply_id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_food: false }),
+      });
+
+      if (res.ok) {
+        addToast({
+          message: 'Item deleted successfully',
+          type: 'success',
+        });
+        fetchData();
+      } else {
+        const errorData = await res.json();
+        console.error('Failed to delete item:', errorData.error || res.statusText);
+        addToast({
+          message: `Failed to delete item: ${errorData.error || res.statusText}`,
+          type: 'error',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to delete item', error);
+      addToast({
+        message: 'Failed to delete item',
         type: 'error',
       });
     }
@@ -293,7 +333,12 @@ const InventoryManager = () => {
                     >
                       Edit
                     </button>
-
+                    <button
+                      onClick={() => handleDelete(item)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded min-h-[44px] text-sm sm:text-base"
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}

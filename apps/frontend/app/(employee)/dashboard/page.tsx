@@ -20,6 +20,9 @@ import {
   Boxes,
   BriefcaseBusiness,
   TrendingUp,
+  FileCheck,
+  FileX,
+  BarChart3,
 } from 'lucide-react';
 
 /**
@@ -93,10 +96,13 @@ const dashboardNavGroups: DashboardNavGroup[] = [
     icon: TrendingUp,
     role: 'MANAGER',
     items: [
+      { href: "/manager/x-report", title: "X Report (Mid-Day)", description: "View current day's sales and transactions without closing the register.", icon: FileCheck, role: 'MANAGER' },
+      { href: "/manager/z-report", title: "Z Report (Close Day)", description: "Generate end-of-day report and close the business day.", icon: FileX, role: 'MANAGER' },
       { href: "/manager/revenue-reports", title: "Revenue Reports", description: "Access detailed daily, weekly, and monthly revenue data.", icon: DollarSign, role: 'MANAGER' },
       { href: "/manager/order-analytics", title: "Order Analytics", description: "Analyze order patterns, completion times, and customer preferences.", icon: ShoppingCart, role: 'MANAGER' },
       { href: "/manager/loyalty-analytics", title: "Loyalty Analytics", description: "Gain insights into customer loyalty programs and rewards.", icon: LineChart, role: 'MANAGER' },
       { href: "/manager/best-selling", title: "Best-Selling Items", description: "Identify top-performing menu items and adjust offerings.", icon: Package, role: 'MANAGER' },
+      { href: "/manager/product-usage", title: "Product Usage Chart", description: "Track inventory item usage over time to identify trends and patterns.", icon: BarChart3, role: 'MANAGER' },
       { href: "/manager/restock-report", title: "Restock Report", description: "Generate reports for items needing to be restocked based on current inventory.", icon: Shirt, role: 'MANAGER' },
       { href: "/manager/daily-sales", title: "Daily Sales Summary", description: "View a summary of daily sales and transactions.", icon: BarChart, role: 'MANAGER' },
     ],

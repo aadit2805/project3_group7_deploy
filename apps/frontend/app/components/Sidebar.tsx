@@ -24,7 +24,8 @@ import {
   Shirt,
   Boxes,
   FileCheck,
-  FileX
+  FileX,
+  BarChart3
 } from 'lucide-react';
 
 interface NavItem {
@@ -70,6 +71,7 @@ const navGroups: NavGroup[] = [
       { name: 'Order Analytics', href: '/manager/order-analytics', icon: ShoppingCart },
       { name: 'Loyalty Analytics', href: '/manager/loyalty-analytics', icon: LineChart },
       { name: 'Best Selling', href: '/manager/best-selling', icon: Package },
+      { name: 'Product Usage Chart', href: '/manager/product-usage', icon: BarChart3 },
       { name: 'Restock Report', href: '/manager/restock-report', icon: Shirt }, // Renamed
       { name: 'Daily Sales', href: '/manager/daily-sales', icon: BarChart }, // Moved
     ],

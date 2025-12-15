@@ -89,6 +89,10 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/weather/:path*`,
       },
       {
+        source: '/api/product-usage/:path*',
+        destination: `${backendUrl}/api/product-usage/:path*`,
+      },
+      {
         source: '/auth/:path*',
         destination: `${backendUrl}/auth/:path*`,
       },

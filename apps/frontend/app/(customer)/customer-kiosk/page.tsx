@@ -61,6 +61,7 @@ const CustomerKioskContent = () => {
   // State for past orders and recommendations
   const [pastOrders, setPastOrders] = useState<Order[]>([]);
   const [recommendedItems, setRecommendedItems] = useState<MenuItem[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   // Fetch customer's past orders for recommendations
   useEffect(() => {
@@ -98,8 +99,9 @@ const CustomerKioskContent = () => {
   }, []);
 
   // Generate recommendations based on past orders (top 3 most ordered entrees)
+  // Match with current menu items to get up-to-date stock and availability
   useEffect(() => {
-    if (pastOrders.length > 0) {
+    if (pastOrders.length > 0 && menuItems.length > 0) {
       const allEntrees = pastOrders.flatMap((order) =>
         order.order_items.flatMap((item) => item.entrees)
       );
@@ -111,15 +113,19 @@ const CustomerKioskContent = () => {
         {} as Record<number, number>
       );
 
-      const sortedEntrees = Object.keys(entreeCounts)
+      const sortedEntreeIds = Object.keys(entreeCounts)
         .sort((a, b) => entreeCounts[parseInt(b)] - entreeCounts[parseInt(a)])
         .slice(0, 3)
-        .map((id) => allEntrees.find((e) => e.menu_item_id === parseInt(id)))
-        .filter((e): e is MenuItem => e !== undefined);
+        .map((id) => parseInt(id));
 
-      setRecommendedItems(sortedEntrees);
+      // Match with current menu items to get current stock and availability data
+      const recommendedWithCurrentData = sortedEntreeIds
+        .map((id) => menuItems.find((item) => item.menu_item_id === id))
+        .filter((item): item is MenuItem => item !== undefined && item.is_available);
+
+      setRecommendedItems(recommendedWithCurrentData);
     }
-  }, [pastOrders]);
+  }, [pastOrders, menuItems]);
 
   const textLabels = [
     'Back to Meal Type Selection',
@@ -173,7 +179,6 @@ const CustomerKioskContent = () => {
 
   // State for meal customization
   const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [translatedMenuItems, setTranslatedMenuItems] = useState<Record<number, string>>({});
   const [translatedMealTypeName, setTranslatedMealTypeName] = useState<string>('');
   const [selectedEntrees, setSelectedEntrees] = useState<MenuItem[]>([]);
@@ -302,6 +307,65 @@ const CustomerKioskContent = () => {
 
     translateContent();
   }, [menuItems, selectedMealType, currentLanguage, translateBatch]);
+
+  // Handle keyboard events for interactive elements
+  const handleKeyPress = (
+    e: React.KeyboardEvent,
+    callback: () => void,
+    disabled: boolean = false
+  ) => {
+    if (disabled) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      callback();
+    }
+  };
+
+  // Handle arrow key navigation in grids
+  const handleArrowNavigation = (
+    e: React.KeyboardEvent,
+    currentIndex: number,
+    totalItems: number,
+    itemsPerRow: number = 3
+  ) => {
+    let newIndex = currentIndex;
+    
+    switch (e.key) {
+      case 'ArrowRight':
+        e.preventDefault();
+        newIndex = (currentIndex + 1) % totalItems;
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        newIndex = (currentIndex - 1 + totalItems) % totalItems;
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        newIndex = Math.min(currentIndex + itemsPerRow, totalItems - 1);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        newIndex = Math.max(currentIndex - itemsPerRow, 0);
+        break;
+      case 'Home':
+        e.preventDefault();
+        newIndex = 0;
+        break;
+      case 'End':
+        e.preventDefault();
+        newIndex = totalItems - 1;
+        break;
+      default:
+        return;
+    }
+
+    // Focus the new element
+    const selector = `[data-item-index="${newIndex}"]`;
+    const element = document.querySelector(selector) as HTMLElement;
+    if (element) {
+      element.focus();
+    }
+  };
 
   // Handle selection of menu items (entrees, sides, or drinks)
   // Prevents selection if item is out of stock
@@ -707,7 +771,10 @@ const CustomerKioskContent = () => {
                       <button
                         key={allergen}
                         onClick={() => toggleAllergenFilter(allergen)}
-                        className={`px-3 py-1 rounded-full text-sm font-semibold transition-colors ${
+                        onKeyDown={(e) => handleKeyPress(e, () => toggleAllergenFilter(allergen))}
+                        aria-pressed={allergenFilter.has(allergen)}
+                        aria-label={`${allergenFilter.has(allergen) ? 'Remove' : 'Add'} ${allergen} filter`}
+                        className={`px-3 py-1 rounded-full text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                           allergenFilter.has(allergen)
                             ? 'bg-danger text-white border-2 border-red-600'
                             : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-red-300'
@@ -742,26 +809,54 @@ const CustomerKioskContent = () => {
                 Recommended for you
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {recommendedItems.map((item, index) => (
-                  <div
-                    key={item.menu_item_id}
-                    className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 border-gray-200 hover-scale transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)}`}
-                  >
-                    <h3 className="text-xl font-bold mb-2">
-                      {translatedMenuItems[item.menu_item_id] || item.name}
-                    </h3>
-                    <p className="text-gray-700">
-                      {t.upcharge}: ${item.upcharge.toFixed(2)}
-                    </p>
-                    {renderAllergenBadge(item)}
-                    <button
-                      onClick={() => handleSelectItem(item, 'entree')}
-                      className="mt-4 px-4 py-2 bg-success text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                {recommendedItems.map((item, index) => {
+                  const isOutOfStock = (item.stock ?? 0) <= 0;
+                  const isSelected = selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id);
+                  return (
+                    <div
+                      key={item.menu_item_id}
+                      role="button"
+                      tabIndex={isOutOfStock ? -1 : 0}
+                      aria-label={`Recommended: ${translatedMenuItems[item.menu_item_id] || item.name}, ${t.upcharge}: $${item.upcharge.toFixed(2)}${isOutOfStock ? ', out of stock' : ''}`}
+                      aria-pressed={isSelected}
+                      aria-disabled={isOutOfStock}
+                      className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} focus:outline-none focus:ring-4 focus:ring-green-400 ${
+                        isOutOfStock
+                          ? 'border-red-300 bg-gray-100 opacity-60'
+                          : isSelected
+                            ? 'border-blue-500 ring-2 ring-blue-300'
+                            : 'border-green-300 hover-scale cursor-pointer'
+                      }`}
+                      onClick={() => !isOutOfStock && handleSelectItem(item, 'entree')}
+                      onKeyDown={(e) => handleKeyPress(e, () => handleSelectItem(item, 'entree'), isOutOfStock)}
                     >
-                      Add to selection
-                    </button>
-                  </div>
-                ))}
+                      <h3 className="text-xl font-bold mb-2">
+                        {translatedMenuItems[item.menu_item_id] || item.name}
+                      </h3>
+                      <p className="text-gray-700">
+                        {t.upcharge}: ${item.upcharge.toFixed(2)}
+                      </p>
+                      {isOutOfStock && (
+                        <div className="mt-2 px-3 py-1 bg-danger text-white text-sm font-semibold rounded-full inline-block">
+                          Out of Stock
+                        </div>
+                      )}
+                      {renderAllergenBadge(item)}
+                      <button
+                        onClick={() => handleSelectItem(item, 'entree')}
+                        disabled={isOutOfStock}
+                        aria-label={`Add ${translatedMenuItems[item.menu_item_id] || item.name} to selection`}
+                        className={`mt-4 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors ${
+                          isOutOfStock
+                            ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                            : 'bg-success text-white hover:bg-green-600 focus:ring-green-500'
+                        }`}
+                      >
+                        Add to selection
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}
@@ -793,10 +888,24 @@ const CustomerKioskContent = () => {
                 })
                 .map((item, index) => {
                   const isOutOfStock = (item.stock ?? 0) <= 0;
+                  const filteredEntrees = menuItems.filter((item) => {
+                    if (item.item_type !== 'entree') return false;
+                    if (!filterByAllergens(item)) return false;
+                    if (!searchQuery.trim()) return true;
+                    const searchLower = searchQuery.toLowerCase();
+                    const itemName = (translatedMenuItems[item.menu_item_id] || item.name).toLowerCase();
+                    return itemName.includes(searchLower);
+                  });
                   return (
                     <div
                       key={item.menu_item_id}
-                      className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${
+                      data-item-index={index}
+                      role="button"
+                      tabIndex={isOutOfStock ? -1 : 0}
+                      aria-label={`${translatedMenuItems[item.menu_item_id] || item.name}, ${t.upcharge}: $${item.upcharge.toFixed(2)}${isOutOfStock ? ', out of stock' : ''}. Use arrow keys to navigate, Enter or Space to select.`}
+                      aria-pressed={selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id)}
+                      aria-disabled={isOutOfStock}
+                      className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} focus:outline-none focus:ring-4 focus:ring-blue-400 ${
                         isOutOfStock
                           ? 'border-red-300 bg-gray-100 opacity-60 cursor-not-allowed'
                           : selectedEntrees.some((e) => e.menu_item_id === item.menu_item_id)
@@ -804,6 +913,12 @@ const CustomerKioskContent = () => {
                             : 'border-gray-200 cursor-pointer hover-scale'
                       }`}
                       onClick={() => !isOutOfStock && handleSelectItem(item, 'entree')}
+                      onKeyDown={(e) => {
+                        if (!isOutOfStock) {
+                          handleKeyPress(e, () => handleSelectItem(item, 'entree'));
+                          handleArrowNavigation(e, index, filteredEntrees.length, 3);
+                        }
+                      }}
                     >
                       <h3 className="text-xl font-bold mb-2">
                         {translatedMenuItems[item.menu_item_id] || item.name}
@@ -850,10 +965,24 @@ const CustomerKioskContent = () => {
                 })
                 .map((item, index) => {
                   const isOutOfStock = (item.stock ?? 0) <= 0;
+                  const filteredSides = menuItems.filter((item) => {
+                    if (item.item_type !== 'side') return false;
+                    if (!filterByAllergens(item)) return false;
+                    if (!searchQuery.trim()) return true;
+                    const searchLower = searchQuery.toLowerCase();
+                    const itemName = (translatedMenuItems[item.menu_item_id] || item.name).toLowerCase();
+                    return itemName.includes(searchLower);
+                  });
                   return (
                     <div
                       key={item.menu_item_id}
-                      className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${
+                      data-item-index={index}
+                      role="button"
+                      tabIndex={isOutOfStock ? -1 : 0}
+                      aria-label={`${translatedMenuItems[item.menu_item_id] || item.name}, ${t.upcharge}: $${item.upcharge.toFixed(2)}${isOutOfStock ? ', out of stock' : ''}. Use arrow keys to navigate, Enter or Space to select.`}
+                      aria-pressed={selectedSides.some((s) => s.menu_item_id === item.menu_item_id)}
+                      aria-disabled={isOutOfStock}
+                      className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} focus:outline-none focus:ring-4 focus:ring-blue-400 ${
                         isOutOfStock
                           ? 'border-red-300 bg-gray-100 opacity-60 cursor-not-allowed'
                           : selectedSides.some((s) => s.menu_item_id === item.menu_item_id)
@@ -861,6 +990,12 @@ const CustomerKioskContent = () => {
                             : 'border-gray-200 cursor-pointer hover-scale'
                       }`}
                       onClick={() => !isOutOfStock && handleSelectItem(item, 'side')}
+                      onKeyDown={(e) => {
+                        if (!isOutOfStock) {
+                          handleKeyPress(e, () => handleSelectItem(item, 'side'));
+                          handleArrowNavigation(e, index, filteredSides.length, 3);
+                        }
+                      }}
                     >
                       <h3 className="text-xl font-bold mb-2">
                         {translatedMenuItems[item.menu_item_id] || item.name}
@@ -908,10 +1043,24 @@ const CustomerKioskContent = () => {
                   })
                   .map((item, index) => {
                     const isOutOfStock = (item.stock ?? 0) <= 0;
+                    const filteredDrinks = menuItems.filter((item) => {
+                      if (item.item_type !== 'drink') return false;
+                      if (!filterByAllergens(item)) return false;
+                      if (!searchQuery.trim()) return true;
+                      const searchLower = searchQuery.toLowerCase();
+                      const itemName = (translatedMenuItems[item.menu_item_id] || item.name).toLowerCase();
+                      return itemName.includes(searchLower);
+                    });
                     return (
                       <div
                         key={item.menu_item_id}
-                        className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} ${
+                        data-item-index={index}
+                        role="button"
+                        tabIndex={isOutOfStock ? -1 : 0}
+                        aria-label={`${translatedMenuItems[item.menu_item_id] || item.name}, ${t.upcharge}: $${item.upcharge.toFixed(2)}${isOutOfStock ? ', out of stock' : ''}. Use arrow keys to navigate, Enter or Space to select.`}
+                        aria-pressed={selectedDrink?.menu_item_id === item.menu_item_id}
+                        aria-disabled={isOutOfStock}
+                        className={`bg-white rounded-lg shadow-md p-4 sm:p-6 border-2 transition-all duration-200 animate-scale-in animate-stagger-${Math.min((index % 4) + 1, 4)} focus:outline-none focus:ring-4 focus:ring-blue-400 ${
                           isOutOfStock
                             ? 'border-red-300 bg-gray-100 opacity-60 cursor-not-allowed'
                             : selectedDrink?.menu_item_id === item.menu_item_id
@@ -919,6 +1068,12 @@ const CustomerKioskContent = () => {
                               : 'border-gray-200 cursor-pointer hover-scale'
                         }`}
                         onClick={() => !isOutOfStock && handleSelectItem(item, 'drink')}
+                        onKeyDown={(e) => {
+                          if (!isOutOfStock) {
+                            handleKeyPress(e, () => handleSelectItem(item, 'drink'));
+                            handleArrowNavigation(e, index, filteredDrinks.length, 3);
+                          }
+                        }}
                       >
                         <h3 className="text-xl font-bold mb-2">
                           {translatedMenuItems[item.menu_item_id] || item.name}

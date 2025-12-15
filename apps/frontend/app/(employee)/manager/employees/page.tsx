@@ -220,6 +220,46 @@ const EmployeeManagementPage = () => {
     }
   };
 
+  const handleDelete = async (userId: number | string) => {
+    const userToDelete = users.find(u => u.id === userId);
+    if (!userToDelete) return;
+
+    if (currentUser?.id === userId) {
+      addToast({ message: "You cannot delete your own account.", type: 'error' });
+      return;
+    }
+
+    setConfirmTitle('Confirm Deletion');
+    setConfirmMessage(`Are you sure you want to delete ${userToDelete.name || userToDelete.username || userToDelete.email}? This action cannot be undone.`);
+    setConfirmAction(() => async () => {
+      try {
+        let response;
+        if (userToDelete.type === 'google') {
+          response = await fetch(`/api/users/${userId}`, {
+            method: 'DELETE',
+          });
+        } else { // userToDelete.type === 'local'
+          const localStaffId = parseInt(String(userId).replace('local-', ''), 10);
+          response = await fetch(`/api/staff/local/${localStaffId}`, {
+            method: 'DELETE',
+          });
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to delete user.');
+        }
+
+        setUsers(users.filter((user) => user.id !== userId));
+        addToast({ message: 'User deleted successfully!', type: 'success' });
+        setShowConfirmModal(false);
+      } catch (err: any) {
+        addToast({ message: err.message, type: 'error' });
+        setShowConfirmModal(false);
+      }
+    });
+    setShowConfirmModal(true);
+  };
+
   // Password modal handlers
   const handleChangePasswordClick = (userId: number | string) => {
     setSelectedUserId(userId);
@@ -634,23 +674,27 @@ const EmployeeManagementPage = () => {
                       <td className="px-6 py-4 whitespace-nowrap">{new Date(user.createdAt).toLocaleDateString()}</td>
 
                       <td className="px-6 py-4 whitespace-nowrap">
-
-                          {user.type === 'local' && (
-
+                          <div className="flex gap-2">
+                              {user.type === 'local' && (
+                                  <button
+                                      onClick={() => handleChangePasswordClick(user.id)}
+                                      className="px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50"
+                                  >
+                                      Change Password
+                                  </button>
+                              )}
                               <button
-
-                                  onClick={() => handleChangePasswordClick(user.id)}
-
-                                  className="ml-2 px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50"
-
+                                  onClick={() => handleDelete(user.id)}
+                                  disabled={currentUser?.id === user.id}
+                                  className={`px-3 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-opacity-50 ${
+                                      currentUser?.id === user.id
+                                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                          : 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500'
+                                  }`}
                               >
-
-                                  Change Password
-
+                                  Delete
                               </button>
-
-                          )}
-
+                          </div>
                       </td>
 
                     </tr>

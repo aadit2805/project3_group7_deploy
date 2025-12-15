@@ -17,6 +17,8 @@ import {
   Building, // Changed from BuildingStore
   DollarSign,
   PieChart,
+  FileCheck,
+  FileX,
 } from 'lucide-react';
 
 export const employeeNavigation = [
@@ -80,6 +82,18 @@ export const employeeNavigation = [
     icon: LineChart,
     items: [
       {
+        name: 'X Report (Mid-Day)',
+        href: '/manager/x-report',
+        icon: FileCheck,
+        allowedRoles: ['MANAGER'],
+      },
+      {
+        name: 'Z Report (Close Day)',
+        href: '/manager/z-report',
+        icon: FileX,
+        allowedRoles: ['MANAGER'],
+      },
+      {
         name: 'Revenue Reports',
         href: '/manager/revenue-reports',
         icon: DollarSign,
@@ -101,6 +115,12 @@ export const employeeNavigation = [
         name: 'Best Selling Items',
         href: '/manager/best-selling',
         icon: Flame,
+        allowedRoles: ['MANAGER'],
+      },
+      {
+        name: 'Product Usage Chart',
+        href: '/manager/product-usage',
+        icon: BarChart3,
         allowedRoles: ['MANAGER'],
       },
       {
